@@ -1,0 +1,277 @@
+1. Triển khai dự án trên k8s và vận hành hệ thống trên k8s
+
+* Bài 1
+K8s là gì ?
+Kubernetes là một công cụ giúp thuận lợi trong việc cấu hình tự động hóa triển khai các ứng dụng.
+
+K8s dùng để làm gì ?
+Khắc phục vấn đề tự động backup , tự động sửa lỗi , tự động tăng giảm tài nguyên phù hợp với lượng người dùng và quản lý chuyên nghiệp , tự động triển khai dự án
+
+* Bài 2
+Khi nào nên sử dụng k8s ?
+Điều kiện áp dụng giải pháp
+- Hiệu quả , minh bạch , khả năng vận hành , tối ưu chi phí
+
+Dự án phù hợp áp dụng k8s
+- Dự án lớn , dự án chạy đường dài 
+- Dự án có nhu cầu cao về mở rộng 
+- Dự án cần triển khai đa môi trường 
+- Dự án theo mô hình Microservices
+- Dự án cần khả năng tự phục hồi (Self-Healing)
+
+* Bài 3
+Triển khai Cluster 
+1. 
+node(máy chủ) có thể có nhiều pod , 
+- mỗi pod lưu trữ các containter có thể có nhiều container , pod là đơn vị nhỏ nhất trong cum k8s 
+- kubelet là thành phần nhận yêu cầu từ Kube-api-server để thực thi các pod trên node,
+- kube-proxy là thành phần network chạy trên mỗi node cho phép các pod giao tiếp với nhau và giao tiếp ra bên ngoài
+
+2. 
+Control Plane 
+- cloud-control-manager máy chủ quản lý
+- kube-api-server : là một API quy chuẩn chung để giao tiếp ở ngoài vào trong cụm
+ví dụ cloud control manager có yêu cầu lấy thông tin pod của node thì kube-api-server sẽ lấy thông tin tương ứng pod của node cần đó
+- etcd : là một csdl phân tán dùng để lưu trữ mọi cấu hình của k8s và các trạng tháng của pod , node , các tài nguyên 
+- scheduler : trách nhiệm phân phối pod tới các node trong cluster và nó sẽ xem các yếu tố như tài nguyên, ram , CPU , các chính sách , yêu cầu cụ thể khác 
+- Controller Manager : Là thành phần quản lý các controller và tiến trình để chịu trách nhiệm giám sát các trạng thái của cluster và thực hiện các hành động sửa chửa tự động nếu cần
+(Ví dụ khi dự án của bạn đang chạy trên node 1 mà bị lỗi thì controller manager sẽ tự động giám sát và tạo ra một pod mới để đảm bảo dự án của bạn chạy ổn định)
+
+* Bài 4
+Chia thành 2 môi trường chính đó là On-premise và Cloud
+Có 2 cách cài là cài đặt thủ công và cài đặt tự động 
+- Cài đặt bằng kubeadm là cài đặt thủ công và rành mạch nhất
+- Cài đặt tự động bằng kubespray , kops , RKE
+
+* Bài 5 (Triển khai trên môi trường On-premise)
+- Điều kiện tối thiểu phải có ít nhất 3 server để triển khai trong đó 1 máy làm Master mặc định là không được triển khai dự án lên đó và 2 node còn lại làm worker có thể triển khai dự án
+- Triển khai ít nhât 3 máy chủ ubuntu 1 máy làm Master , 2 máy còn lại làm worker
+
+bước 1 :
+- vào nano /etc/hosts sau đó add 3 IP server của 3 cụm node vào và sau đó đặt tên k8s-master-1 , k8s-master-2 , k8s-master-3 cho từng ip đó và làm như thế với 2 node còn lại
+- vào nano /etc/hostname của 3 server thành k8s-master-1 , k8s-master-2 , k8s-master-3
+bước 2 :
+* k8s-master-1 && k8s-master-2 && k8s-master-3 
+- sudo apt update -y && sudo apt upgrade -y
+- adduser devops-k8s 
+- usermod -aG sudo devops-k8s
+- su devops-k8s
+- sudo swapoff -a 
+- cat /etc/fstab
+- sudo sed -i '/swap.img/s/^/#/' /etc/fstab
+- sudo tee /etc/modules-load.d/containerd.conf <<EOF overlay br_netfilter EOF overlay br_netfilter
+- sudo modprobe overlay
+- sudo modprobe br_netfilter
+- sudo tee /etc/sysctl.d/kubernetes.conf <<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+- sudo sysctl --system
+- sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates
+- sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/docker.gpg
+- sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+- sudo apt update -y
+- sudo apt install -y containerd.io
+- containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
+- sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+- sudo systemctl restart containerd
+- sudo systemctl enable containerd
+- sudo systemctl status containerd
+- echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+- sudo apt update -y
+- sudo apt install -y kubelet kubeadm kubectl
+- sudo apt-mark hold kubelet kubeadm kubectl
+
+bước 3 : 
+
+Chọn k8s-master-1 làm cụm master 
+- sudo kubeadm init  
+- mkdir -p $HOME/.kube
+- sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+- sudo chown $(id -u):$(id -g) $HOME/.kube/config
+( ta sẽ thấy thông tin câu lệnh kubeadm join ip của cụm k8s-master-1:6443 --token h2kmsp. và sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2)
+- kubectl get nodes
+- kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
+- kubectl get nodes
+
+// khiến cụm master cũng có thể đẩy được dự án lên 3 cụm vừa lá master vừa là worker
+- sudo kubeadm reset -f ( chạy trên cả 3 cụm )
+- sudo rm -rf /var/lib/etcd
+- sudo rm -rf /etc/kubernetes/manifests/*
+- kubectl get no
+- clear 
+- sudo kubeadm init --control-plane-endpoint "ip-server-k8s-master-1:6443" --upload-certs
+- mkdir -p $HOME/.kube
+- sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+- sudo chown $(id -u):$(id -g) $HOME/.kube/config
+- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
+( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes) nhưng với vai trò là --control-plane --certificate-key 
+- kubectl get no
+- kubectl taint nodes k8s-master-1 node-role.kubernetes.io/control-plane:NoSchedule-
+- kubectl taint nodes k8s-master-2 node-role.kubernetes.io/control-plane:NoSchedule-
+- kubectl taint nodes k8s-master-3 node-role.kubernetes.io/control-plane:NoSchedule-
+
+Chọn k8s-master-1 && k8s-master-2 làm cụm worker
+- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
+( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes)
+
+// khiến cụm master cũng có thể đẩy được dự án lên 3 cụm vừa lá master vừa là worker
+- sudo kubeadm reset -f ( chạy trên cả 3 cụm )
+- sudo rm -rf /var/lib/etcd
+- sudo rm -rf /etc/kubernetes/manifests/*
+- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
+( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes) nhưng với vai trò là --control-plane --certificate-key 
+
+
+* bài 6
+Triển khai kubernetes trên nền tảng GCP (GKE)
+- Đăng ký visa và đăng ký tài khoản gg cloud để được 300$ miễn phí 
+- vào 3 thanh sọc -> kubernetes Engine -> Clusters -> Create -> Standard:you manage Your Cluster(Configure)
+- Sau đó sẽ thấy  (Cluster basics) -> đặt tên (Cluster) theo dự án hoặc môi trường -> Zone(asia-northeast1-c) -> target release channel (regular) // đừng vội nhấn create
+  Sang tab (Fleet registration) // chưa cần thiết nên không chọn gì 
+  Chọn Default-pool ( để mặc định ) -> nodes -> image type -> Ubuntu with containerd
+				    -> Networking ( để mặc định )
+				    -> Security ( để mặc định )
+				    -> Metadata -> Kubernetes lables -> ADD KUBERNETS LABEL ( key 1 : env , value : develop )
+  Cluster -> Tất cả đều đều mặc định -> Create
+- Sau khi dựng xong chọn CONNECT -> sau đó enter để xác thực kết nối 
+-				 - kubectl get node -o wide
+
+* bài 7
+Mô hình triển khai dự án trên k8s , reaseach kubernetest flow 
+
+* bài 8
+File yaml Cấu hình trong k8s
+
+- Ưu điểm file yaml
+. Cú pháp đơn giản
+. Định dạng phong phú 
+. Cấu trúc rõ ràng 
+. Cộng đồng lơn
+
+- Cấu trúc file yaml
+. key là tên thuộc tính
+. value là giá trị tương ứng
+➡️ Ví dụ trong Kubernetes: name: my-app
+
+	key: value
+ 	map:
+	    key1: value1
+	    key2: value2
+	list :
+	  - element1
+	  - element2
+        # This is a comment
+	listOfMaps:
+	  - key1: value1a
+	    key2: value1b
+	  - key1: value2a
+	    key2: value2b
+
+	// Example 
+	containers:
+  	  - name: app
+            image: nginx
+	  - name: sidecar
+    	    image: busybox
+	env:
+  	  - name: DB_HOST
+            value: localhost
+  	  - name: DB_PORT
+	    value: "5432"
+
+
+- Thành phần chính cấu trúc yaml k8s
+	apiVersion: v1 -> Dùng cho: Tài nguyên cơ bản (core resources)
+	Ví dụ: Pod, Service, ConfigMap, Secret, Namespace, PersistentVolume, PersistentVolumeClaim,..., ReplicaSet
+	
+	apiVersion: apps/v1  -> Dùng cho: Quản lý workload (ứng dụng chạy trên cluster)
+	Ví dụ: Deployment, StatefulSet, DaemonSet, ReplicaSet
+	
+	apiVersion: batch/v1 -> Dùng cho: Tác vụ theo lô hoặc định kỳ
+	Ví dụ: Job, CronJob
+	
+	apiVersion: networking.k8s.io/v1 -> Dùng cho: Mạng và ingress
+	Ví dụ: Ingress, NetworkPolicy 
+	
+	apiVersion: policy/v1 -> Dùng cho: Chính sách bảo mật
+	Ví dụ: PodDisruptionBudget (giới hạn số Pod bị stop khi cập nhật)
+	
+	apiVersion: rbac.authorization.k8s.io/v1 -> Dùng cho: Phân quyền truy cập (RBAC)
+	Ví dụ: Role, ClusterRole, RoleBinding, ClusterRoleBinding
+	
+	apiVersion: autoscaling/v1 -> Dùng cho: Tự động scaling (tự tăng/giảm tài nguyên)
+	Ví dụ: HorizontalPodAutoscaler (HPA)
+
+	apiVersion: storage.k8s.io/v1 -> Dùng cho: Cấu hình lưu trữ
+	Ví dụ: StorageClass, CSIDriver, VolumeAttachment
+
+	✅ kind: Pod
+	Ý nghĩa: Là đơn vị nhỏ nhất trong Kubernetes, chứa container hoặc nhiều container chạy chung network.
+
+	Khi dùng: Khi bạn muốn chạy một container (hoặc vài cái gắn liền) đơn lẻ.
+
+	Lưu ý: Không nên deploy trực tiếp Pod trong production — dùng Deployment sẽ tốt hơn.
+
+	✅ kind: Deployment
+	Ý nghĩa: Quản lý việc tạo và cập nhật nhiều bản sao (Replica) của một Pod.
+
+	Khi dùng: Khi muốn deploy ứng dụng ổn định, có khả năng tự động cập nhật, rollback.
+
+	Ví dụ: Web app, backend services...
+
+	✅ kind: StatefulSet
+	Ý nghĩa: Tương tự Deployment nhưng dành cho ứng dụng có trạng thái, yêu cầu lưu trữ ổn định và tên định danh cố định.
+
+	Khi dùng: Database như MySQL, PostgreSQL, Kafka, Zookeeper...
+
+	Lưu ý: Các Pod sẽ được tạo theo thứ tự, và có volume riêng gắn liền với tên Pod.
+
+	✅ kind: DaemonSet
+	Ý nghĩa: Đảm bảo mỗi node đều có 1 bản chạy của Pod.
+
+	Khi dùng: Chạy các agent như log collector (Fluentd, Filebeat), monitoring (Prometheus Node Exporter).
+
+	Đặc biệt: Tự động thêm Pod khi có node mới được thêm vào cluster.
+
+	✅ kind: Service
+	Ý nghĩa: Cung cấp endpoint ổn định (DNS/IP ảo) để các Pod khác có thể truy cập.
+
+	Khi dùng: Khi muốn expose Pod ra bên ngoài hoặc kết nối giữa các Pod nội bộ.
+
+	Loại phổ biến: ClusterIP, NodePort, LoadBalancer.
+
+	✅ kind: Ingress
+	Ý nghĩa: Cung cấp routing HTTP(S) đến Service theo domain/path.
+
+	Khi dùng: Khi bạn cần truy cập ứng dụng từ bên ngoài qua địa chỉ như myapp.com.
+
+	Yêu cầu: Cần cài Ingress Controller (nghĩ như reverse proxy).
+
+	✅ kind: ConfigMap
+	Ý nghĩa: Lưu trữ cấu hình dạng key-value không nhạy cảm.
+
+	Khi dùng: Truyền file config, biến môi trường vào Pod.
+
+	Ví dụ: application.properties, flags...
+
+	✅ kind: Secret
+	Ý nghĩa: Tương tự ConfigMap nhưng dùng để lưu thông tin nhạy cảm (đã mã hóa base64).
+
+	Khi dùng: Lưu mật khẩu, token, SSH key...
+
+	An toàn hơn ConfigMap: Vì kube-apiserver xử lý đặc biệt.
+
+	✅ kind: PersistentVolume (PV)
+	Ý nghĩa: Tài nguyên lưu trữ được cung cấp bởi admin (file system, cloud disk…).
+
+	Khi dùng: Tạo volume lưu trữ cố định cho Pod.
+
+	✅ kind: PersistentVolumeClaim (PVC)
+	Ý nghĩa: Lời yêu cầu sử dụng PV của người dùng.
+
+	Khi dùng: Gắn volume vào Pod bằng cách claim (yêu cầu) từ PV có sẵn hoặc tự tạo theo StorageClass
