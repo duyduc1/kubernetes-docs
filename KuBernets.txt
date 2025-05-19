@@ -91,6 +91,7 @@ EOF
 bước 3 : 
 
 Chọn k8s-master-1 làm cụm master 
+- sudo nano /etc/containerd/config.toml -> sandbox_image = "registry.k8s.io/pause:3.9"
 - sudo kubeadm init  
 - mkdir -p $HOME/.kube
 - sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
