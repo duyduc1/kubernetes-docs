@@ -100,6 +100,8 @@ Chọn k8s-master-1 làm cụm master
 - kubectl get nodes
 - kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
 - kubectl get nodes
+- kubectl label node k8s-master-2 node-role.kubernetes.io/worker=
+- kubectl label node k8s-master-3 node-role.kubernetes.io/worker=
 
 // khiến cụm master cũng có thể đẩy được dự án lên 3 cụm vừa lá master vừa là worker
 - sudo kubeadm reset -f ( chạy trên cả 3 cụm )
@@ -120,6 +122,7 @@ Chọn k8s-master-1 làm cụm master
 
 Chọn k8s-master-2 && k8s-master-3 làm cụm worker
 - copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
+- kubectl get nodes
 ( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes)
 
 // khiến cụm master cũng có thể đẩy được dự án lên 3 cụm vừa lá master vừa là worker
