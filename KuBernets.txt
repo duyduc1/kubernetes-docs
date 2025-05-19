@@ -276,8 +276,10 @@ File yaml Cấu hình trong k8s
 	Ý nghĩa: Tài nguyên lưu trữ được cung cấp bởi admin (file system, cloud disk…).
 
 	Khi dùng: Tạo volume lưu trữ cố định cho Pod.
-
+	
 	✅ kind: PersistentVolumeClaim (PVC)
 	Ý nghĩa: Lời yêu cầu sử dụng PV của người dùng.
 
 	Khi dùng: Gắn volume vào Pod bằng cách claim (yêu cầu) từ PV có sẵn hoặc tự tạo theo StorageClass
+	✅ Metadata, 
+	✅ spec
