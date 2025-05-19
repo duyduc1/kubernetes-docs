@@ -59,7 +59,10 @@ bước 2 :
 - sudo swapoff -a 
 - cat /etc/fstab
 - sudo sed -i '/swap.img/s/^/#/' /etc/fstab
-- sudo tee /etc/modules-load.d/containerd.conf <<EOF overlay br_netfilter EOF overlay br_netfilter
+- sudo tee /etc/modules-load.d/containerd.conf <<EOF
+overlay
+br_netfilter
+EOF
 - sudo modprobe overlay
 - sudo modprobe br_netfilter
 - sudo tee /etc/sysctl.d/kubernetes.conf <<EOF
