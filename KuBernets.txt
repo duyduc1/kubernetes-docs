@@ -283,3 +283,38 @@ File yaml Cấu hình trong k8s
 	Khi dùng: Gắn volume vào Pod bằng cách claim (yêu cầu) từ PV có sẵn hoặc tự tạo theo StorageClass
 	✅ Metadata, 
 	✅ spec
+* Bài 9 
+NameSpace trong K8S
+	- Trong k8s namespace là một cách tổ chức và phân tách các tài nguyên trong một cụm k8s để quả lý tốt hơn , được sử sụng để chia nhỏ tài nguyên của một cụm lớn thành các không gian làm việc logic nhỏ hơn , giúp dễ dàng quản lý và vận hành 
+	- vào k8s-master-1 
+		* kubectl get pod --namespace default
+		* kubectl get ns
+		* kubectl create ns project-1 (sẽ tạo ra namespace/project-1 created)
+		* kubectl delete ns project-1 (sẽ xoá namespace/project-1 deleted)
+		* mkdir projects
+		* cd projects
+		* mkdir project-1
+		* cd project-1
+		* nano ns.yaml
+			apiVersion: v1
+			kind: Namespace
+			metadata:
+			  name: project-1
+		* kubectl apply -f ns.yaml(namespace/project-1 created)
+		* kubectl get ns
+		* ls
+		* kubectl delete -f ns.yaml(namespace/project-1 deleted)
+		* kubectl apply -f ns.yaml(namespace/project-1 created)
+		* nano resourcequota.yaml
+			apiVersion: v1
+			kind: ResourceQuota
+			metadata:
+			  name: mem-cpu-quota
+			  namespace: project-1
+			spec:
+			  hard:
+			    requets.cpu: "2"
+			    requets.memory: 4Gi
+		* kubectl apply -f resourcequota.yaml
+		* ls
+			
