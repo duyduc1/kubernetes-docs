@@ -296,7 +296,7 @@ NameSpace trong K8S
 		* cd projects
 		* mkdir project-1
 		* cd project-1
-		* nano ns.yaml
+		* nano ns.yaml // tạo ra một namespace
 			apiVersion: v1
 			kind: Namespace
 			metadata:
@@ -306,7 +306,7 @@ NameSpace trong K8S
 		* ls
 		* kubectl delete -f ns.yaml(namespace/project-1 deleted)
 		* kubectl apply -f ns.yaml(namespace/project-1 created)
-		* nano resourcequota.yaml
+		* nano resourcequota.yaml // giới hạn tài nguyên cho namespace đó
 			apiVersion: v1
 			kind: ResourceQuota
 			metadata:
