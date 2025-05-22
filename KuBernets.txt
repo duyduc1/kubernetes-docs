@@ -285,7 +285,8 @@ File yaml Cấu hình trong k8s
 	✅ spec
 * Bài 9 
 NameSpace trong K8S
-	- Trong k8s namespace là một cách tổ chức và phân tách các tài nguyên trong một cụm k8s để quả lý tốt hơn , được sử sụng để chia nhỏ tài nguyên của một cụm lớn thành các không gian làm việc logic nhỏ hơn , giúp dễ dàng quản lý và vận hành 
+	- Trong k8s namespace là một cách tổ chức và phân tách các tài nguyên trong một cụm k8s để quả lý tốt hơn , 
+	được sử sụng để chia nhỏ tài nguyên của một cụm lớn thành các không gian làm việc logic nhỏ hơn , giúp dễ dàng quản lý và vận hành 
 	- vào k8s-master-1 
 		* kubectl get pod --namespace default
 		* kubectl get ns
