@@ -1,3 +1,22 @@
+// tiếng anh 
+"The things I don't know yet, I will learn // những thứ chưa biết tôi sẽ học thêm 
+Jenkins and GitLab are connected via a Personal Access Token from GitLab. // jenkins và gitlab kết nối
+// lợi ích docker
+1. Portability
+Docker packages applications along with their environment (OS, libraries, configs) into containers.
+ 2. Easy Deployment and Scalability
+Docker enables fast, simple deployment and horizontal scaling of applications.
+ 3. Environment Isolation
+Each container runs in its own isolated environment.
+ 4. Resource Efficiency
+Compared to virtual machines (VMs), Docker containers are lightweight, start up quickly, and use fewer system resources by sharing the host OS kernel.
+It works well with microservices architecture and CI/CD pipelines.
+This ensures the application runs consistently across all environments—your laptop, servers, or cloud.
+5. Automation and DevOps Integration
+Docker integrates seamlessly with CI/CD tools like GitLab CI, Jenkins, etc.
+ 6. Ease of Management and Reusability
+Dockerfiles clearly define how to build the environment.
+Containers can be stored, shared, and reused via Docker Hub or private registries.
 
 // Kiến thức ngoài Devops 
 	- TCP/IP (Transmission Control Protocol/Internet Protocol) is a standard protocol suite used
