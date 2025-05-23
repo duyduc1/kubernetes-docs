@@ -1,3 +1,5 @@
+
+// Kiến thức ngoài Devops 
 - TCP/IP (Transmission Control Protocol/Internet Protocol) is a standard protocol suite used
  to connect devices on networks, 
  especially the Internet. It is the foundation of modern networking protocols,
@@ -17,35 +19,39 @@ ssh-keygen -R 192.168.1.110
 Devops for fresher 
 mk vuduyduc28042002
 
+// lệnh reset trạng thái của intelliji
 java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
-sudo -i 
-nano /etc/netplan/ + tab
-dhcp4: false
-addresses: [192.168.1.110/24]
-gateway4: 192.168.1.1
-nameservers:
-  addresses: [8.8.8.8,8.8.4.4]
-ctr + x chọn y để lưu
-netplan apply để lưu
-ipa để xem chi tiết
-sau đó power off tắt để tạo bảng snapshop
-sau đó run lại 
-mở cmd gõ lệnh :ssh duc@192.168.1.110 nhập mật khẩu 
 
-buổi 2 
-pwd : xem đang ở thư mục nào
-whoami : xem đang là user nào
-cd : để chuyển qua thư mục khác
-ls : để xem tất cả các thư mục 
-ls -lta: hiển thị tất cả các thư mục file sắp xếp mới đến cũ
-ls -l : hiển thị nội dung dưới dạng danh sách 
-mkdir : tạo một folder || mkdir -p để cấp thêm quyền tạo folder trong folder
-touch : tạo một thư mục 
-rm : xoá thư mục hoặc folder || sử dụng lệnh rm -r để cấp quyền xoá || sử dụng lệnh rm -rf 
-cp -r folder/ /vitricanchuyentoi/ 
-cp file/ /vitri/ 
-mv /filehoacfoldercanchuyen/ denvitricanchuyen
-tail -n folder hoặc file dự án
+* bài 1
+	// setup IP tĩnh cho Server
+	- sudo -i 
+	- nano /etc/netplan/ + tab (trong quá trình setup IP tĩnh không được dùng space để cách)
+		dhcp4: false
+		addresses: [192.168.1.110/24]
+		gateway4: 192.168.1.1
+		nameservers:
+	  	  addresses: [8.8.8.8,8.8.4.4]
+	ctr + x chọn y để lưu
+	- netplan apply (áp dụng IP tĩnh)
+	- ipa ( để xem chi tiết IP tĩnh)
+	- sau đó power off tắt để tạo bảng snapshop
+	- sau đó run lại 
+	- mở cmd gõ lệnh ssh duc@192.168.1.110 nhập mật khẩu 
+
+* bài 2 
+	- pwd : xem đang ở thư mục nào
+	- whoami : xem đang là user nào
+	- cd : để chuyển qua thư mục khác
+	- ls : để xem tất cả các thư mục 
+	- ls -lta: hiển thị tất cả các thư mục file sắp xếp mới đến cũ
+	- ls -l : hiển thị nội dung dưới dạng danh sách 
+	- mkdir : tạo một folder || mkdir -p để cấp thêm quyền tạo folder trong folder
+	- touch : tạo một thư mục 
+	- rm : xoá thư mục hoặc folder || sử dụng lệnh rm -r để cấp quyền xoá || sử dụng lệnh rm -rf 
+	- cp -r folder/ /vitricanchuyentoi/ 
+	- cp file/ /vitri/ 
+	- mv /filehoacfoldercanchuyen/ denvitricanchuyen
+	- tail -n folder hoặc file dự án
 
 buổi 3 
 triển khai dự án frontend 
