@@ -1,0 +1,1133 @@
+- TCP/IP (Transmission Control Protocol/Internet Protocol) is a standard protocol suite used
+ to connect devices on networks, 
+ especially the Internet. It is the foundation of modern networking protocols,
+ providing a way for devices to exchange data with each other.
+- Devops là người đưa ra giải pháp giúp tôi ưu quy trình làm việc , tăng chất lượng làm việc và sản phẩm
+- Linux : là 1 hệ điều hành : Tối ưu chi phí , bảo mật và ổn định , khả năng kiểm soát và linh hoạt , 
+dễ phát triển và cập nhật , tương thích đa nền tảng , cộng đồng phát triển lớn
+cơ sở hạ tầng : infrastructure
+that's my thought
+chuẩn bị : prepare
+- Devops is the one who provides solutions to help optimize workflow,
+ increase work quality and products
+- Linux: is an operating system: Cost optimization, security and stability, 
+control and flexibility,
+easy to develop and update, multi-platform compatibility, large development community
+ssh-keygen -R 192.168.1.110
+Devops for fresher 
+mk vuduyduc28042002
+
+java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
+sudo -i 
+nano /etc/netplan/ + tab
+dhcp4: false
+addresses: [192.168.1.110/24]
+gateway4: 192.168.1.1
+nameservers:
+  addresses: [8.8.8.8,8.8.4.4]
+ctr + x chọn y để lưu
+netplan apply để lưu
+ipa để xem chi tiết
+sau đó power off tắt để tạo bảng snapshop
+sau đó run lại 
+mở cmd gõ lệnh :ssh duc@192.168.1.110 nhập mật khẩu 
+
+buổi 2 
+pwd : xem đang ở thư mục nào
+whoami : xem đang là user nào
+cd : để chuyển qua thư mục khác
+ls : để xem tất cả các thư mục 
+ls -lta: hiển thị tất cả các thư mục file sắp xếp mới đến cũ
+ls -l : hiển thị nội dung dưới dạng danh sách 
+mkdir : tạo một folder || mkdir -p để cấp thêm quyền tạo folder trong folder
+touch : tạo một thư mục 
+rm : xoá thư mục hoặc folder || sử dụng lệnh rm -r để cấp quyền xoá || sử dụng lệnh rm -rf 
+cp -r folder/ /vitricanchuyentoi/ 
+cp file/ /vitri/ 
+mv /filehoacfoldercanchuyen/ denvitricanchuyen
+tail -n folder hoặc file dự án
+
+buổi 3 
+triển khai dự án frontend 
+Compress-Archive -Path .\springbe\ -DestinationPath backend-food.zip    
+scp -r  backend-food.zip duc@192.168.183.131:/home/duc
+
+sudo usermod -aG group_name user_name // them user vao group
+sudo deluser alice sudo // xoa user ra khoi group
+sudo groupadd developers // tao 1 group moi
+
+triển khai frontend và backend 
+ 1  cd /home/duc
+    2  ls
+    3  clear
+    4  ls
+    5  apt update
+    6  apt install unzip
+    7  ls
+    8  unzip backend-food.zip
+    9  ls
+   10  rm -r backend-food.zip
+   11  unzip frontend-food.zip
+   12  ls
+   13  rm -r frontend-food.zip
+   14  ls
+   15  mkdir project
+   16  mv Backend-FoodWeb/ project
+   17  ls -l project
+   18  adduser backend-foodweb
+   19  ls -l project
+   20  chown -R backend-foodweb. project/Backend-FoodWeb/
+   21  chmod -R 750 project/Backend-FoodWeb/
+   22  ls -l project
+   23  cd project/Backend-FoodWeb/
+   24  su backend-foodweb
+   26  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   27  apt-get install nodejs -y
+   28  sudo npm install -g npm@latest
+   30  su backend-foodweb
+   30.1 npm i 	
+   31  vi /lib/systemd/system/backend-foodweb.service
+[Service]
+Type=simple
+User=backend-foodweb
+Restart=on-failure
+WorkingDirectory=/home/duc/project/Backend-FoodWeb
+ExecStart= npm run start -- --port=3000
+   32  systemctl daemon-reload
+   33  systemctl start backend-foodweb
+   34  systemctl status backend-foodweb
+   39  cd /home/duc
+   40  ls
+   41  mv springbe project/
+   42  cd project/
+   43  cd springbe/
+   44  ls -l project
+   46  ls
+   47  rm -r target
+   49  cd
+   50  cd /home/duc
+   51  ls -l project
+   52  adduser springbe
+   53  chown -R springbe. project/springbe/
+   54  chmod -R 750 project/springbe/
+   55  apt update
+   56  cd project/springbe/
+   57  ls
+   58  apt install openjdk-17-jdk openjdk-17-jre
+   59  apt install maven
+   60  history
+   65  apt install net-tools
+   66  netstat -tlpun
+   63  apt install mysql-server
+   67  systemctl stop mysql
+   68  ls /etc/mysql
+   69  ls /etc/mysql/mysql.conf.d
+   70  vi /etc/mysql/mysql.conf.d/mysqld.cnf
+	[set up 127.0.0.1 thành 0.0.0.0]
+   71  systemctl restart mysql
+   72  netstat -tlpun
+   73  mysql -u root
+	[show databases;
+	 create database FoodWeb;
+	 	      // user                     //password
+	 create user 'FoodWeb'@'%' identified by 'FoodWeb';
+	 			 //databases    //user
+	 grant all privileges on FoodWeb.* to 'FoodWeb'@'%';
+	 flush privileges;
+	 exit]
+   74  mysql -h 192.168.1.111 -P 3306 -u FoodWeb -p [Nhập pass FoodWeb]
+	[show databases;
+	 use FoodWeb;
+	 show tables;]
+   75  ls
+   76  ls src/main/
+   77  ls src/main/resources/
+   78  vi src/main/resources/application.properties
+	[Setup username và password thành FoodWeb
+	 port mysql thành 192.168.1.111:3306/FoodWeb]
+   79  mvn install -DskipTests=true
+   80  ls
+   81  ls target
+   82  java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
+   83  mysql -h 192.168.1.111 -P 3306 -u FoodWeb -p
+   84  java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
+   85  ls
+   86  ls src
+   87  ls src/main/java
+   88  ls src/main/java/com/
+   89  ls src/main/java/com/twd/
+   90  ls src/main/java/com/twd/SpringSecurity/
+   92  ls src/main/java/com/twd/SpringSecurity/JWT/config
+   93  vi src/main/java/com/twd/SpringSecurity/JWT/config/CorsConfig.java
+   94  java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
+   95  cd /home/duc
+   96  cd project/Backend-FoodWeb/
+   97  ls
+   99  vi .env //setup thành 192.168.1.111:3030
+  100  systemctl daemon-reload
+  101  systemctl restart backend-foodweb
+  102  systemctl status backend-foodweb
+  103  cd
+  104  cd /home/duc
+  105  cd project/springbe/
+  106  ls
+  107  java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
+  108  rm -r target
+  109  mvn install -DskipTests=true
+  110  ls
+  111  ls target
+  112  java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
+databases
+SELECT * FROM ourusers;
+UPDATE ourusers
+SET role = 'ADMIN'
+WHERE id = 1;
+
+SELECT * FROM roles; && SHOW COLUMNS FROM roles;
+INSERT INTO roles (id, name) VALUES (1, 'Admin');
+
+gitlab
+  159  curl -s https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash
+  160  sudo apt-get install gitlab-ee=14.4.1-ee.0
+  161  vi /etc/hosts
+  	127.0.0.1 localhost
+	[127.0.1.1 dev-server2
+	192.168.1.111 git.duyduc.tech
+	# The following lines are desirable for IPv6 capable hosts
+	::1     ip6-localhost ip6-loopback
+	fe00::0 ip6-localnet
+	ff00::0 ip6-mcastprefix
+	ff02::1 ip6-allnodes
+	ff02::2 ip6-allrouters]                        
+  162  vi /etc/gitlab/gitlab.rb
+	[external_url 'http://git.duyduc.tech']
+  163  sudo gitlab-ctl reconfigure
+	bỏ cái 192.168.1.111 git.duyduc.tech vào hosts của system32
+  165  sudo gitlab-ctl reconfigure
+  166  vi /etc/gitlab/gitlab.rb
+  168  cat /etc/gitlab/initial_root_password
+	[username là root . password lấy trong initial_root_password]
+	[ cấu hình Sign-up restrictions tắt Sign-up enabled và Require admin approval for new sign-ups admin sẽ tự tạo tk cho user]
+	[tắt Default to Auto DevOps pipeline for all projects]
+  * khởi đông lại gitlab-runners
+	sudo gitlab-ctl status
+	sudo gitlab-ctl restart
+   59  cd
+   60  mkdir data
+   61  cd data/
+   62  git config --global user.name "Duc"
+   63  git config --global user.email "vuduyduc550@gmail.com"
+   64  git clone http://git.duyduc.tech/foodweb1/foodweb.git
+   65  ls
+   66  cd foodweb/
+   67  cd /home/duc
+   210  cp -rf springbe/* /root/data/foodweb
+   211  cd
+  212  cd data
+  213  cd foodweb/
+  214  ls
+  216  rm -r target
+  217  clear
+  218  ls
+  219  git status
+  221  ls
+  222  git status
+  223  git checkout -b main
+  224  git status
+  225  git add .
+  226  git status
+  227  git commit -m "push(project-demo)"
+  229  git push --set-upstream origin main
+  232  git pull
+  233  cd
+  235  history
+	curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | bash
+	apt-get install gitlab-runner
+	vi /etc/passwd
+  242  gitlab-runner register
+	shell
+  243  vi /etc/gitlab-runner/config.toml
+  244  nohup gitlab-runner run --working-directory /home/gitlab-runner --config/etc/gitlab-runner/config.toml --service gitlab-runner --user gitlab-runner 2>&1 &
+  245  ls
+  246  ps -ef| grep gitlab-runner
+  248  ls /home/gitlab-runner/builds/aCCWF7QT/0/foodweb1/foodweb/
+  249  su gitlab-runner
+  250  mkdir datas
+  251  mkdir datas/backend-foodweb
+  252  visudo
+	root    ALL=(ALL:ALL) ALL
+	gitlab-runner ALL=(ALL) NOPASSWD: ALL
+	gitlab-runner ALL=(ALL) NOPASSWD: /bin/mkdir*
+	gitlab-runner ALL=(ALL) NOPASSWD: /bin/cp*
+	gitlab-runner ALL=(ALL) NOPASSWD: /bin/chown*
+	gitlab-runner ALL=(ALL) NOPASSWD: /bin/su springbe*
+	springbe ALL=(ALL) NOPASSWD: ALL
+  311  ls -l /home/gitlab-runner/builds/aCCWF7QT/0/foodweb1/foodweb/datas
+  312  sudo chown -R gitlab-runner:gitlab-runner /home/gitlab-runner/builds/aCCWF7QT/0/foodweb1/foodweb/datas
+  313  ls -l /home/gitlab-runner/builds/aCCWF7QT/0/foodweb1/foodweb/datas
+  335  history
+
+Pipline CI/CD Gitlab
+stages:
+    - build
+    - deploy
+    - showlog
+
+before_script:
+  - sudo chown -R gitlab-runner:gitlab-runner datas || true
+  - sudo chmod -R 755 datas || true
+
+build:
+    stage: build
+    variables:
+        GIT_STRATEGY: clone
+    script: 
+        - mvn install -DskipTests=true
+    tags:
+        - devops-server
+deploy:
+    stage: deploy
+    variables:
+        GIT_STRATEGY: none
+    script:
+	- sudo fuser -k 8081/tcp || true
+        - sudo mkdir -p datas/springbe
+        - sudo cp target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar datas/springbe
+        - sudo chown springbe:springbe datas/springbe
+        - sudo su springbe -c "cd datas/springbe; nohup java -jar SpringSecurity.JWT-0.0.1-SNAPSHOT.jar > nohup.out 2>&1 &"
+    tags:
+        - devops-server
+
+showlog: 
+    stage: showlog
+    variables:
+        GIT_STRATEGY: none
+    script:
+        - sudo su springbe -c "cd datas/springbe; tail -n 10000 nohup.out"
+    tags:
+        - devops-server
+
+Docker
+    1  clear
+    2  mkdir tools
+    3  cd tools
+    4  mkdir docker
+    5  cd docker/
+    6  vi install-docker.sh
+[#!/bin/bash
+
+sudo apt update
+sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker --version
+docker-compose --version]
+
+   11  chmod +x install-docker.sh
+   12  ls -l
+    7  bash install-docker.sh
+    8  vi install-docker.sh
+    9  bash install-docker.sh
+   10  ls -l
+   13  clear
+   14  docker pull ubuntu:22.04
+   15  docker images
+   16  docker run --name ubuntu -it ubuntu:22.04
+   20  docker ps -a
+   22  docker start f73
+   23  docker exec -it ubuntu bash
+		6  ls
+    		7  cd home/
+    		8  apt update
+    		9  clear
+   		10 apt update
+   		11 apt install net-tools -y
+   		13 netstat -tlpun
+		14 exit
+   32  docker run --name nginx -dp 9999:80 nginx
+   33  docker ps -a
+   37  docker run --name car-serv -dp 8888:80 elroydevops/car-serv
+   38  docker ps -a
+   39  docker stop ubuntu
+   40  docker rm ubuntu
+   41  docker ps -a
+   43  docker rm -f car-serv
+   44  docker ps -a
+   45  docker images
+   46  docker rm nginx
+   47  docker rm -f nginx //xoá docker-container
+   48  docker images
+   49  docker rm -f $(docker ps -a)
+   50  docker images
+   51  docker ps -a
+   52  docker images
+   53  docker rmi nginx:latest // xoá docker images
+   54  docker images
+   55  docker rmi ubuntu:22.04
+   56  history
+
+Dockerfile
+   73  vi dockerfile (Backend)
+	[
+# Maven build stage
+FROM maven:3.8-openjdk-17 AS build
+
+WORKDIR /app
+COPY . .
+RUN mvn install -DskipTests=true
+
+# Runtime stage
+FROM openjdk:17-jdk
+
+WORKDIR /run
+COPY --from=build /app/target/VegetFood-1.0.jar /run/VegetFood-1.0.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/run/VegetFood-1.0.jar"]]
+
+
+
+vi dockerfile frontend
+[# Bước 1: Sử dụng image node để build ứng dụng
+ FROM node:18 AS build
+#
+# # Set working directory
+ WORKDIR /app
+#
+# # Sao chép package.json và package-lock.json vào container
+ COPY package*.json ./
+#y
+# # Cài đặt các dependencies
+ RUN npm install
+#
+# # Sao chép toàn bộ mã nguồn vào container
+ COPY . .
+#
+# # Build ứng dụng Vue.js
+ RUN npm run build
+#
+# # Bước 2: Sử dụng image Nginx để phục vụ ứng dụng đã build
+ FROM nginx:alpine
+#
+# # Sao chép các file đã build từ bước trước vào thư mục của Nginx
+ COPY --from=build /app/dist /usr/share/nginx/html
+#
+# # Expose port 80 để Nginx có thể phục vụ ứng dụng
+ EXPOSE 80
+#
+# # Chạy Nginx khi container được khởi động
+CMD ["nginx", "-g", "daemon off;"]]
+   Nhớ config database trước khi build
+   75  docker build -t vegetfood:v1 .
+   76  docker images
+   77  docker run --name vegetfood -dp 8888:8080 vegetfood:v1
+   78  docker ps -a
+   79  docker logs vegetfood
+   80  ls
+   81  vi src/main/
+   82  ls src/main/
+   83  ls src/main/resources/
+   84  vi src/main/resources/application.yml
+   85  ls
+
+   86  mysql -u root
+   87  vi src/main/resources/application.yml
+   88  mysql -u root
+   90  docker build -t vegetfood:v1 .
+   91  docker run --name vegetfood -dp 8888:8080 vegetfood:v1
+   92  docker ps -a
+   93  docker restart c8c
+   94  docker ps -a
+   95  docker images
+   96  docker logs vegetfood
+   97  history
+   98 docker logs vegetfood
+
+dockerhub
+  265  cd
+  266  docker images
+  267  clear
+  268  docker login
+  270  ls -a
+  271  ls .docker/
+  272  docker images
+	Tạo repository trước khi push và giống như tên của tag đã đổi
+  291  docker tag 2dd2d4f66de4 vuduyduc/devopsduc
+  292  docker images
+  293  docker push vuduyduc/devopsduc
+  294  docker images
+  295  docker tag frontend vuduyduc/frontend
+  296  docker tag 743779aa141f vuduyduc/frontend
+  297  docker images
+  298  docker push vuduyduc/frontend
+  299  history
+  306  docker images
+  307  docker rmi vuduyduc/frontend
+  308  docker images
+  309  docker pull vuduyduc/frontend
+  310  docker images
+  312  docker run --name frontend-dev -dp 7777:80 vuduyduc/frontend
+
+docker-compose
+  319  cd
+  320  cd datas/backend/
+  321  ls
+  322  clear
+  323  vi dockerfile
+  325  docker run --rm -v `pwd`:/app --workdir="/app" maven:3.8-openjdk-17 mvn install -DskipTests=true
+  329  mkdir -p /db/mysql-1
+  330  docker run -v /db/mysql-1/:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=vegetfood -p 3307:3306 --name mysql-1 -d mysql:8.0
+  332  docker ps
+  333  netstat -tlpun
+  334  mysql -h 192.168.1.123 -P 3306 -u vegetfood -p
+  335  ls /db/mysql-1
+  341  vi docker-compose.yml
+	version: '3.8'
+	services:
+  	   mysql:
+      	   	image: mysql:8.0
+      		volumes:
+        	  - /db/mysql-1:/var/lib/mysql
+      		environment:
+        	  MYSQL_ROOT_PASSWORD: vegetfood
+      		ports:
+        	  - "3307:3306"
+      		container_name: mysql-1
+      		restart: always
+
+	   spring-boot-app:
+      		image: backend:v1
+      		restart: always
+      		ports:
+        	  - "8081:8080"
+      		container_name: backend-1
+  393  vi src/main/resources/application.yml
+	chinh port mysql thanh 3307
+  399  docker-compose up -d                   
+
+jenkins
+  1  clear
+    2  mkdir tools
+    3  cd tools/
+    5  mkdir jenkins
+    6  cd jenkins/
+    8  vi jenkins-install.sh
+	apt install openjdk-17-jdk -y
+	java --version
+	curl -fsSL https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
+	sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5BA31D57EF5975CA
+	apt-get update
+	apt install jenkins -y
+	systemctl start jenkins
+	systemctl enable jenkins
+	ufw allow 8080
+    9  chmod +x jenkins-install.sh
+   10  bash jenkins-install.sh
+   30  systemctl status jenkins
+   32  vi /etc/hosts [192.168.1.122 jenkins.duyduc.tech]
+   33  cat /var/lib/jenkins/secrets/initialAdminPassword
+   34  apt install nginx
+   35  cd /etc/nginx/
+   36  ls
+   37  vi conf.d/jenkins.duyduc.tech.conf
+		server {
+
+  		  listen 80;
+
+                  server_name jenkins.duyduc.tech;
+
+                  location / {
+
+   		    proxy_pass http://jenkins.duyduc.tech:8080;
+
+                    proxy_http_version 1.1;
+
+                    proxy_set_header Upgrade $http_upgrade;
+
+                    proxy_set_header Connection keep_alive;
+
+                    proxy_set_header Host $host;
+
+                    proxy_cache_bypass $http_upgrade;
+
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+                    proxy_set_header X-Forwarded-Proto $scheme;
+
+                  }
+
+                }
+   38  clear
+   39  systemctl restart nginx
+   41  ls /var/lib/jenkins/
+   42  vi /etc/passwd
+   43  vi /etc/hosts => setup domain và thêm domain của gitlab vào jenkins-server
+   và ngược lại vơi gitlab-runner
+
+Docker CI/CD
+  109  cd
+  110  ls -l /home/gitlab-runner/builds/jrB3xYt7/0/VuDuyDuc/vegetfood/datas
+  111  sudo chown -R gitlab-runner:gitlab-runner /home/gitlab-runner/builds/jrB3xYt7/0/VuDuyDuc/vegetfood/datas
+  113  usermod -aG docker gitlab-runner
+  114  su gitlab-runner
+  115  docker login docker.io/vuduyduc764/vegetfood -u vuduyduc764 -p Vuduyduc28042002@
+  116  sudo chown -R gitlab-runner:gitlab-runner /home/gitlab-runner/builds/jrB3xYt7/0/VuDuyDuc/vegetfood/datas
+  117  vi /etc/gitlab-runner/config.toml
+	[session_server]
+  	  session_timeout = 1800
+	[[runners]]
+  	  name = "docker"
+  	  url = "http://gitlab.duyduc.tech/"
+  	  id = 1
+  	  token = "jrB3xYt7s4nGR3_Z1qej"
+  	  token_obtained_at = 2025-01-17T17:06:38Z
+  	  token_expires_at = 0001-01-01T00:00:00Z
+  	  executor = "shell"
+  	  [runners.custom_build_dir]
+  	  [runners.cache]
+    	  MaxUploadedArchiveSize = 0
+    		[runners.cache.s3]
+    		[runners.cache.gcs]
+    		[runners.cache.azure]
+
+  	  [runners.docker]
+    	    tls_verify = false
+    	    image = "maven:3.8-openjdk-17"
+    	    privileged = true
+    	    disable_entrypoint_overwrite = false
+    	    volumes = ["/cache"]
+    	    networks = []
+    	    buildx = false
+  119  sudo systemctl restart gitlab-runner
+  120  sudo systemctl status gitlab-runner
+  121  cd /home/gitlab-runner/builds/jrB3xYt7/0/VuDuyDuc/vegetfood
+  123  cd
+  124  docker logout
+  125  docker login -u vuduyduc764 -p Vuduyduc28042002@
+  126  echo $DOCKER_IMAGE
+  127  cd /home/gitlab-runner/builds/jrB3xYt7/0/VuDuyDuc/vegetfood
+  128  ls
+  138  docker images
+  146  docker ps -a
+  150  docker logs vegetfood
+  151  history
+
+Docker CI/CD
+REGISTRY_URL : docker.io
+REGISTRY_PROJECT : vuduyduc764
+REGISTRY_USER : vuduyduc764
+REGISTRY_PASSWORD : Vuduyduc28042002@
+
+variables:
+   DOCKER_IMAGE: ${REGISTRY_URL}/${REGISTRY_PROJECT}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA}
+   DOCKER_CONTAINER: ${CI_PROJECT_NAME}
+stages:
+    - buildandpush
+    - deploy
+    - showlog
+
+build:
+    stage: buildandpush
+    before_script:
+        - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
+    variables:
+        GIT_STRATEGY: clone
+    script:
+        - docker build -t $DOCKER_IMAGE .
+        - docker push $DOCKER_IMAGE
+    tags:
+        - docker
+
+deploy:
+    stage: deploy
+    before_script:
+        - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
+    variables:
+        GIT_STRATEGY: none
+    script:
+        - docker pull $DOCKER_IMAGE
+        - docker rm -f $DOCKER_CONTAINER
+        - docker run --name $DOCKER_CONTAINER -dp 8888:8081 $DOCKER_IMAGE
+    tags:
+        - docker
+
+showlog:
+    stage: showlog
+    variables:
+        GIT_STRATEGY: none
+    script:
+        - sleep 20
+        - docker logs $DOCKER_CONTAINER
+    tags:
+        - docker
+
+vào lab-server : tạo một user jenkins
+1. vào dashboard-jenkins -> manage jenkins -> nodes -> new node (đặt tên : lab-server)
+* Chú ý : Name -> labels ( tương ứng với tên server ) -> tạo một thư mục /var/lib/jenkins trong lab-server ->
+quay lại manage jenkins -> security (TCP port for inbound agent) chọn fixed để port 8999
+
+2. vào lab-server -> chown jenkins. /var/lib/jenkins -> cd /var/lib/jenkins -> su jenkins
+- echo 2885cab07ec8e099947e97435d5625d2da2ea7934efc40fcf71588f83ab6ebc6 > secret-file
+- curl -sO http://jenkins.duyduc.tech:8080/jnlpJars/agent.jar
+- java -jar agent.jar -url http://jenkins.duyduc.tech:8080/ -secret @secret-file -name "devops-server" -webSocket -workDir "/var/lib/jenkins" > nohup.out 2>&1 &
+
+3. Dashboard -> new Item -> Folder (Action in lab) -> save 
+
+4. Dashboard -> manage jenkins -> plugins -> install gitlab && blue ocean
+sau khi install thanh cong chọn installed plugin sẽ thấy blue ocean và gitlab-plugins
+
+5. Dashboard -> manage jenkins -> system -> Gitlab
+- Collection name : gitlab server
+- Gitlab host URL : http://gitlab.duyduc.tech/
+
+5.1 tạo một user có quyền admin -> qua tài khoản jenkins -> edit profile -> access Token -> Token name(token for jenkins server connection)
++ tích chọn api
+- Credentials: Add -> jenkins -> Add credentials -> kind (Gitlab API token) -> API token (paste API Token vào đây)
+ID : Jenkins-gitlab-user -> description : Jenkins-gitlab-user -> Add 
+ra ngoài chọn Gitlab API token(jenkins-gitlab-user) - Test Connection -> save
+
+6. Dashboard -> action in lab -> new Item -> pipeline(tên dự án) -> Discard old build -> Max 10
+-> build triggers chọn build when a change is pushed to gitlab -> chọn push event && build only if new commits were pushed to merge request
+-> pipeline -> pipeline script from SCM -> SCM chọn git dùng link git của dự án
+-> Credentials (add -> jenkins) username : jenkins && password -> ID && description : Jenkins-user-account-gitlab -> add
+và sau đó out ra chọn user vừa mới tạo -> branches to build -> add nhánh main && develop -> save
+
+7.  vào admin -> setting -> network -> outbound requests -> click chọn cả 2 tuỳ chọn -> save changes
+7.2 lấy token ở jenkins -> vào security -> API Token -> Add new token ( access token )
+7.1 qua gitlab -> setting -> webhooks -> http://admin:11dda35a0e3b70466878a04f96db4dddc3@jenkins.duyduc.tech/project/Action_in_lab/course
+http://admin:11dda35a0e3b70466878a04f96db4dddc3@jenkins.duyduc.tech/project/Action_in_lab/course ( chọn thêm tags event && merge request events && bỏ tuỳ chọn enable ssl) -> add webhook
+-> push event
+ 
+8. visudo -> thêm
+	jenkins ALL=(ALL) NOPASSWD: ALL
+	jenkins  ALL=(ALL) NOPASSWD: /bin/mkdir*
+	jenkins  ALL=(ALL) NOPASSWD: /bin/cp*
+	jenkins  ALL=(ALL) NOPASSWD: /bin/chown*
+	jenkins  ALL=(ALL) NOPASSWD: /bin/su vegetfood
+8.1 tạo một jenkinsfile bên nhánh develop của gitlab
+pipeline {
+    agent { label 'devops' }
+
+    environment {
+        GIT_STRATEGY = 'clone'
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    sh 'mvn clean package -DskipTests'
+                    sh 'ls -lah target/'  
+                }
+            }
+        }
+
+        stage('Deploy') {
+            environment {
+                GIT_STRATEGY = 'none'
+            }
+            steps {
+                script {
+                    sh """
+                        sudo fuser -k 8081/tcp || true
+                        sudo mkdir -p /opt/datas/vegetfood
+                        
+                        sudo cp target/VegetFood-1.0.jar /opt/datas/vegetfood/
+                        sudo chown -R vegetfood:vegetfood /opt/datas/vegetfood
+                        sudo chmod 755 /opt/datas/vegetfood/VegetFood-1.0.jar
+                        ls -lah /opt/datas/vegetfood/
+                        sudo su - vegetfood -c "nohup java -jar /opt/datas/vegetfood/VegetFood-1.0.jar > /opt/datas/vegetfood/nohup.out 2>&1 &"
+                    """
+                }
+            }
+        }
+
+        stage('Show Log') {
+            environment {
+                GIT_STRATEGY = 'none'
+            }
+            steps {
+                script {
+                    sh """
+                        sleep 10
+                        sudo su - vegetfood -c "tail -n 50 /opt/datas/vegetfood/nohup.out"
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                sh """
+                    sudo chown -R jenkins:jenkins /opt/datas || true
+                    sudo chmod -R 755 /opt/datas || true
+                """
+            }
+        }
+    }
+}
+
+// Monitor bởi docker
+1. Cài đặt Node Exporter trên các máy chủ
+Node Exporter thu thập metric hệ thống (CPU, RAM, disk, v.v.) từ các máy chủ. Cài đặt trên cả 3 máy chủ (10.1.0.175, 10.1.0.172, 10.1.0.176).
+
+Bước 1: Chạy Node Exporter bằng Docker
+Trên mỗi máy chủ, tạo một container Node Exporter:
+docker run -d \
+  --name node-exporter \
+  -p 9100:9100 \
+  --restart always \
+  prom/node-exporter:latest
+
+2. Cấu hình Prometheus và Grafana trên máy chủ chính (10.1.0.175)
+Prometheus và Grafana sẽ được triển khai bằng Docker Compose trên 10.1.0.175.
+
+Bước 1: Tạo thư mục và file cấu hình
+Tạo thư mục làm việc:
+bash
+
+Sao chép
+mkdir -p ~/monitoring
+cd ~/monitoring
+
+Tạo file cấu hình cho Prometheus (prometheus.yml):
+nano prometheus.yaml
+
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['10.1.0.175:9090']  # Prometheus tự giám sát
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets:
+          - '10.1.0.175:9100'  # Node Exporter trên máy chủ chính
+          - '10.1.0.172:9100'  # Node Exporter trên máy chủ 2
+          - '10.1.0.176:9100'  # Node Exporter trên máy chủ 3
+Lưu file prometheus.yml vào thư mục ~/monitoring.
+
+Bước 2: Tạo file Docker Compose
+Tạo file docker-compose.yml trong thư mục ~/monitoring:
+nano docker-compose.yml
+
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: always
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    restart: always
+    networks:
+      - monitoring
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    restart: always
+    networks:
+      - monitoring
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  monitoring:
+    driver: bridge
+    
+Bước 3: Chạy Docker Compose
+Trong thư mục ~/monitoring, chạy lệnh:
+docker-compose up -d
+
+Kiểm tra các container đang chạy:
+docker ps
+
+Truy cập:
+Prometheus: http://10.1.0.175:9090
+Grafana: http://10.1.0.175:3000 (Tài khoản mặc định: admin/admin, bạn sẽ được yêu cầu đổi mật khẩu).
+
+3. Cấu hình Grafana
+Đăng nhập vào Grafana tại http://10.1.0.175:3000.
+Thêm nguồn dữ liệu (Data Source):
+Vào menu Connections > Data Sources > Add data source.
+Chọn Prometheus.
+Đặt URL: http://10.1.0.175:9090 (dùng tên service trong Docker Compose).
+Nhấn Save & Test.
+Tạo Dashboard:
+Vào Create > Import.
+Sử dụng ID dashboard phổ biến cho Node Exporter, ví dụ: 1860 (Node Exporter Full).
+Chọn nguồn dữ liệu Prometheus vừa thêm.
+Lưu dashboard để xem metric từ 3 máy chủ.
+
+// Cấu hình Loki để xem log tập trung của một server
+Bước 1: Cài đặt Loki và Promtail trên server 10.1.0.172
+1. Tạo thư mục làm việc:
+Trên 10.1.0.172, tạo thư mục:
+
+mkdir -p ~/loki
+cd ~/loki
+
+2. Tạo file cấu hình cho Loki (loki-config.yml):
+Tạo file loki-config.yml với nội dung tối thiểu:
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+common:
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+
+limits_config:
+  allow_structured_metadata: false
+  ingestion_rate_mb: 8  # Tăng lên 8MB/s (thay vì bytes, dùng MB)
+  ingestion_burst_size_mb: 2  # Tăng burst size lên 2MB
+  ingestion_rate_strategy: global  # Chiến lược áp dụng giới hạn
+  max_concurrent_tail_requests: 1000  # Tùy chọn: Tăng số lượng request đồng thời
+  max_streams_per_user: 10000  # Tùy chọn: Tăng số lượng stream tối đa
+
+3. Tạo file cấu hình cho Promtail (promtail-config.yml):
+Promtail là agent thu thập log và gửi đến Loki. Tạo file promtail-config.yml:
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: tomcat
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: [__meta_docker_container_name]
+        target_label: container
+      - source_labels: [__meta_docker_container_id]
+        target_label: container_id
+    pipeline_stages:
+      - docker: {}
+      - match:
+          selector: '{container=~"/kdl-dqs|/kdl-datagov"}'
+          stages:
+            - labels:
+                host: "192.168.1.202"
+                job: "tomcat"
+
+  - job_name: tomcat_files
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: tomcat
+          host: 192.168.1.202
+          service_name: tomcat-qtud
+          __path__: /media/hdd/khodulieu2023/qtud/tomcat/logs/catalina.out
+      - targets:
+          - localhost
+        labels:
+          job: tomcat
+          host: 192.168.1.202
+          service_name: tomcat-srcmgt
+          __path__: /media/hdd/khodulieu2023/tomcat-srcmgt/logs/catalina.out
+
+          
+4. Tạo file docker-compose.yml cho Loki và Promtail:
+Trong thư mục ~/loki, tạo file docker-compose.yml:
+
+version: '3.8'
+services:
+  loki:
+    image: grafana/loki:3.2.0
+    container_name: loki
+    volumes:
+      - ./loki-config.yml:/mnt/config/loki-config.yml
+      - loki_data:/loki
+    command: -config.file=/mnt/config/loki-config.yml
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  promtail:
+    image: grafana/promtail:3.2.0
+    container_name: promtail
+    volumes:
+      - ./promtail-config.yml:/mnt/config/promtail-config.yml
+      - /var/log:/var/log
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /media/hdd/khodulieu2023:/media/hdd/khodulieu2023:ro
+    command: -config.file=/mnt/config/promtail-config.yml
+    ports:
+      - "9080:9080"
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+volumes:
+  loki_data:
+
+networks:
+  monitoring:
+    driver: bridge
+
+5. Chạy Docker Compose:
+
+cd ~/loki
+docker-compose up -d
+
+6. Kiểm tra Loki và Promtail:
+Xác nhận container đang chạy:
+
+docker ps
+Kiểm tra Loki: Truy cập http://10.1.0.172:3100/ready (nếu trả về ready, Loki hoạt động).
+Kiểm tra Promtail: Truy cập http://10.1.0.172:9080/targets để xem log được thu thập.
+
+Bước 2: Tích hợp Loki vào Grafana trên server 10.1.0.175
+Thêm Data Source Loki vào Grafana:
+Truy cập Grafana: http://10.1.0.175:3000.
+Từ thanh điều hướng, nhấp vào Configuration (⚙️) > Data Sources > Add data source.
+Chọn Loki.
+Cấu hình:
+Name: Loki
+URL: http://10.1.0.172:3100
+Nhấn Save & Test. Nếu thành công, bạn sẽ thấy thông báo "Data source is working".
+Khám phá log trong Explore:
+Từ thanh điều hướng, nhấp vào Explore (🧭).
+Chọn Data Source: Loki.
+Trong Log Browser, nhập truy vấn, ví dụ:
+logql
+
+Sao chép
+{host="10.1.0.172"}
+Nhấn Run query để xem log từ server 10.1.0.172.
+Bạn có thể lọc thêm, ví dụ: {host="10.1.0.172"} |= "error" để tìm log chứa từ "error".
+Tạo Dashboard cho Log:
+Từ thanh điều hướng, nhấp Dashboards > New > Dashboard.
+Thêm panel mới, chọn Data Source là Loki.
+Dùng truy vấn LogQL, ví dụ: {host="10.1.0.172"}.
+Chọn kiểu hiển thị: Logs.
+Lưu dashboard để xem log tập trung.
+
+
+
+// Dựng superset
+Bước 1:
+Dựng superset: // nano docker-compose.yml
+version: '3.8'
+services:
+  superset:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: superset
+    ports:
+      - "8088:8088"
+    environment:
+      - SUPERSET_SECRET_KEY=datasupersetgreenglobal
+      - SUPERSET_DB_URI=postgresql://superset:superset@db:5432/superset
+      - SUPERSET_CONFIG_PATH=/app/pythonpath/superset_config.py
+      - SUPERSET_LOG_LEVEL=DEBUG
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./superset_config.py:/app/pythonpath/superset_config.py
+    restart: always
+
+  db:
+    image: postgres:13
+    container_name: superset_db
+    environment:
+      - POSTGRES_USER=superset
+      - POSTGRES_PASSWORD=superset
+      - POSTGRES_DB=superset
+    volumes:
+      - superset_db_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  superset_db_data:
+
+Bước 2: // Tạo file dockerfile
+FROM apache/superset:latest
+RUN pip install psycopg2-binary
+
+Bước 3 : // Tạo superset_config.py
+nano Dockerfile                                    
+SECRET_KEY = 'datasupersetgreenglobal'
+SQLALCHEMY_DATABASE_URI = 'postgresql://superset:superset@db:5432/superset'
+
+Bước 4 : //
+docker-compose up -d --build
+docker exec -it superset superset db upgrade
+docker exec -it superset superset init
+docker exec -it superset superset fab create-admin \
+    --username admin \
+    --firstname Superset \
+    --lastname Admin \
+    --email admin@superset.org \
+    --password admin
+
+
+// Thông tin VPN
+truongtn@truongtn-pVPNc:~/Downloads/Project_Project$ sudo openvpn --config BanXT_08_2024\ \(1\).ovpn 
+Sai đó nhập key
+
