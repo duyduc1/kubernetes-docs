@@ -1,23 +1,23 @@
 
 // Kiến thức ngoài Devops 
-- TCP/IP (Transmission Control Protocol/Internet Protocol) is a standard protocol suite used
- to connect devices on networks, 
- especially the Internet. It is the foundation of modern networking protocols,
- providing a way for devices to exchange data with each other.
-- Devops là người đưa ra giải pháp giúp tôi ưu quy trình làm việc , tăng chất lượng làm việc và sản phẩm
-- Linux : là 1 hệ điều hành : Tối ưu chi phí , bảo mật và ổn định , khả năng kiểm soát và linh hoạt , 
-dễ phát triển và cập nhật , tương thích đa nền tảng , cộng đồng phát triển lớn
-cơ sở hạ tầng : infrastructure
-that's my thought
-chuẩn bị : prepare
-- Devops is the one who provides solutions to help optimize workflow,
- increase work quality and products
-- Linux: is an operating system: Cost optimization, security and stability, 
-control and flexibility,
-easy to develop and update, multi-platform compatibility, large development community
-ssh-keygen -R 192.168.1.110
-Devops for fresher 
-mk vuduyduc28042002
+	- TCP/IP (Transmission Control Protocol/Internet Protocol) is a standard protocol suite used
+	 to connect devices on networks, 
+	 especially the Internet. It is the foundation of modern networking protocols,
+	 providing a way for devices to exchange data with each other.
+	- Devops là người đưa ra giải pháp giúp tôi ưu quy trình làm việc , tăng chất lượng làm việc và sản phẩm
+	- Linux : là 1 hệ điều hành : Tối ưu chi phí , bảo mật và ổn định , khả năng kiểm soát và linh hoạt , 
+	dễ phát triển và cập nhật , tương thích đa nền tảng , cộng đồng phát triển lớn
+	cơ sở hạ tầng : infrastructure
+	that's my thought
+	chuẩn bị : prepare
+	- Devops is the one who provides solutions to help optimize workflow,
+	 increase work quality and products
+	- Linux: is an operating system: Cost optimization, security and stability, 
+	control and flexibility,
+	easy to develop and update, multi-platform compatibility, large development community
+	ssh-keygen -R 192.168.1.110
+	Devops for fresher 
+	mk vuduyduc28042002
 
 // lệnh reset trạng thái của intelliji
 java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
@@ -38,7 +38,8 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	- sau đó run lại 
 	- mở cmd gõ lệnh ssh duc@192.168.1.110 nhập mật khẩu 
 
-* bài 2 
+* bài 2 - các lệnh devops cơ bản
+
 	- pwd : xem đang ở thư mục nào
 	- whoami : xem đang là user nào
 	- cd : để chuyển qua thư mục khác
@@ -50,203 +51,174 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	- rm : xoá thư mục hoặc folder || sử dụng lệnh rm -r để cấp quyền xoá || sử dụng lệnh rm -rf 
 	- cp -r folder/ /vitricanchuyentoi/ 
 	- cp file/ /vitri/ 
+	- adduser devops // tạo một user mới
 	- mv /filehoacfoldercanchuyen/ denvitricanchuyen
 	- tail -n folder hoặc file dự án
+	- sudo usermod -aG group_name user_name // them user vao group
+	- sudo deluser alice sudo // xoa user ra khoi group
+	- sudo groupadd developers // tao 1 group moi
 
-buổi 3 
-triển khai dự án frontend 
-Compress-Archive -Path .\springbe\ -DestinationPath backend-food.zip    
-scp -r  backend-food.zip duc@192.168.183.131:/home/duc
+* bài 3 : triển khai dự án frontend && backend
 
-sudo usermod -aG group_name user_name // them user vao group
-sudo deluser alice sudo // xoa user ra khoi group
-sudo groupadd developers // tao 1 group moi
+	- scp -r  backend-food.zip duc@192.168.183.131:/home/duc (vào thư mục chứa dự án đã nén thành zip và gõ lệnh)
+	- cd /home/duc
+    	- ls
+    	- clear
+    	- apt update
+    	- apt install unzip
+    	- unzip backend-food.zip
+   	- rm -r backend-food.zip
+   	- unzip frontend-food.zip
+   	- rm -r frontend-food.zip
+    	- mkdir project
+   	- mv Backend-FoodWeb/ project
+   	- ls -l project
+   	- adduser backend-foodweb
+        - ls -l project
+        - chown -R backend-foodweb. project/Backend-FoodWeb/
+        - chmod -R 750 project/Backend-FoodWeb/
+    	- ls -l project
+   	- cd project/Backend-FoodWeb/
+   	- su backend-foodweb
+   	- curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   	- apt-get install nodejs -y
+   	- sudo npm install -g npm@latest
+   	- su backend-foodweb
+   	- npm i 	
+   	- nano /etc/systemd/system/backend-foodweb.service
+		[Service]
+		Type=simple
+		User=backend-foodweb
+		Restart=on-failure
+		WorkingDirectory=/home/duc/project/Backend-FoodWeb
+		ExecStart= npm run start -- --port=3000
+   	- systemctl daemon-reload
+   	- systemctl start backend-foodweb
+   	- systemctl status backend-foodweb
 
-triển khai frontend và backend 
- 1  cd /home/duc
-    2  ls
-    3  clear
-    4  ls
-    5  apt update
-    6  apt install unzip
-    7  ls
-    8  unzip backend-food.zip
-    9  ls
-   10  rm -r backend-food.zip
-   11  unzip frontend-food.zip
-   12  ls
-   13  rm -r frontend-food.zip
-   14  ls
-   15  mkdir project
-   16  mv Backend-FoodWeb/ project
-   17  ls -l project
-   18  adduser backend-foodweb
-   19  ls -l project
-   20  chown -R backend-foodweb. project/Backend-FoodWeb/
-   21  chmod -R 750 project/Backend-FoodWeb/
-   22  ls -l project
-   23  cd project/Backend-FoodWeb/
-   24  su backend-foodweb
-   26  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-   27  apt-get install nodejs -y
-   28  sudo npm install -g npm@latest
-   30  su backend-foodweb
-   30.1 npm i 	
-   31  vi /lib/systemd/system/backend-foodweb.service
-[Service]
-Type=simple
-User=backend-foodweb
-Restart=on-failure
-WorkingDirectory=/home/duc/project/Backend-FoodWeb
-ExecStart= npm run start -- --port=3000
-   32  systemctl daemon-reload
-   33  systemctl start backend-foodweb
-   34  systemctl status backend-foodweb
-   39  cd /home/duc
-   40  ls
-   41  mv springbe project/
-   42  cd project/
-   43  cd springbe/
-   44  ls -l project
-   46  ls
-   47  rm -r target
-   49  cd
-   50  cd /home/duc
-   51  ls -l project
-   52  adduser springbe
-   53  chown -R springbe. project/springbe/
-   54  chmod -R 750 project/springbe/
-   55  apt update
-   56  cd project/springbe/
-   57  ls
-   58  apt install openjdk-17-jdk openjdk-17-jre
-   59  apt install maven
-   60  history
-   65  apt install net-tools
-   66  netstat -tlpun
-   63  apt install mysql-server
-   67  systemctl stop mysql
-   68  ls /etc/mysql
-   69  ls /etc/mysql/mysql.conf.d
-   70  vi /etc/mysql/mysql.conf.d/mysqld.cnf
-	[set up 127.0.0.1 thành 0.0.0.0]
-   71  systemctl restart mysql
-   72  netstat -tlpun
-   73  mysql -u root
-	[show databases;
-	 create database FoodWeb;
-	 	      // user                     //password
-	 create user 'FoodWeb'@'%' identified by 'FoodWeb';
-	 			 //databases    //user
-	 grant all privileges on FoodWeb.* to 'FoodWeb'@'%';
-	 flush privileges;
-	 exit]
-   74  mysql -h 192.168.1.111 -P 3306 -u FoodWeb -p [Nhập pass FoodWeb]
-	[show databases;
-	 use FoodWeb;
-	 show tables;]
-   75  ls
-   76  ls src/main/
-   77  ls src/main/resources/
-   78  vi src/main/resources/application.properties
-	[Setup username và password thành FoodWeb
-	 port mysql thành 192.168.1.111:3306/FoodWeb]
-   79  mvn install -DskipTests=true
-   80  ls
-   81  ls target
-   82  java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
-   83  mysql -h 192.168.1.111 -P 3306 -u FoodWeb -p
-   84  java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
-   85  ls
-   86  ls src
-   87  ls src/main/java
-   88  ls src/main/java/com/
-   89  ls src/main/java/com/twd/
-   90  ls src/main/java/com/twd/SpringSecurity/
-   92  ls src/main/java/com/twd/SpringSecurity/JWT/config
-   93  vi src/main/java/com/twd/SpringSecurity/JWT/config/CorsConfig.java
-   94  java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
-   95  cd /home/duc
-   96  cd project/Backend-FoodWeb/
-   97  ls
-   99  vi .env //setup thành 192.168.1.111:3030
-  100  systemctl daemon-reload
-  101  systemctl restart backend-foodweb
-  102  systemctl status backend-foodweb
-  103  cd
-  104  cd /home/duc
-  105  cd project/springbe/
-  106  ls
-  107  java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
-  108  rm -r target
-  109  mvn install -DskipTests=true
-  110  ls
-  111  ls target
-  112  java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
-databases
-SELECT * FROM ourusers;
-UPDATE ourusers
-SET role = 'ADMIN'
-WHERE id = 1;
+   	// Triển khai dự án backend java springboot && database mysql
+	- cd /home/duc
+   	- mv springbe project/
+   	- cd project/
+   	- cd springbe/
+   	- cd /home/duc
+   	- ls -l project
+   	- adduser springbe // tạo một user mới
+   	- chown -R springbe. project/springbe/
+   	- chmod -R 750 project/springbe/
+   	- apt update
+   	- cd project/springbe/
+   	- apt install openjdk-17-jdk openjdk-17-jre
+   	- apt install maven
+   	- history
+   	- apt install net-tools
+   	- netstat -tlpun
+   	- apt install mysql-server
+   	- systemctl stop mysql
+   	- ls /etc/mysql/mysql.conf.d
+   	- /etc/mysql/mysql.conf.d/mysqld.cnf
+		* [set up 127.0.0.1 thành 0.0.0.0]
+    	- systemctl restart mysql
+   	- netstat -tlpun
+   	- mysql -u root
+		  show databases;
+		  create database FoodWeb;
+		 	      // user                     //password
+		  create user 'FoodWeb'@'%' identified by 'FoodWeb';
+		 			 //database   //user
+		  grant all privileges on FoodWeb.* to 'FoodWeb'@'%';
+		  flush privileges;
+		  exit
+   	- mysql -h 192.168.1.111 -P 3306 -u FoodWeb -p [Nhập pass FoodWeb]
+		  show databases;
+		  use FoodWeb;
+		  show tables;
+   	- nano src/main/resources/application.properties
+		[Setup username và password thành FoodWeb
+		 port mysql thành 192.168.1.111:3306/FoodWeb]
+   	- nano src/main/java/com/twd/SpringSecurity/JWT/config/CorsConfig.java (cấp quyền cho ip frontend hoặc domain của frontend)
+   	- mvn install -DskipTests=true
+   	- ls target
+   	- java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
+   	- mysql -h 192.168.1.111 -P 3306 -u FoodWeb -p
+	- cd /home/duc
+	- nano /etc/systemd/system/backend-foodweb.service
+		   [Service]
+		   Type=simple
+	           User=springbe
+		   Restart=on-failure
+		   WorkingDirectory=/home/duc/project/springbe
+	           ExecStart= java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
+  	- systemctl daemon-reload
+  	- systemctl restart backend-foodweb
+  	- systemctl status backend-foodweb
 
-SELECT * FROM roles; && SHOW COLUMNS FROM roles;
-INSERT INTO roles (id, name) VALUES (1, 'Admin');
+		   databases
+		   SELECT * FROM ourusers;
+		   UPDATE ourusers
+		   SET role = 'ADMIN'
+		   WHERE id = 1;
+		
+		   SELECT * FROM roles; && SHOW COLUMNS FROM roles;
+		   INSERT INTO roles (id, name) VALUES (1, 'Admin');
 
-gitlab
-  159  curl -s https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash
-  160  sudo apt-get install gitlab-ee=14.4.1-ee.0
-  161  vi /etc/hosts
-  	127.0.0.1 localhost
-	[127.0.1.1 dev-server2
-	192.168.1.111 git.duyduc.tech
-	# The following lines are desirable for IPv6 capable hosts
-	::1     ip6-localhost ip6-loopback
-	fe00::0 ip6-localnet
-	ff00::0 ip6-mcastprefix
-	ff02::1 ip6-allnodes
-	ff02::2 ip6-allrouters]                        
-  162  vi /etc/gitlab/gitlab.rb
-	[external_url 'http://git.duyduc.tech']
-  163  sudo gitlab-ctl reconfigure
-	bỏ cái 192.168.1.111 git.duyduc.tech vào hosts của system32
-  165  sudo gitlab-ctl reconfigure
-  166  vi /etc/gitlab/gitlab.rb
-  168  cat /etc/gitlab/initial_root_password
-	[username là root . password lấy trong initial_root_password]
-	[ cấu hình Sign-up restrictions tắt Sign-up enabled và Require admin approval for new sign-ups admin sẽ tự tạo tk cho user]
-	[tắt Default to Auto DevOps pipeline for all projects]
-  * khởi đông lại gitlab-runners
-	sudo gitlab-ctl status
-	sudo gitlab-ctl restart
-   59  cd
-   60  mkdir data
-   61  cd data/
-   62  git config --global user.name "Duc"
-   63  git config --global user.email "vuduyduc550@gmail.com"
-   64  git clone http://git.duyduc.tech/foodweb1/foodweb.git
-   65  ls
-   66  cd foodweb/
-   67  cd /home/duc
-   210  cp -rf springbe/* /root/data/foodweb
-   211  cd
-  212  cd data
-  213  cd foodweb/
-  214  ls
-  216  rm -r target
-  217  clear
-  218  ls
-  219  git status
-  221  ls
-  222  git status
-  223  git checkout -b main
-  224  git status
-  225  git add .
-  226  git status
-  227  git commit -m "push(project-demo)"
-  229  git push --set-upstream origin main
-  232  git pull
-  233  cd
-  235  history
+* bài 4 : triển khai gitlab-ctl gitlab doanh nghiệp
+  	- curl -s https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash
+  	- sudo apt-get install gitlab-ee=14.4.1-ee.0
+  	- nano /etc/hosts
+	  	127.0.0.1 localhost
+		127.0.1.1 dev-server2
+		192.168.1.111 git.duyduc.tech // ip của server + domain cần đặt
+		# The following lines are desirable for IPv6 capable hosts
+		::1     ip6-localhost ip6-loopback
+		fe00::0 ip6-localnet
+		ff00::0 ip6-mcastprefix
+		ff02::1 ip6-allnodes
+		ff02::2 ip6-allrouters                        
+	  - nano /etc/gitlab/gitlab.rb
+		[external_url 'http://git.duyduc.tech']
+	  - sudo gitlab-ctl reconfigure
+		bỏ cái 192.168.1.111 git.duyduc.tech vào hosts của system32 // đói với linux thì nano /etc/hosts
+  	  - sudo gitlab-ctl reconfigure
+  	  - nano /etc/gitlab/gitlab.rb
+  	  - cat /etc/gitlab/initial_root_password
+		[username là root , password lấy trong initial_root_password]
+		[ cấu hình Sign-up restrictions tắt Sign-up enabled và Require admin approval for new sign-ups admin sẽ tự tạo tk cho user]
+		[tắt Default to Auto DevOps pipeline for all projects]
+	  
+	  // khởi đông lại gitlab-runners
+	  - sudo gitlab-ctl status
+	  - sudo gitlab-ctl restart
+	  // đẩy dự án lên gitlab
+	  - cd
+	  - mkdir data
+	  - cd data/
+	  - git config --global user.name "Duc"
+	   63  git config --global user.email "vuduyduc550@gmail.com"
+	   64  git clone http://git.duyduc.tech/foodweb1/foodweb.git
+	   65  ls
+	   66  cd foodweb/
+	   67  cd /home/duc
+	   210  cp -rf springbe/* /root/data/foodweb
+	   211  cd
+	  212  cd data
+	  213  cd foodweb/
+	  214  ls
+	  216  rm -r target
+	  217  clear
+	  218  ls
+	  219  git status
+	  221  ls
+	  222  git status
+	  223  git checkout -b main
+	  224  git status
+	  225  git add .
+	  226  git status
+	  227  git commit -m "push(project-demo)"
+	  229  git push --set-upstream origin main
+	  232  git pull
+	  233  cd
+	  235  history
 	curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | bash
 	apt-get install gitlab-runner
 	vi /etc/passwd
