@@ -116,7 +116,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
    	- apt install mysql-server
    	- systemctl stop mysql
    	- ls /etc/mysql/mysql.conf.d
-   	- /etc/mysql/mysql.conf.d/mysqld.cnf
+   	- nano /etc/mysql/mysql.conf.d/mysqld.cnf
 		* [set up 127.0.0.1 thành 0.0.0.0]
     	- systemctl restart mysql
    	- netstat -tlpun
