@@ -22,7 +22,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		gateway4: 192.168.1.1
 		nameservers:
 	  	  addresses: [8.8.8.8,8.8.4.4]
-	ctr + x chọn y để lưu
+	 ctr + x chọn y để lưu
 	- netplan apply (áp dụng IP tĩnh)
 	- ipa ( để xem chi tiết IP tĩnh)
 	- sau đó power off tắt để tạo bảng snapshop
@@ -576,66 +576,54 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		        - devops-server
 	   - docker ps -a
 
-jenkins
-  1  clear
-    2  mkdir tools
-    3  cd tools/
-    5  mkdir jenkins
-    6  cd jenkins/
-    8  vi jenkins-install.sh
-	apt install openjdk-17-jdk -y
-	java --version
-	curl -fsSL https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
-	sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
-	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5BA31D57EF5975CA
-	apt-get update
-	apt install jenkins -y
-	systemctl start jenkins
-	systemctl enable jenkins
-	ufw allow 8080
-    9  chmod +x jenkins-install.sh
-   10  bash jenkins-install.sh
-   30  systemctl status jenkins
-   32  vi /etc/hosts [192.168.1.122 jenkins.duyduc.tech]
-   33  cat /var/lib/jenkins/secrets/initialAdminPassword
-   34  apt install nginx
-   35  cd /etc/nginx/
-   36  ls
-   37  vi conf.d/jenkins.duyduc.tech.conf
-		server {
+// nên chuẩn bị một server mới để cài đặt và CI/CD riêng cho jenkins
+* bài 9 : cài đặt jenkins
+	   - cd
+	   - mkdir tools
+	   - cd tools/
+	   - mkdir jenkins
+	   - cd jenkins/
+	   - nano jenkins-install.sh
+			apt install openjdk-17-jdk -y
+			java --version
+			curl -fsSL https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
+			sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+			apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5BA31D57EF5975CA
+			apt-get update
+			apt install jenkins -y
+			systemctl start jenkins
+			systemctl enable jenkins
+			ufw allow 8080
+	  - chmod +x jenkins-install.sh
+	  - bash jenkins-install.sh
+	  - systemctl status jenkins
+	  - nano /etc/hosts [192.168.1.122 jenkins.duyduc.tech]  // nhớ vào hosts của system32 để add 192.168.1.122 jenkins.duyduc.tech vào host tương tự như gitlab-ctl
+	  - cat /var/lib/jenkins/secrets/initialAdminPassword
+	  - apt install nginx
+	  - nano /etc/nginx/conf.d/jenkins.duyduc.tech.conf
+			server {
+	  		  listen 80;
+	                  server_name jenkins.duyduc.tech;
+	
+	                  location / {
+	   		    proxy_pass http://jenkins.duyduc.tech:8080;
+	                    proxy_http_version 1.1;
+	                    proxy_set_header Upgrade $http_upgrade;
+	                    proxy_set_header Connection keep_alive;
+	                    proxy_set_header Host $host;
+	                    proxy_cache_bypass $http_upgrade;
+	                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	                    proxy_set_header X-Forwarded-Proto $scheme;
+	
+	                  }
+	
+	                }
+	  - clear
+	  - nginx -s reload
+	  - ls /var/lib/jenkins/
+	  - nano /etc/hosts => setup domain và thêm domain của gitlab vào jenkins-server và ngược lại vơi gitlab-runner
 
-  		  listen 80;
-
-                  server_name jenkins.duyduc.tech;
-
-                  location / {
-
-   		    proxy_pass http://jenkins.duyduc.tech:8080;
-
-                    proxy_http_version 1.1;
-
-                    proxy_set_header Upgrade $http_upgrade;
-
-                    proxy_set_header Connection keep_alive;
-
-                    proxy_set_header Host $host;
-
-                    proxy_cache_bypass $http_upgrade;
-
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-                    proxy_set_header X-Forwarded-Proto $scheme;
-
-                  }
-
-                }
-   38  clear
-   39  systemctl restart nginx
-   41  ls /var/lib/jenkins/
-   42  vi /etc/passwd
-   43  vi /etc/hosts => setup domain và thêm domain của gitlab vào jenkins-server
-   và ngược lại vơi gitlab-runner
-
+* buổi 10 : Thiết lập jenkinsfile CI/CD
 vào lab-server : tạo một user jenkins
 1. vào dashboard-jenkins -> manage jenkins -> nodes -> new node (đặt tên : lab-server)
 * Chú ý : Name -> labels ( tương ứng với tên server ) -> tạo một thư mục /var/lib/jenkins trong lab-server ->
