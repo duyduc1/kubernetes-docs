@@ -253,6 +253,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/cp*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/chown*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/rm*
+		gitlab-runner ALL=(ALL) NOPASSWD: /usr/sbin/nginx*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/su springbe* ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
 		springbe ALL=(ALL) NOPASSWD: ALL ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
 	  - Vào gitlab của dự án sau đó vào CI/CD phần gitlab-runner reload lại sẽ có một runner đã chạy vào 
@@ -397,143 +398,96 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	    - docker rmi nginx:latest // xoá docker images
 	    - docker rmi ubuntu:22.04
 
-Dockerfile
-   73  vi dockerfile (Backend)
-	[
-# Maven build stage
-FROM maven:3.8-openjdk-17 AS build
+* Buổi 7 // Dockerfile cho dự án Backend && Frontend
+	    * Nhớ build Docker ở nơi chứa dự án
+   	    - nano Dockerfile (Backend)
+	
+			# Maven build stage
+			FROM maven:3.8-openjdk-17 AS build
+			
+			WORKDIR /app
+			COPY . .
+			RUN mvn install -DskipTests=true
+			
+			# Runtime stage
+			FROM openjdk:17-jdk
+			
+			WORKDIR /run
+			COPY --from=build /app/target/VegetFood-1.0.jar /run/VegetFood-1.0.jar
+			EXPOSE 8080
+			ENTRYPOINT ["java", "-jar", "/run/VegetFood-1.0.jar"]
+	
+	   - docker build -t vegetfood:v1 .
+	   - docker images
+	   - docker run --name vegetfood -dp 8888:8080 vegetfood:v1
+	   - docker ps -a
+	   - docker logs vegetfood
 
-WORKDIR /app
-COPY . .
-RUN mvn install -DskipTests=true
+	// Docker-compose cho dự án backend để khởi động các service backend
+	   - nano docker-compose.yml
+		version: '3.8'
+		services:
+		  backend:
+		    build:
+		      context: .
+		      dockerfile: Dockerfile
+		    ports:
+		      - "8080:8080"
+		    depends_on:
+		      - mysql
+		    environment:
+		      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/vegetfood
+		      SPRING_DATASOURCE_USERNAME: vegetfood
+		      SPRING_DATASOURCE_PASSWORD: vegetfood
+		    container_name: vegetfood-backend
+		    restart: always
+		
+		  mysql:
+		    image: mysql:8.0
+		    volumes:
+		      - /db/mysql-1:/var/lib/mysql
+		    environment:
+		      MYSQL_ROOT_PASSWORD: vegetfood
+		      MYSQL_DATABASE: vegetfood
+		      MYSQL_USER: vegetfood
+		      MYSQL_PASSWORD: vegetfood
+		    ports:
+		      - "3307:3306"
+		    container_name: mysql-1
+		    restart: always
+	//Dockerfile dự án frontend
+	   - nano Dockerfile ( dự án frontend )
+			 FROM node:18 AS build
+			 WORKDIR /app
+			 COPY package*.json ./
+			 RUN npm install
+			 COPY . .
+			 RUN npm run build
+			 FROM nginx:alpine
+			 COPY --from=build /app/dist /usr/share/nginx/html
+			 EXPOSE 80
+			 CMD ["nginx", "-g", "daemon off;"]]
+	     - docker build -t frontend-food:v1 .
+	     - docker images
+	     - docker run --name frontend-food -dp 5000:80 frontend-food:v1
+	     - docker ps -a
+	     - docker logs frontend-food
 
-# Runtime stage
-FROM openjdk:17-jdk
-
-WORKDIR /run
-COPY --from=build /app/target/VegetFood-1.0.jar /run/VegetFood-1.0.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/run/VegetFood-1.0.jar"]]
-
-
-
-vi dockerfile frontend
-[# Bước 1: Sử dụng image node để build ứng dụng
- FROM node:18 AS build
-#
-# # Set working directory
- WORKDIR /app
-#
-# # Sao chép package.json và package-lock.json vào container
- COPY package*.json ./
-#y
-# # Cài đặt các dependencies
- RUN npm install
-#
-# # Sao chép toàn bộ mã nguồn vào container
- COPY . .
-#
-# # Build ứng dụng Vue.js
- RUN npm run build
-#
-# # Bước 2: Sử dụng image Nginx để phục vụ ứng dụng đã build
- FROM nginx:alpine
-#
-# # Sao chép các file đã build từ bước trước vào thư mục của Nginx
- COPY --from=build /app/dist /usr/share/nginx/html
-#
-# # Expose port 80 để Nginx có thể phục vụ ứng dụng
- EXPOSE 80
-#
-# # Chạy Nginx khi container được khởi động
-CMD ["nginx", "-g", "daemon off;"]]
-   Nhớ config database trước khi build
-   75  docker build -t vegetfood:v1 .
-   76  docker images
-   77  docker run --name vegetfood -dp 8888:8080 vegetfood:v1
-   78  docker ps -a
-   79  docker logs vegetfood
-   80  ls
-   81  vi src/main/
-   82  ls src/main/
-   83  ls src/main/resources/
-   84  vi src/main/resources/application.yml
-   85  ls
-
-   86  mysql -u root
-   87  vi src/main/resources/application.yml
-   88  mysql -u root
-   90  docker build -t vegetfood:v1 .
-   91  docker run --name vegetfood -dp 8888:8080 vegetfood:v1
-   92  docker ps -a
-   93  docker restart c8c
-   94  docker ps -a
-   95  docker images
-   96  docker logs vegetfood
-   97  history
-   98 docker logs vegetfood
-
-dockerhub
-  265  cd
-  266  docker images
-  267  clear
-  268  docker login
-  270  ls -a
-  271  ls .docker/
-  272  docker images
-	Tạo repository trước khi push và giống như tên của tag đã đổi
-  291  docker tag 2dd2d4f66de4 vuduyduc/devopsduc
-  292  docker images
-  293  docker push vuduyduc/devopsduc
-  294  docker images
-  295  docker tag frontend vuduyduc/frontend
-  296  docker tag 743779aa141f vuduyduc/frontend
-  297  docker images
-  298  docker push vuduyduc/frontend
-  299  history
-  306  docker images
-  307  docker rmi vuduyduc/frontend
-  308  docker images
-  309  docker pull vuduyduc/frontend
-  310  docker images
-  312  docker run --name frontend-dev -dp 7777:80 vuduyduc/frontend
-
-docker-compose
-  319  cd
-  320  cd datas/backend/
-  321  ls
-  322  clear
-  323  vi dockerfile
-  325  docker run --rm -v `pwd`:/app --workdir="/app" maven:3.8-openjdk-17 mvn install -DskipTests=true
-  329  mkdir -p /db/mysql-1
-  330  docker run -v /db/mysql-1/:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=vegetfood -p 3307:3306 --name mysql-1 -d mysql:8.0
-  332  docker ps
-  333  netstat -tlpun
-  334  mysql -h 192.168.1.123 -P 3306 -u vegetfood -p
-  335  ls /db/mysql-1
-  341  vi docker-compose.yml
-	version: '3.8'
-	services:
-  	   mysql:
-      	   	image: mysql:8.0
-      		volumes:
-        	  - /db/mysql-1:/var/lib/mysql
-      		environment:
-        	  MYSQL_ROOT_PASSWORD: vegetfood
-      		ports:
-        	  - "3307:3306"
-      		container_name: mysql-1
-      		restart: always
-
-	   spring-boot-app:
-      		image: backend:v1
-      		restart: always
-      		ports:
-        	  - "8081:8080"
-      		container_name: backend-1
-  393  vi src/main/resources/application.yml
-	chinh port mysql thanh 3307
-  399  docker-compose up -d                   
+	// Dockerhub
+	     - cd
+	     - docker images
+	     - docker login // Đăng nhập bằng tài khoản dockerhub
+	     - ls .docker/
+	     - docker images
+		  Tạo repository trên dockerhub trước khi push và giống như tên của tag đã đổi
+	     - docker tag 2dd2d4f66de4 vuduyduc/backend
+	     - docker images
+	     - docker push vuduyduc/backend
+	     - docker images
+	     - docker rmi vuduyduc/backend
+	     - docker pull vuduyduc/backend
+	     - docker images
+	     - docker run --name frontend-dev -dp 7777:80 vuduyduc/frontend
 
 jenkins
   1  clear
