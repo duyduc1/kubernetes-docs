@@ -298,6 +298,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			        - sudo su springbe -c "cd datas/springbe; tail -n 10000 nohup.out"
 			    tags:
 			        - devops-server
+
 			// Build CI/CD của frontend 
 		        stages:
 			  - build
@@ -340,9 +341,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			  variables:
 			    GIT_STRATEGY: none
 			  script:
-			    - echo "------ ACCESS LOG ------"
 			    - sudo tail -n 1000 /var/log/nginx/access.log || true
-			    - echo "------ ERROR LOG ------"
 			    - sudo tail -n 1000 /var/log/nginx/error.log || true
 			  tags:
 			    - devops-server
