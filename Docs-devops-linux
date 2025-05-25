@@ -398,7 +398,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	    - docker rmi nginx:latest // xoá docker images
 	    - docker rmi ubuntu:22.04
 
-* Buổi 7 // Dockerfile cho dự án Backend && Frontend
+* Bài 7 // Dockerfile cho dự án Backend && Frontend
 	    * Nhớ build Docker ở nơi chứa dự án
    	    - nano Dockerfile (Backend)
 	
@@ -488,6 +488,100 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	     - docker pull vuduyduc/backend
 	     - docker images
 	     - docker run --name frontend-dev -dp 7777:80 vuduyduc/frontend
+
+* Bài 8 Docker CI/CD
+  113  usermod -aG docker gitlab-runner
+  114  su gitlab-runner
+  115  docker login docker.io/vuduyduc764/vegetfood -u vuduyduc764 -p Vuduyduc28042002@
+  117  vi /etc/gitlab-runner/config.toml
+	[session_server]
+  	  session_timeout = 1800
+	[[runners]]
+  	  name = "docker"
+  	  url = "http://gitlab.duyduc.tech/"
+  	  id = 1
+  	  token = "jrB3xYt7s4nGR3_Z1qej"
+  	  token_obtained_at = 2025-01-17T17:06:38Z
+  	  token_expires_at = 0001-01-01T00:00:00Z
+  	  executor = "shell"
+  	  [runners.custom_build_dir]
+  	  [runners.cache]
+    	  MaxUploadedArchiveSize = 0
+    		[runners.cache.s3]
+    		[runners.cache.gcs]
+    		[runners.cache.azure]
+
+  	  [runners.docker]
+    	    tls_verify = false
+    	    image = "maven:3.8-openjdk-17"
+    	    privileged = true
+    	    disable_entrypoint_overwrite = false
+    	    volumes = ["/cache"]
+    	    networks = []
+    	    buildx = false
+  119  sudo systemctl restart gitlab-runner
+  120  sudo systemctl status gitlab-runner
+  121  cd /home/gitlab-runner/builds/jrB3xYt7/0/VuDuyDuc/vegetfood
+  123  cd
+  124  docker logout
+  125  docker login -u vuduyduc764 -p Vuduyduc28042002@
+  126  echo $DOCKER_IMAGE
+  127  cd /home/gitlab-runner/builds/jrB3xYt7/0/VuDuyDuc/vegetfood
+  128  ls
+  138  docker images
+  146  docker ps -a
+  150  docker logs vegetfood
+  151  history
+
+Docker CI/CD
+REGISTRY_URL : docker.io
+REGISTRY_PROJECT : vuduyduc764
+REGISTRY_USER : vuduyduc764
+REGISTRY_PASSWORD : Vuduyduc28042002@
+
+variables:
+   DOCKER_IMAGE: ${REGISTRY_URL}/${REGISTRY_PROJECT}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA}
+   DOCKER_CONTAINER: ${CI_PROJECT_NAME}
+stages:
+    - buildandpush
+    - deploy
+    - showlog
+
+build:
+    stage: buildandpush
+    before_script:
+        - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
+    variables:
+        GIT_STRATEGY: clone
+    script:
+        - docker build -t $DOCKER_IMAGE .
+        - docker push $DOCKER_IMAGE
+    tags:
+        - docker
+
+deploy:
+    stage: deploy
+    before_script:
+        - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
+    variables:
+        GIT_STRATEGY: none
+    script:
+        - docker pull $DOCKER_IMAGE
+        - docker rm -f $DOCKER_CONTAINER
+        - docker run --name $DOCKER_CONTAINER -dp 8888:8081 $DOCKER_IMAGE
+    tags:
+        - docker
+
+showlog:
+    stage: showlog
+    variables:
+        GIT_STRATEGY: none
+    script:
+        - sleep 20
+        - docker logs $DOCKER_CONTAINER
+    tags:
+        - docker
+
 
 jenkins
   1  clear
