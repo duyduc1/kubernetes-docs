@@ -249,8 +249,10 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		root    ALL=(ALL:ALL) ALL
 		gitlab-runner ALL=(ALL) NOPASSWD: ALL
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/mkdir*
+		gitlab-runner ALL=(ALL) NOPASSWD: /bin/mv*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/cp*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/chown*
+		gitlab-runner ALL=(ALL) NOPASSWD: /bin/rm*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/su springbe* ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
 		springbe ALL=(ALL) NOPASSWD: ALL ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
 	  - Vào gitlab của dự án sau đó vào CI/CD phần gitlab-runner reload lại sẽ có một runner đã chạy vào 
@@ -329,8 +331,8 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			  script:
 			    # Xóa dữ liệu cũ trước khi copy để tránh file cũ vẫn còn
 			    - sudo rm -rf /var/www/html/*
-			    - sudo cp -r dist/* /var/www/html/
-			    # - sudo cp -r build/* /var/www/html/  # nếu dùng React
+			    - sudo mv dist/* /var/www/html/
+			    # - sudo mv build/* /var/www/html/  # nếu dùng React
 			    - sudo chown -R www-data:www-data /var/www/html/
 			    - sudo nginx -s reload
 			  tags:
@@ -346,71 +348,54 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			  tags:
 			    - devops-server
 
+* Bài 6 : Cài đặt và sử dụng Docker
 
-Docker
-    1  clear
-    2  mkdir tools
-    3  cd tools
-    4  mkdir docker
-    5  cd docker/
-    6  vi install-docker.sh
-[#!/bin/bash
-
-sudo apt update
-sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt update
-sudo apt install -y docker-ce
-sudo systemctl start docker
-sudo systemctl enable docker
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-docker --version
-docker-compose --version]
-
-   11  chmod +x install-docker.sh
-   12  ls -l
-    7  bash install-docker.sh
-    8  vi install-docker.sh
-    9  bash install-docker.sh
-   10  ls -l
-   13  clear
-   14  docker pull ubuntu:22.04
-   15  docker images
-   16  docker run --name ubuntu -it ubuntu:22.04
-   20  docker ps -a
-   22  docker start f73
-   23  docker exec -it ubuntu bash
-		6  ls
-    		7  cd home/
-    		8  apt update
-    		9  clear
-   		10 apt update
-   		11 apt install net-tools -y
-   		13 netstat -tlpun
-		14 exit
-   32  docker run --name nginx -dp 9999:80 nginx
-   33  docker ps -a
-   37  docker run --name car-serv -dp 8888:80 elroydevops/car-serv
-   38  docker ps -a
-   39  docker stop ubuntu
-   40  docker rm ubuntu
-   41  docker ps -a
-   43  docker rm -f car-serv
-   44  docker ps -a
-   45  docker images
-   46  docker rm nginx
-   47  docker rm -f nginx //xoá docker-container
-   48  docker images
-   49  docker rm -f $(docker ps -a)
-   50  docker images
-   51  docker ps -a
-   52  docker images
-   53  docker rmi nginx:latest // xoá docker images
-   54  docker images
-   55  docker rmi ubuntu:22.04
-   56  history
+	    - cd
+	    - mkdir tools
+	    - cd tools
+	    - mkdir docker
+	    - cd docker/
+	    - nano install-docker.sh
+			[#!/bin/bash
+			sudo apt update
+			sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+			echo "deb [signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+			sudo apt update
+			sudo apt install -y docker-ce
+			sudo systemctl start docker
+			sudo systemctl enable docker
+			sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+			sudo chmod +x /usr/local/bin/docker-compose
+			docker --version
+			docker-compose --version]
+   	    - chmod +x install-docker.sh
+    	    - bash install-docker.sh
+	    - docker pull ubuntu:22.04
+	    - docker images
+	    - docker run --name ubuntu -it ubuntu:22.04
+	    - docker ps -a
+	    - docker start f73
+	    - docker exec -it ubuntu bash
+			* ls
+	    		* cd home/
+	    		* apt update
+	    		* clear
+	   		* apt update
+	   		* apt install net-tools -y
+	   		* netstat -tlpun
+			* exit
+	    - docker run --name car-serv -dp 8888:80 elroydevops/car-serv
+	    - docker ps -a
+	    - docker stop ubuntu
+	    - docker rm ubuntu
+	    - docker rm -f car-serv // -f bắt buộc xoá tiến trình dù có đang chạy
+	    - docker ps -a
+	    - docker rm -f $(docker ps -a) // xoá tât cả triển trình đang chạy , không nên thử
+	    - docker images
+	    - docker images
+	    - docker rmi nginx:latest // xoá docker images
+	    - docker rmi ubuntu:22.04
 
 Dockerfile
    73  vi dockerfile (Backend)
