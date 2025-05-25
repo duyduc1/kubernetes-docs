@@ -1,23 +1,3 @@
-// tiếng anh 
-"The things I don't know yet, I will learn // những thứ chưa biết tôi sẽ học thêm 
-Jenkins and GitLab are connected via a Personal Access Token from GitLab. // jenkins và gitlab kết nối
-// lợi ích docker
-1. Portability
-Docker packages applications along with their environment (OS, libraries, configs) into containers.
- 2. Easy Deployment and Scalability
-Docker enables fast, simple deployment and horizontal scaling of applications.
- 3. Environment Isolation
-Each container runs in its own isolated environment.
- 4. Resource Efficiency
-Compared to virtual machines (VMs), Docker containers are lightweight, start up quickly, and use fewer system resources by sharing the host OS kernel.
-It works well with microservices architecture and CI/CD pipelines.
-This ensures the application runs consistently across all environments—your laptop, servers, or cloud.
-5. Automation and DevOps Integration
-Docker integrates seamlessly with CI/CD tools like GitLab CI, Jenkins, etc.
- 6. Ease of Management and Reusability
-Dockerfiles clearly define how to build the environment.
-Containers can be stored, shared, and reused via Docker Hub or private registries.
-
 // Kiến thức ngoài Devops 
 	- TCP/IP (Transmission Control Protocol/Internet Protocol) is a standard protocol suite used
 	 to connect devices on networks, 
@@ -180,7 +160,36 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		
 		   SELECT * FROM roles; && SHOW COLUMNS FROM roles;
 		   INSERT INTO roles (id, name) VALUES (1, 'Admin');
+* bài 3.2 : triển khai nginx cho cả fe và be khi có domain
+	- sudo apt install nginx
+	// build dự án frontend React
+ 	- npm run build
+	- mv build /var/www/html
+	- cd 
+	// Dự án backend springboot
+	- đã triển khai ở bài trước
+	- nano /etc/nginx/conf.d/tên domain.conf
+		server {
+		    listen 80;
+		    server_name ticker-car.greenglobal.com.vn;
+		
+		    root /var/www/html/build;
+		    index index.html;
 
+		    location / {
+		        try_files $uri /index.html;
+		    }
+		
+		    location /api/ {
+		        proxy_pass http://10.1.0.78:8081/api/; // port be và server tuỳ theo dự án miễn là có trong trạng thái run
+		        proxy_http_version 1.1;
+		        proxy_set_header Host $host;
+		        proxy_set_header X-Real-IP $remote_addr;
+		        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		        proxy_set_header X-Forwarded-Proto $scheme;
+		    }
+		}
+	 - nginx -s reload
 * bài 4 : triển khai gitlab-ctl gitlab doanh nghiệp
   	- curl -s https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash
   	- sudo apt-get install gitlab-ee=14.4.1-ee.0
@@ -208,101 +217,144 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	  // khởi đông lại gitlab-runners
 	  - sudo gitlab-ctl status
 	  - sudo gitlab-ctl restart
+
 	  // đẩy dự án lên gitlab
 	  - cd
 	  - mkdir data
 	  - cd data/
 	  - git config --global user.name "Duc"
-	   63  git config --global user.email "vuduyduc550@gmail.com"
-	   64  git clone http://git.duyduc.tech/foodweb1/foodweb.git
-	   65  ls
-	   66  cd foodweb/
-	   67  cd /home/duc
-	   210  cp -rf springbe/* /root/data/foodweb
-	   211  cd
-	  212  cd data
-	  213  cd foodweb/
-	  214  ls
-	  216  rm -r target
-	  217  clear
-	  218  ls
-	  219  git status
-	  221  ls
-	  222  git status
-	  223  git checkout -b main
-	  224  git status
-	  225  git add .
-	  226  git status
-	  227  git commit -m "push(project-demo)"
-	  229  git push --set-upstream origin main
-	  232  git pull
-	  233  cd
-	  235  history
-	curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | bash
-	apt-get install gitlab-runner
-	vi /etc/passwd
-  242  gitlab-runner register
-	shell
-  243  vi /etc/gitlab-runner/config.toml
-  244  nohup gitlab-runner run --working-directory /home/gitlab-runner --config/etc/gitlab-runner/config.toml --service gitlab-runner --user gitlab-runner 2>&1 &
-  245  ls
-  246  ps -ef| grep gitlab-runner
-  248  ls /home/gitlab-runner/builds/aCCWF7QT/0/foodweb1/foodweb/
-  249  su gitlab-runner
-  250  mkdir datas
-  251  mkdir datas/backend-foodweb
-  252  visudo
-	root    ALL=(ALL:ALL) ALL
-	gitlab-runner ALL=(ALL) NOPASSWD: ALL
-	gitlab-runner ALL=(ALL) NOPASSWD: /bin/mkdir*
-	gitlab-runner ALL=(ALL) NOPASSWD: /bin/cp*
-	gitlab-runner ALL=(ALL) NOPASSWD: /bin/chown*
-	gitlab-runner ALL=(ALL) NOPASSWD: /bin/su springbe*
-	springbe ALL=(ALL) NOPASSWD: ALL
-  311  ls -l /home/gitlab-runner/builds/aCCWF7QT/0/foodweb1/foodweb/datas
-  312  sudo chown -R gitlab-runner:gitlab-runner /home/gitlab-runner/builds/aCCWF7QT/0/foodweb1/foodweb/datas
-  313  ls -l /home/gitlab-runner/builds/aCCWF7QT/0/foodweb1/foodweb/datas
-  335  history
+	  - git config --global user.email "vuduyduc550@gmail.com"
+	  - git clone http://git.duyduc.tech/foodweb1/foodweb.git
+	  - ls
+	  - cd foodweb/
+	  - cd /home/duc
+	  - cp -rf springbe/* /root/data/foodweb
+	  - cd data/foodweb/
+	  - rm -r target
+	  - git status
+	  - git checkout -b main
+	  - git add .
+	  - git commit -m "push(project-demo)"
+	  - git push --set-upstream origin main
 
-Pipline CI/CD Gitlab
-stages:
-    - build
-    - deploy
-    - showlog
+* buổi 4 : // triển khai và cài đặt gitlab-runner (CI/CD)
+	  - curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | bash
+	  - apt-get install gitlab-runner
+ 	  - gitlab-runner register
+		* Enter the gitlab instance URL ( - bỏ link của gitlab vào trong này)
+		* Enter the registration Token ( - Vào CI/CD -> gitlab-runner -> lấy token vào dán vào)
+		* Enter the description for the runner ( - có thể bỏ tên của server vào ví dụ mô tả là devops-server )
+		* Enter the tags for the runner ( - có thể bỏ tên của server vào ví dụ tags là devops-server )
+	  	* Enter option maintenance note for the runner ( - gõ shell ) 
+  	  - nano /etc/gitlab-runner/config.toml 
+  	  - nohup gitlab-runner run --working-directory /home/gitlab-runner --config/etc/gitlab-runner/config.toml --service gitlab-runner --user gitlab-runner 2>&1 &
+	  - ps -ef| grep gitlab-runner
+	  - ls /home/gitlab-runner/builds/aCCWF7QT/0/foodweb1/foodweb/
+	  - su gitlab-runner
+	  - mkdir datas
+	  - mkdir datas/backend-foodweb
+	  - visudo
+		root    ALL=(ALL:ALL) ALL
+		gitlab-runner ALL=(ALL) NOPASSWD: ALL
+		gitlab-runner ALL=(ALL) NOPASSWD: /bin/mkdir*
+		gitlab-runner ALL=(ALL) NOPASSWD: /bin/cp*
+		gitlab-runner ALL=(ALL) NOPASSWD: /bin/chown*
+		gitlab-runner ALL=(ALL) NOPASSWD: /bin/su springbe* ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
+		springbe ALL=(ALL) NOPASSWD: ALL ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
+	  - Vào gitlab của dự án sau đó vào CI/CD phần gitlab-runner reload lại sẽ có một runner đã chạy vào 
+		-> nhấn vào phần cây bút (edit) dữ tích chọn 1 , còn lại bỏ tích chọn 
+	  - Vào gitlab của dự án tạo file (.gitlab-ci.yml)
+		// pipelines của dự án backend
+			Pipline CI/CD Gitlab
+			stages:
+			    - build
+			    - deploy
+			    - showlog
+			
+			before_script:
+			  - sudo chown -R gitlab-runner:gitlab-runner datas || true
+			  - sudo chmod -R 755 datas || true
+			
+			build:
+			    stage: build
+			    variables:
+			        GIT_STRATEGY: clone
+			    script: 
+			        - mvn install -DskipTests=true
+			    tags:
+			        - devops-server
 
-before_script:
-  - sudo chown -R gitlab-runner:gitlab-runner datas || true
-  - sudo chmod -R 755 datas || true
+			deploy:
+			    stage: deploy
+			    variables:
+			        GIT_STRATEGY: none
+			    script:
+				- sudo fuser -k 8081/tcp || true
+			        - sudo mkdir -p datas/springbe
+			        - sudo cp target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar datas/springbe
+			        - sudo chown springbe:springbe datas/springbe
+			        - sudo su springbe -c "cd datas/springbe; nohup java -jar SpringSecurity.JWT-0.0.1-SNAPSHOT.jar > nohup.out 2>&1 &"
+				- sudo nginx -s reload // nếu như có sử dụng domain
+			    tags:
+			        - devops-server
+			
+			showlog: 
+			    stage: showlog
+			    variables:
+			        GIT_STRATEGY: none
+			    script:
+			        - sudo su springbe -c "cd datas/springbe; tail -n 10000 nohup.out"
+			    tags:
+			        - devops-server
+			// Build CI/CD của frontend 
+		        stages:
+			  - build
+			  - deploy
+			  - showlog
+			
+			before_script:
+			  - sudo chown -R gitlab-runner:gitlab-runner datas || true
+			  - sudo chmod -R 755 datas || true
+			
+			build:
+			  stage: build
+			  variables:
+			    GIT_STRATEGY: clone
+			  script:
+			    - npm install
+			    - npm run build
+			  artifacts:
+			    paths:
+			      - dist/ # hoặc build/ nếu dùng React
+			  tags:
+			    - devops-server
+			
+			deploy:
+			  stage: deploy
+			  variables:
+			    GIT_STRATEGY: none
+			  script:
+			    # Xóa dữ liệu cũ trước khi copy để tránh file cũ vẫn còn
+			    - sudo rm -rf /var/www/html/*
+			    - sudo cp -r dist/* /var/www/html/
+			    # - sudo cp -r build/* /var/www/html/  # nếu dùng React
+			    - sudo chown -R www-data:www-data /var/www/html/
+			    - sudo nginx -s reload
+			  tags:
+			    - devops-server
+			
+			showlog:
+			  stage: showlog
+			  variables:
+			    GIT_STRATEGY: none
+			  script:
+			    - echo "------ ACCESS LOG ------"
+			    - sudo tail -n 1000 /var/log/nginx/access.log || true
+			    - echo "------ ERROR LOG ------"
+			    - sudo tail -n 1000 /var/log/nginx/error.log || true
+			  tags:
+			    - devops-server
 
-build:
-    stage: build
-    variables:
-        GIT_STRATEGY: clone
-    script: 
-        - mvn install -DskipTests=true
-    tags:
-        - devops-server
-deploy:
-    stage: deploy
-    variables:
-        GIT_STRATEGY: none
-    script:
-	- sudo fuser -k 8081/tcp || true
-        - sudo mkdir -p datas/springbe
-        - sudo cp target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar datas/springbe
-        - sudo chown springbe:springbe datas/springbe
-        - sudo su springbe -c "cd datas/springbe; nohup java -jar SpringSecurity.JWT-0.0.1-SNAPSHOT.jar > nohup.out 2>&1 &"
-    tags:
-        - devops-server
-
-showlog: 
-    stage: showlog
-    variables:
-        GIT_STRATEGY: none
-    script:
-        - sudo su springbe -c "cd datas/springbe; tail -n 10000 nohup.out"
-    tags:
-        - devops-server
 
 Docker
     1  clear
