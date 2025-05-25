@@ -229,7 +229,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	  - git commit -m "push(project-demo)"
 	  - git push --set-upstream origin main
 
-* buổi 4 : // triển khai và cài đặt gitlab-runner (CI/CD)
+* buổi 5 : // triển khai và cài đặt gitlab-runner (CI/CD)
 	  - curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | bash
 	  - apt-get install gitlab-runner
  	  - gitlab-runner register
