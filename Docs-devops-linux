@@ -3,17 +3,9 @@
 	 to connect devices on networks, 
 	 especially the Internet. It is the foundation of modern networking protocols,
 	 providing a way for devices to exchange data with each other.
-	- Devops là người đưa ra giải pháp giúp tôi ưu quy trình làm việc , tăng chất lượng làm việc và sản phẩm
+	- Devops : là người đưa ra giải pháp giúp tôi ưu quy trình làm việc , tăng chất lượng làm việc và sản phẩm
 	- Linux : là 1 hệ điều hành : Tối ưu chi phí , bảo mật và ổn định , khả năng kiểm soát và linh hoạt , 
 	dễ phát triển và cập nhật , tương thích đa nền tảng , cộng đồng phát triển lớn
-	cơ sở hạ tầng : infrastructure
-	that's my thought
-	chuẩn bị : prepare
-	- Devops is the one who provides solutions to help optimize workflow,
-	 increase work quality and products
-	- Linux: is an operating system: Cost optimization, security and stability, 
-	control and flexibility,
-	easy to develop and update, multi-platform compatibility, large development community
 	ssh-keygen -R 192.168.1.110
 	Devops for fresher 
 	mk vuduyduc28042002
