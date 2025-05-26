@@ -242,9 +242,6 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
   	  - nohup gitlab-runner run --working-directory /home/gitlab-runner --config/etc/gitlab-runner/config.toml --service gitlab-runner --user gitlab-runner 2>&1 &
 	  - ps -ef| grep gitlab-runner
 	  - ls /home/gitlab-runner/builds/aCCWF7QT/0/foodweb1/foodweb/
-	  - su gitlab-runner
-	  - mkdir datas
-	  - mkdir datas/backend-foodweb
 	  - visudo
 		root    ALL=(ALL:ALL) ALL
 		gitlab-runner ALL=(ALL) NOPASSWD: ALL
