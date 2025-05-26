@@ -661,431 +661,178 @@ và sau đó out ra chọn user vừa mới tạo -> branches to build -> add nh
 http://admin:11dda35a0e3b70466878a04f96db4dddc3@jenkins.duyduc.tech/project/Action_in_lab/course ( chọn thêm tags event && merge request events && bỏ tuỳ chọn enable ssl) -> add webhook
 -> push event
  
-8. visudo -> thêm
-	jenkins ALL=(ALL) NOPASSWD: ALL
-	jenkins  ALL=(ALL) NOPASSWD: /bin/mkdir*
-	jenkins  ALL=(ALL) NOPASSWD: /bin/cp*
-	jenkins  ALL=(ALL) NOPASSWD: /bin/chown*
-	jenkins  ALL=(ALL) NOPASSWD: /bin/su vegetfood ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
-	springbe ALL=(ALL) NOPASSWD: ALL ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
-8.1 tạo một jenkinsfile bên nhánh develop của gitlab
-pipeline {
-    agent { label 'devops' }
+			8. visudo 
+					jenkins  ALL=(ALL) NOPASSWD: ALL
+					jenkins  ALL=(ALL) NOPASSWD: /bin/mkdir*
+					jenkins  ALL=(ALL) NOPASSWD: /bin/cp*
+					jenkins  ALL=(ALL) NOPASSWD: /bin/chown*
+					jenkins  ALL=(ALL) NOPASSWD: /bin/su vegetfood ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
+					springbe ALL=(ALL) NOPASSWD: ALL ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
+			8.1 tạo một jenkinsfile bên nhánh develop của gitlab
+			pipeline {
+			    agent { label 'devops' }
+			
+			    environment {
+			        GIT_STRATEGY = 'clone'
+			    }
+			
+			    stages {
+			        stage('Build') {
+			            steps {
+			                script {
+			                    sh 'mvn clean package -DskipTests'
+			                    sh 'ls -lah target/'  
+			                }
+			            }
+			        }
+			
+			        stage('Deploy') {
+			            environment {
+			                GIT_STRATEGY = 'none'
+			            }
+			            steps {
+			                script {
+			                    sh """
+			                        sudo fuser -k 8081/tcp || true
+			                        sudo mkdir -p /opt/datas/vegetfood
+			                        
+			                        sudo cp target/VegetFood-1.0.jar /opt/datas/vegetfood/
+			                        sudo chown -R vegetfood:vegetfood /opt/datas/vegetfood
+			                        sudo chmod 755 /opt/datas/vegetfood/VegetFood-1.0.jar
+			                        ls -lah /opt/datas/vegetfood/
+			                        sudo su - vegetfood -c "nohup java -jar /opt/datas/vegetfood/VegetFood-1.0.jar > /opt/datas/vegetfood/nohup.out 2>&1 &"
+			                    """
+			                }
+			            }
+			        }
+			
+			        stage('Show Log') {
+			            environment {
+			                GIT_STRATEGY = 'none'
+			            }
+			            steps {
+			                script {
+			                    sh """
+			                        sleep 10
+			                        sudo su - vegetfood -c "tail -n 50 /opt/datas/vegetfood/nohup.out"
+			                    """
+			                }
+			            }
+			        }
+			    }
+			
+			    post {
+			        always {
+			            script {
+			                sh """
+			                    sudo chown -R jenkins:jenkins /opt/datas || true
+			                    sudo chmod -R 755 /opt/datas || true
+			                """
+			            }
+			        }
+			    }
+			}
+* buổi 11 : Monitor Garafana + prometheus
+	// Monitor bởi docker
+	1. Cài đặt Node Exporter trên các máy chủ
+	Node Exporter thu thập metric hệ thống (CPU, RAM, disk, v.v.) từ các máy chủ. Cài đặt trên cả 3 máy chủ (10.1.0.175, 10.1.0.172, 10.1.0.176).
+	
+	Bước 1: Chạy Node Exporter bằng Docker
+	Trên mỗi máy chủ, tạo một container Node Exporter:
+	docker run -d \
+	  --name node-exporter \
+	  -p 9100:9100 \
+	  --restart always \
+	  prom/node-exporter:latest
 
-    environment {
-        GIT_STRATEGY = 'clone'
-    }
+	2. Cấu hình Prometheus và Grafana trên máy chủ chính (10.1.0.175)
+		Prometheus và Grafana sẽ được triển khai bằng Docker Compose trên 10.1.0.175.
+		Bước 1: Tạo thư mục và file cấu hình
+		
+			  - mkdir -p ~/monitoring
+			  - cd ~/monitoring
+			  - nano prometheus.yaml
+				global:
+				  scrape_interval: 15s
+				
+				scrape_configs:
+				  - job_name: 'prometheus'
+				    static_configs:
+				      - targets: ['10.1.0.175:9090']  # Prometheus tự giám sát
+				
+				  - job_name: 'node-exporter'
+				    static_configs:
+				      - targets:
+				          - '10.1.0.175:9100'  # Node Exporter trên máy chủ chính
+				          - '10.1.0.172:9100'  # Node Exporter trên máy chủ 2
+				          - '10.1.0.176:9100'  # Node Exporter trên máy chủ 3
+		
+	  Bước 2: Tạo file Docker Compose
+		        - nano docker-compose.yml
+				
+				version: '3.8'
+				
+				services:
+				  prometheus:
+				    image: prom/prometheus:latest
+				    container_name: prometheus
+				    volumes:
+				      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+				      - prometheus_data:/prometheus
+				    ports:
+				      - "9090:9090"
+				    restart: always
+				    networks:
+				      - monitoring
+				
+				  grafana:
+				    image: grafana/grafana:latest
+				    container_name: grafana
+				    volumes:
+				      - grafana_data:/var/lib/grafana
+				    ports:
+				      - "3000:3000"
+				    restart: always
+				    networks:
+				      - monitoring
+				
+				  node-exporter:
+				    image: prom/node-exporter:latest
+				    container_name: node-exporter
+				    ports:
+				      - "9100:9100"
+				    restart: always
+				    networks:
+				      - monitoring
+				
+				volumes:
+				  prometheus_data:
+				  grafana_data:
+				
+				networks:
+				  monitoring:
+				    driver: bridge
+		    
+		Bước 3: Chạy Docker Compose
+		Trong thư mục ~/monitoring, chạy lệnh:
+			- docker-compose up -d
+			- docker ps
+	
+		Truy cập:
+		Prometheus: http://10.1.0.175:9090
+		Grafana: http://10.1.0.175:3000 (Tài khoản mặc định: admin/admin, bạn sẽ được yêu cầu đổi mật khẩu).
+		
+		Bước 4: Cấu hình Grafana
+			* Đăng nhập vào Grafana tại http://10.1.0.175:3000.
+			* Thêm nguồn dữ liệu (Data Source):
+			* Vào menu Connections > Data Sources > Add data source.
+			* Chọn Prometheus.
+			* Đặt URL: http://10.1.0.175:9090 (dùng tên service trong Docker Compose).
+			* Nhấn Save & Test.
+			* Tạo Dashboard:
+			* Vào Create > Import.
+			* Sử dụng ID dashboard phổ biến cho Node Exporter, ví dụ: 1860 (Node Exporter Full).
+			* Chọn nguồn dữ liệu Prometheus vừa thêm.
+			* Lưu dashboard để xem metric từ 3 máy chủ.
 
-    stages {
-        stage('Build') {
-            steps {
-                script {
-                    sh 'mvn clean package -DskipTests'
-                    sh 'ls -lah target/'  
-                }
-            }
-        }
-
-        stage('Deploy') {
-            environment {
-                GIT_STRATEGY = 'none'
-            }
-            steps {
-                script {
-                    sh """
-                        sudo fuser -k 8081/tcp || true
-                        sudo mkdir -p /opt/datas/vegetfood
-                        
-                        sudo cp target/VegetFood-1.0.jar /opt/datas/vegetfood/
-                        sudo chown -R vegetfood:vegetfood /opt/datas/vegetfood
-                        sudo chmod 755 /opt/datas/vegetfood/VegetFood-1.0.jar
-                        ls -lah /opt/datas/vegetfood/
-                        sudo su - vegetfood -c "nohup java -jar /opt/datas/vegetfood/VegetFood-1.0.jar > /opt/datas/vegetfood/nohup.out 2>&1 &"
-                    """
-                }
-            }
-        }
-
-        stage('Show Log') {
-            environment {
-                GIT_STRATEGY = 'none'
-            }
-            steps {
-                script {
-                    sh """
-                        sleep 10
-                        sudo su - vegetfood -c "tail -n 50 /opt/datas/vegetfood/nohup.out"
-                    """
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            script {
-                sh """
-                    sudo chown -R jenkins:jenkins /opt/datas || true
-                    sudo chmod -R 755 /opt/datas || true
-                """
-            }
-        }
-    }
-}
-
-// Monitor bởi docker
-1. Cài đặt Node Exporter trên các máy chủ
-Node Exporter thu thập metric hệ thống (CPU, RAM, disk, v.v.) từ các máy chủ. Cài đặt trên cả 3 máy chủ (10.1.0.175, 10.1.0.172, 10.1.0.176).
-
-Bước 1: Chạy Node Exporter bằng Docker
-Trên mỗi máy chủ, tạo một container Node Exporter:
-docker run -d \
-  --name node-exporter \
-  -p 9100:9100 \
-  --restart always \
-  prom/node-exporter:latest
-
-2. Cấu hình Prometheus và Grafana trên máy chủ chính (10.1.0.175)
-Prometheus và Grafana sẽ được triển khai bằng Docker Compose trên 10.1.0.175.
-
-Bước 1: Tạo thư mục và file cấu hình
-Tạo thư mục làm việc:
-bash
-
-Sao chép
-mkdir -p ~/monitoring
-cd ~/monitoring
-
-Tạo file cấu hình cho Prometheus (prometheus.yml):
-nano prometheus.yaml
-
-global:
-  scrape_interval: 15s
-
-scrape_configs:
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['10.1.0.175:9090']  # Prometheus tự giám sát
-
-  - job_name: 'node-exporter'
-    static_configs:
-      - targets:
-          - '10.1.0.175:9100'  # Node Exporter trên máy chủ chính
-          - '10.1.0.172:9100'  # Node Exporter trên máy chủ 2
-          - '10.1.0.176:9100'  # Node Exporter trên máy chủ 3
-Lưu file prometheus.yml vào thư mục ~/monitoring.
-
-Bước 2: Tạo file Docker Compose
-Tạo file docker-compose.yml trong thư mục ~/monitoring:
-nano docker-compose.yml
-
-version: '3.8'
-
-services:
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
-    restart: always
-    networks:
-      - monitoring
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    volumes:
-      - grafana_data:/var/lib/grafana
-    ports:
-      - "3000:3000"
-    restart: always
-    networks:
-      - monitoring
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    ports:
-      - "9100:9100"
-    restart: always
-    networks:
-      - monitoring
-
-volumes:
-  prometheus_data:
-  grafana_data:
-
-networks:
-  monitoring:
-    driver: bridge
-    
-Bước 3: Chạy Docker Compose
-Trong thư mục ~/monitoring, chạy lệnh:
-docker-compose up -d
-
-Kiểm tra các container đang chạy:
-docker ps
-
-Truy cập:
-Prometheus: http://10.1.0.175:9090
-Grafana: http://10.1.0.175:3000 (Tài khoản mặc định: admin/admin, bạn sẽ được yêu cầu đổi mật khẩu).
-
-3. Cấu hình Grafana
-Đăng nhập vào Grafana tại http://10.1.0.175:3000.
-Thêm nguồn dữ liệu (Data Source):
-Vào menu Connections > Data Sources > Add data source.
-Chọn Prometheus.
-Đặt URL: http://10.1.0.175:9090 (dùng tên service trong Docker Compose).
-Nhấn Save & Test.
-Tạo Dashboard:
-Vào Create > Import.
-Sử dụng ID dashboard phổ biến cho Node Exporter, ví dụ: 1860 (Node Exporter Full).
-Chọn nguồn dữ liệu Prometheus vừa thêm.
-Lưu dashboard để xem metric từ 3 máy chủ.
-
-// Cấu hình Loki để xem log tập trung của một server
-Bước 1: Cài đặt Loki và Promtail trên server 10.1.0.172
-1. Tạo thư mục làm việc:
-Trên 10.1.0.172, tạo thư mục:
-
-mkdir -p ~/loki
-cd ~/loki
-
-2. Tạo file cấu hình cho Loki (loki-config.yml):
-Tạo file loki-config.yml với nội dung tối thiểu:
-auth_enabled: false
-
-server:
-  http_listen_port: 3100
-
-common:
-  path_prefix: /loki
-  storage:
-    filesystem:
-      chunks_directory: /loki/chunks
-      rules_directory: /loki/rules
-  replication_factor: 1
-  ring:
-    kvstore:
-      store: inmemory
-
-schema_config:
-  configs:
-    - from: 2020-10-24
-      store: boltdb-shipper
-      object_store: filesystem
-      schema: v11
-      index:
-        prefix: index_
-        period: 24h
-
-limits_config:
-  allow_structured_metadata: false
-  ingestion_rate_mb: 8  # Tăng lên 8MB/s (thay vì bytes, dùng MB)
-  ingestion_burst_size_mb: 2  # Tăng burst size lên 2MB
-  ingestion_rate_strategy: global  # Chiến lược áp dụng giới hạn
-  max_concurrent_tail_requests: 1000  # Tùy chọn: Tăng số lượng request đồng thời
-  max_streams_per_user: 10000  # Tùy chọn: Tăng số lượng stream tối đa
-
-3. Tạo file cấu hình cho Promtail (promtail-config.yml):
-Promtail là agent thu thập log và gửi đến Loki. Tạo file promtail-config.yml:
-
-server:
-  http_listen_port: 9080
-  grpc_listen_port: 0
-
-positions:
-  filename: /tmp/positions.yaml
-
-clients:
-  - url: http://loki:3100/loki/api/v1/push
-
-scrape_configs:
-  - job_name: tomcat
-    docker_sd_configs:
-      - host: unix:///var/run/docker.sock
-        refresh_interval: 5s
-    relabel_configs:
-      - source_labels: [__meta_docker_container_name]
-        target_label: container
-      - source_labels: [__meta_docker_container_id]
-        target_label: container_id
-    pipeline_stages:
-      - docker: {}
-      - match:
-          selector: '{container=~"/kdl-dqs|/kdl-datagov"}'
-          stages:
-            - labels:
-                host: "192.168.1.202"
-                job: "tomcat"
-
-  - job_name: tomcat_files
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: tomcat
-          host: 192.168.1.202
-          service_name: tomcat-qtud
-          __path__: /media/hdd/khodulieu2023/qtud/tomcat/logs/catalina.out
-      - targets:
-          - localhost
-        labels:
-          job: tomcat
-          host: 192.168.1.202
-          service_name: tomcat-srcmgt
-          __path__: /media/hdd/khodulieu2023/tomcat-srcmgt/logs/catalina.out
-
-          
-4. Tạo file docker-compose.yml cho Loki và Promtail:
-Trong thư mục ~/loki, tạo file docker-compose.yml:
-
-version: '3.8'
-services:
-  loki:
-    image: grafana/loki:3.2.0
-    container_name: loki
-    volumes:
-      - ./loki-config.yml:/mnt/config/loki-config.yml
-      - loki_data:/loki
-    command: -config.file=/mnt/config/loki-config.yml
-    ports:
-      - "3100:3100"
-    restart: unless-stopped
-    networks:
-      - monitoring
-
-  promtail:
-    image: grafana/promtail:3.2.0
-    container_name: promtail
-    volumes:
-      - ./promtail-config.yml:/mnt/config/promtail-config.yml
-      - /var/log:/var/log
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /media/hdd/khodulieu2023:/media/hdd/khodulieu2023:ro
-    command: -config.file=/mnt/config/promtail-config.yml
-    ports:
-      - "9080:9080"
-    restart: unless-stopped
-    networks:
-      - monitoring
-
-volumes:
-  loki_data:
-
-networks:
-  monitoring:
-    driver: bridge
-
-5. Chạy Docker Compose:
-
-cd ~/loki
-docker-compose up -d
-
-6. Kiểm tra Loki và Promtail:
-Xác nhận container đang chạy:
-
-docker ps
-Kiểm tra Loki: Truy cập http://10.1.0.172:3100/ready (nếu trả về ready, Loki hoạt động).
-Kiểm tra Promtail: Truy cập http://10.1.0.172:9080/targets để xem log được thu thập.
-
-Bước 2: Tích hợp Loki vào Grafana trên server 10.1.0.175
-Thêm Data Source Loki vào Grafana:
-Truy cập Grafana: http://10.1.0.175:3000.
-Từ thanh điều hướng, nhấp vào Configuration (⚙️) > Data Sources > Add data source.
-Chọn Loki.
-Cấu hình:
-Name: Loki
-URL: http://10.1.0.172:3100
-Nhấn Save & Test. Nếu thành công, bạn sẽ thấy thông báo "Data source is working".
-Khám phá log trong Explore:
-Từ thanh điều hướng, nhấp vào Explore (🧭).
-Chọn Data Source: Loki.
-Trong Log Browser, nhập truy vấn, ví dụ:
-logql
-
-Sao chép
-{host="10.1.0.172"}
-Nhấn Run query để xem log từ server 10.1.0.172.
-Bạn có thể lọc thêm, ví dụ: {host="10.1.0.172"} |= "error" để tìm log chứa từ "error".
-Tạo Dashboard cho Log:
-Từ thanh điều hướng, nhấp Dashboards > New > Dashboard.
-Thêm panel mới, chọn Data Source là Loki.
-Dùng truy vấn LogQL, ví dụ: {host="10.1.0.172"}.
-Chọn kiểu hiển thị: Logs.
-Lưu dashboard để xem log tập trung.
-
-
-
-// Dựng superset
-Bước 1:
-Dựng superset: // nano docker-compose.yml
-version: '3.8'
-services:
-  superset:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: superset
-    ports:
-      - "8088:8088"
-    environment:
-      - SUPERSET_SECRET_KEY=datasupersetgreenglobal
-      - SUPERSET_DB_URI=postgresql://superset:superset@db:5432/superset
-      - SUPERSET_CONFIG_PATH=/app/pythonpath/superset_config.py
-      - SUPERSET_LOG_LEVEL=DEBUG
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - ./superset_config.py:/app/pythonpath/superset_config.py
-    restart: always
-
-  db:
-    image: postgres:13
-    container_name: superset_db
-    environment:
-      - POSTGRES_USER=superset
-      - POSTGRES_PASSWORD=superset
-      - POSTGRES_DB=superset
-    volumes:
-      - superset_db_data:/var/lib/postgresql/data
-    restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U superset"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  superset_db_data:
-
-Bước 2: // Tạo file dockerfile
-FROM apache/superset:latest
-RUN pip install psycopg2-binary
-
-Bước 3 : // Tạo superset_config.py
-nano Dockerfile                                    
-SECRET_KEY = 'datasupersetgreenglobal'
-SQLALCHEMY_DATABASE_URI = 'postgresql://superset:superset@db:5432/superset'
-
-Bước 4 : //
-docker-compose up -d --build
-docker exec -it superset superset db upgrade
-docker exec -it superset superset init
-docker exec -it superset superset fab create-admin \
-    --username admin \
-    --firstname Superset \
-    --lastname Admin \
-    --email admin@superset.org \
-    --password admin
-
-
-// Thông tin VPN
-truongtn@truongtn-pVPNc:~/Downloads/Project_Project$ sudo openvpn --config BanXT_08_2024\ \(1\).ovpn 
-Sai đó nhập key
 
