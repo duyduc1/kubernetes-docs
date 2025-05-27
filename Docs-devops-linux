@@ -660,7 +660,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			* Credentials: Add -> jenkins -> Add credentials -> kind (Gitlab API token) -> API token (paste API Token vừa lấy ở gitlab vào đây) -> ID : Jenkins-gitlab-user -> description : Jenkins-gitlab-user -> Add 
 			* Sau khi tạo thành công sẽ thấy ở phần Credentials -> chọn Gitlab API token(jenkins-gitlab-user) - Test Connection -> save
 
-	  // Hướng dẫn kết nối gitlab của dự án đến jenkins-server
+	  // Hướng dẫn kết nối gitlab của dự án đến jenkins
 	  * Dashboard -> Action in lab -> new Item -> pipeline(tên dự án) -> Ok -> Discard old build -> Max of builds to keep (10) // chức năng giữ lại bảng build
 		      		       -> build triggers -> build when a change is pushed to gitlab -> chọn Push Event && Accepted Merge Request Events
 		      		       -> Pipeline -> Definition ( chọn pipeline script from SCM ) -> SCM ( chọn git ) -> Repository URL ( dùng link git của dự án => http://gitlab.duyduc.tech/vegetfood/vegetfood.git )
