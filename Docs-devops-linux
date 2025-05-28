@@ -50,7 +50,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	- sudo groupadd developers // tao 1 group moi
 
 * bài 3 : triển khai dự án frontend && backend
-
+	// Triển khai dự án frontend
 	- scp -r  backend-food.zip duc@192.168.183.131:/home/duc (vào thư mục chứa dự án đã nén thành zip và gõ lệnh)
 	- cd /home/duc
     	- ls
@@ -670,22 +670,29 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 				       -> Và sau đó out ra Credentials -> chọn user vừa được tạo (jenkins-gitlab-user-account) 
 				       -> kéo xuống Branches to build -> Branch Specifier (chọn nhánh muốn build khi có merge request ví dụ develop , ngoài ra có thể Add Branch các nhánh khác vào) -> save
 
-7.  vào admin -> setting -> network -> outbound requests -> click chọn cả 2 tuỳ chọn -> save changes
-7.2 lấy token ở jenkins -> vào security -> API Token -> Add new token ( access token )
-7.1 qua gitlab -> setting -> webhooks -> http://admin:11dda35a0e3b70466878a04f96db4dddc3@jenkins.duyduc.tech/project/Action_in_lab/course
-http://admin:11dda35a0e3b70466878a04f96db4dddc3@jenkins.duyduc.tech/project/Action_in_lab/course ( chọn thêm tags event && merge request events && bỏ tuỳ chọn enable ssl) -> add webhook
--> push event
- 
-			8. visudo 
-					jenkins  ALL=(ALL) NOPASSWD: ALL
-					jenkins  ALL=(ALL) NOPASSWD: /bin/mkdir*
-					jenkins  ALL=(ALL) NOPASSWD: /bin/cp*
-					jenkins  ALL=(ALL) NOPASSWD: /bin/chown*
-					jenkins  ALL=(ALL) NOPASSWD: /bin/su vegetfood ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
-					springbe ALL=(ALL) NOPASSWD: ALL ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
-			8.1 tạo một jenkinsfile bên nhánh develop của gitlab
+	  // Vào Gitlab của dự án 
+	  * Menu (nằm trên thanh header) -> Admin -> Setting -> Network -> Outbound requests -> click chọn cả 2 tuỳ chọn (Allow Requests to the local network from the web hooks and services , Allow Requests to the local network from system hooks)  -> Save changes
+
+	  // Lấy token ở jenkins
+	  * Admin -> security -> API Token -> Add new token ( đặt tên token tùy theo bạn ví dụ access token ) -> Generate (Nhớ copy token đã được gen ra)
+
+	   // Vào Gitlab của dự án
+	  * Settings -> Webhooks -> ở phần URL (format chính của URL http://<user trên jenkins>:<token của user đó trên jenkins>@<URL của jenkins>/project/<Đường dẫn dự án trên jenkins>/) // ở dưới là ví dụ
+								     http://admin:11dda35a0e3b70466878a04f96db4dddc3@jenkins.duyduc.tech/project/Action_in_lab/course 
+								     ( tích chọn Push Event && Tags event && merge request events && bỏ tuỳ chọn enable ssl) -> Add webhook // vì chúng ta không dùng https nếu dùng https thì có thể tích chọn enable SSL
+ 	  * Sau khi Add webhook -> ở dưới sẽ xuất hiện Project Hooks(1) -> Chọn Test -> tích chọn Push events 
+	  // Vào lab-server của dự án
+	  - visudo // copy ở dưới rồi bỏ vào bên trong
+			jenkins  ALL=(ALL) NOPASSWD: ALL
+			jenkins  ALL=(ALL) NOPASSWD: /bin/mkdir*
+			jenkins  ALL=(ALL) NOPASSWD: /bin/cp*
+			jenkins  ALL=(ALL) NOPASSWD: /bin/chown*
+			jenkins  ALL=(ALL) NOPASSWD: /bin/su springbe ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
+			springbe ALL=(ALL) NOPASSWD: ALL ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
+
+	  - Tạo một Jenkinsfile bên nhánh develop của gitlab
 			pipeline {
-			    agent { label 'devops' }
+			    agent { label 'devops-server' }
 			
 			    environment {
 			        GIT_STRATEGY = 'clone'
@@ -710,7 +717,6 @@ http://admin:11dda35a0e3b70466878a04f96db4dddc3@jenkins.duyduc.tech/project/Acti
 			                    sh """
 			                        sudo fuser -k 8081/tcp || true
 			                        sudo mkdir -p /opt/datas/vegetfood
-			                        
 			                        sudo cp target/VegetFood-1.0.jar /opt/datas/vegetfood/
 			                        sudo chown -R vegetfood:vegetfood /opt/datas/vegetfood
 			                        sudo chmod 755 /opt/datas/vegetfood/VegetFood-1.0.jar
