@@ -690,7 +690,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			jenkins  ALL=(ALL) NOPASSWD: /bin/su springbe ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
 			springbe ALL=(ALL) NOPASSWD: ALL ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
 
-	  - Tạo một Jenkinsfile bên nhánh develop của gitlab
+	  - Tạo một Jenkinsfile bên nhánh develop của gitlab và triển khai pipeline trên Repo nhánh develop của dự án đó 
 			pipeline {
 			    agent { label 'devops-server' }
 			
@@ -715,7 +715,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			            steps {
 			                script {
 			                    sh """
-			                        sudo fuser -k 8081/tcp || true
+			                        sudo fuser -k 8080/tcp || true
 			                        sudo mkdir -p /opt/datas/vegetfood
 			                        sudo cp target/VegetFood-1.0.jar /opt/datas/vegetfood/
 			                        sudo chown -R vegetfood:vegetfood /opt/datas/vegetfood
@@ -753,6 +753,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			        }
 			    }
 			}
+		- Sau khi triển khai xong thì qua bên Jenkins của dự án sẽ xuất hiện dưới Build History , có thể vào Blue Ocean để xem logs của Pipelines
 * buổi 11 : Monitor Garafana + prometheus
 	// Monitor bởi docker
 	1. Cài đặt Node Exporter trên các máy chủ
@@ -760,7 +761,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	
 	Bước 1: Chạy Node Exporter bằng Docker
 	Trên mỗi máy chủ, tạo một container Node Exporter:
-	docker run -d \
+       	- docker run -d \
 	  --name node-exporter \
 	  -p 9100:9100 \
 	  --restart always \
