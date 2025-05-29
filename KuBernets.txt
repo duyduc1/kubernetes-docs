@@ -144,7 +144,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 					    -> Metadata -> Kubernetes lables -> ADD KUBERNETS LABEL ( key 1 : env , value : develop )
 	  Cluster -> Tất cả đều đều mặc định -> Create
 	- Sau khi dựng xong chọn CONNECT -> sau đó enter để xác thực kết nối 
-	-				 - kubectl get node -o wide
+					 - kubectl get node -o wide
 
 * bài 7
 	Mô hình triển khai dự án trên k8s , reaseach kubernetest flow 
@@ -372,7 +372,7 @@ NameSpace trong K8S
 				* Tích chọn By checking the box , you accept the End User -> Saving
 			- vào hosts của windows trong system32 với linux thì nano /etc/hosts
 				* thêm ip của server-rancher và domain bạn tự đặt
-			 	* Dùng domain đã thêm vào hosts rồi vào google sử dụng domain đó nhập username và passworld
+			 	* Dùng domain đã thêm vào hosts rồi vào google sử dụng domain đó nhập username và password
 			// kết nối cụm K8S lên rancher để quản lý 
 			- trên Dashboard rancher -> chọn Import Existing -> chọn Generic 
                                 * Cluster Name (là cụm K8s của mình ví dụ Devopsk8s) -> Create 
@@ -384,6 +384,23 @@ NameSpace trong K8S
 				* Ra home sẽ thấy một cụm Devopsk8s nhấn vào và coi thông tin (các Pods , CPU , Memory)
 				
 
-			
-				
-			
+* Bài 13: Cài đặt Rancher trên cloud
+	 - Chọn Computer Engine -> VM instances -> Create instances
+					* Name (đặt là rancher-server) 
+					* Region (chọn asia-notheast1(Tokyo)) - Zone ( asia-notheast1-c)
+					* Availability polices -> VM provisioning model (chọn Standard)
+				-> qua Task Machine configuration 
+					* Machine type -> PRESET (es-small(2 vCPU, 1 core , 2GB memory)) // tiết kiện chi phí
+				-> qua Task OS and storage -> nhấn CHANGE (có thể thay đổi disk hoặc không)
+					* Chọn ADD NEW DISK 
+						- Name (đặt disk-mount-data-rancher hoặc tên khác)
+						- Disk source type (Blank disk)
+						- Size (40GB) -> Save
+				-> qua Task Networking 
+					* Firewall -> tích chọn Allow HTTP traffic && Allow HTTPS traffic 
+				-> CREATE
+	- Trên thanh tìm kiếm gõ rancher -> chọn rancher-server -> kép xuống Network interfaces sẽ thấy địa chỉ pulblic IP
+	// Tiến hành SSH 
+	- sudo -i
+	- apt update -y
+	- apt install docker.io docker-compose
