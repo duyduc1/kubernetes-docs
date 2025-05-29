@@ -365,7 +365,7 @@ NameSpace trong K8S
 			- docker ps -a
 			- vào google truy cập https://ip của server
 			- docker logs rancher-server 2>&1 | grep "Bootstrap Password:" // lấy mật khẩu
-			- dán passworld vừa lấy được vào trong web Rancher
+			- dán passworld vừa lấy được vào trong web Rancher -> Log in with Local User
 				* chọn Set a specifsc password to use // dùng để setup passworld mới
 				* New Password
 				* Confirem New Password
@@ -404,3 +404,19 @@ NameSpace trong K8S
 	- sudo -i
 	- apt update -y
 	- apt install docker.io docker-compose
+	- lsblk
+	- sudo mkfs.ext4 -m 0 /dev/sdb
+	- mkdir /data
+	- echo "/dev/sdb  /data  ext4  defaults  0  0" | sudo tee -a /etc/fstab
+	- mount -a
+	- sudo df -h
+	- docker run --name rancher-server -d --restart=unless-stopped -p 80:80 -p 443:443 -v /data/rancher:/var/lib/rancher --privileged rancher/rancher:v2.9.2
+	- docker logs  rancher-server  2>&1 | grep "Bootstrap Password:" // lấy password
+	- vào google truy cập https://ip của server
+	- dán passworld vừa lấy được vào trong web Rancher
+				* chọn Set a specific password to use // dùng để setup passworld mới
+				* New Password
+				* Confirem New Password
+				* Tích chọn By checking the box , you accept the End User -> Saving
+	- Vào dashboard của Rancher -> ở thanh 3 sọc -> chọn VPC Network -> chọn RESERVE EXTERNAL STATIC IP ADDRESS -> kéo xuống  Attached to (gõ tìm rancher-server)
+	- có thể không dùng IP STATIC cũng được 
