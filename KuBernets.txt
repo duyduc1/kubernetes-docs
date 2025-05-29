@@ -9,15 +9,15 @@ Khắc phục vấn đề tự động backup , tự động sửa lỗi , tự 
 
 * Bài 2
 Khi nào nên sử dụng k8s ?
-Điều kiện áp dụng giải pháp
-- Hiệu quả , minh bạch , khả năng vận hành , tối ưu chi phí
-
-Dự án phù hợp áp dụng k8s
-- Dự án lớn , dự án chạy đường dài 
-- Dự án có nhu cầu cao về mở rộng 
-- Dự án cần triển khai đa môi trường 
-- Dự án theo mô hình Microservices
-- Dự án cần khả năng tự phục hồi (Self-Healing)
+	Điều kiện áp dụng giải pháp
+	- Hiệu quả , minh bạch , khả năng vận hành , tối ưu chi phí
+	
+	Dự án phù hợp áp dụng k8s
+	- Dự án lớn , dự án chạy đường dài 
+	- Dự án có nhu cầu cao về mở rộng 
+	- Dự án cần triển khai đa môi trường 
+	- Dự án theo mô hình Microservices
+	- Dự án cần khả năng tự phục hồi (Self-Healing)
 
 * Bài 3
 Triển khai Cluster 
@@ -48,120 +48,118 @@ Có 2 cách cài là cài đặt thủ công và cài đặt tự động
 - Triển khai ít nhât 3 máy chủ ubuntu 1 máy làm Master , 2 máy còn lại làm worker
 
 bước 1 :
-- vào nano /etc/hosts sau đó add 3 IP server của 3 cụm node vào và sau đó đặt tên k8s-master-1 , k8s-master-2 , k8s-master-3 cho từng ip đó và làm như thế với 2 node còn lại
-- vào nano /etc/hostname của 3 server thành k8s-master-1 , k8s-master-2 , k8s-master-3
+	- vào nano /etc/hosts sau đó add 3 IP server của 3 cụm node vào và sau đó đặt tên k8s-master-1 , k8s-master-2 , k8s-master-3 cho từng ip đó và làm như thế với 2 node còn lại
+	- vào nano /etc/hostname của 3 server thành k8s-master-1 , k8s-master-2 , k8s-master-3
 bước 2 :
-* k8s-master-1 && k8s-master-2 && k8s-master-3 
-- sudo apt update -y && sudo apt upgrade -y
-- adduser devops-k8s 
-- usermod -aG sudo devops-k8s
-- su devops-k8s
-- sudo swapoff -a 
-- cat /etc/fstab
-- sudo sed -i '/swap.img/s/^/#/' /etc/fstab
-- sudo tee /etc/modules-load.d/containerd.conf <<EOF
-overlay
-br_netfilter
-EOF
-- sudo modprobe overlay
-- sudo modprobe br_netfilter
-- sudo tee /etc/sysctl.d/kubernetes.conf <<EOF
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
-net.ipv4.ip_forward = 1
-EOF
-- sudo sysctl --system
-- sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates
-- sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/docker.gpg
-- sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-- sudo apt update -y
-- sudo apt install -y containerd.io
-- containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
-- sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
-- sudo systemctl restart containerd
-- sudo systemctl enable containerd
-- sudo systemctl status containerd
-- sudo mkdir -p /etc/apt/keyrings
-- curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-- echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-- sudo apt update -y
-- sudo apt install -y kubelet kubeadm kubectl
-- sudo apt-mark hold kubelet kubeadm kubectl
+	* k8s-master-1 && k8s-master-2 && k8s-master-3 
+	- sudo apt update -y && sudo apt upgrade -y
+	- adduser devops-k8s 
+	- usermod -aG sudo devops-k8s
+	- su devops-k8s
+	- sudo swapoff -a 
+	- cat /etc/fstab
+	- sudo sed -i '/swap.img/s/^/#/' /etc/fstab
+	- sudo tee /etc/modules-load.d/containerd.conf <<EOF
+	overlay
+	br_netfilter
+	EOF
+	- sudo modprobe overlay
+	- sudo modprobe br_netfilter
+	- sudo tee /etc/sysctl.d/kubernetes.conf <<EOF
+	net.bridge.bridge-nf-call-ip6tables = 1
+	net.bridge.bridge-nf-call-iptables = 1
+	net.ipv4.ip_forward = 1
+	EOF
+	- sudo sysctl --system
+	- sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates
+	- sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/docker.gpg
+	- sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+	- sudo apt update -y
+	- sudo apt install -y containerd.io
+	- containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
+	- sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+	- sudo systemctl restart containerd
+	- sudo systemctl enable containerd
+	- sudo systemctl status containerd
+	- sudo mkdir -p /etc/apt/keyrings
+	- curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+	- echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+	- sudo apt update -y
+	- sudo apt install -y kubelet kubeadm kubectl
+	- sudo apt-mark hold kubelet kubeadm kubectl
 
 bước 3 : 
-
-Chọn k8s-master-1 làm cụm master 
-- sudo nano /etc/containerd/config.toml -> sandbox_image = "registry.k8s.io/pause:3.9"
-- sudo kubeadm init  
-- mkdir -p $HOME/.kube
-- sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-- sudo chown $(id -u):$(id -g) $HOME/.kube/config
-( ta sẽ thấy thông tin câu lệnh kubeadm join ip của cụm k8s-master-1:6443 --token h2kmsp. và sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2)
-- kubectl get nodes
-- kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
-- kubectl get nodes
-- kubectl label node k8s-master-2 node-role.kubernetes.io/worker=
-- kubectl label node k8s-master-3 node-role.kubernetes.io/worker=
-
-// khiến cụm master cũng có thể đẩy được dự án lên 3 cụm vừa lá master vừa là worker
-- sudo kubeadm reset -f ( chạy trên cả 3 cụm )
-- sudo rm -rf /var/lib/etcd
-- sudo rm -rf /etc/kubernetes/manifests/*
-- kubectl get no
-- clear 
-- sudo kubeadm init --control-plane-endpoint "ip-server-k8s-master-1:6443" --upload-certs
-- mkdir -p $HOME/.kube
-- sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-- sudo chown $(id -u):$(id -g) $HOME/.kube/config
-- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
-( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes) nhưng với vai trò là --control-plane --certificate-key 
-- kubectl get no
-- kubectl taint nodes k8s-master-1 node-role.kubernetes.io/control-plane:NoSchedule-
-- kubectl taint nodes k8s-master-2 node-role.kubernetes.io/control-plane:NoSchedule-
-- kubectl taint nodes k8s-master-3 node-role.kubernetes.io/control-plane:NoSchedule-
-
-Chọn k8s-master-2 && k8s-master-3 làm cụm worker
-- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
-- kubectl get nodes
-( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes)
-
-// khiến cụm master cũng có thể đẩy được dự án lên 3 cụm vừa lá master vừa là worker
-- sudo kubeadm reset -f ( chạy trên cả 3 cụm )
-- sudo rm -rf /var/lib/etcd
-- sudo rm -rf /etc/kubernetes/manifests/*
-- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
-( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes) nhưng với vai trò là --control-plane --certificate-key 
+	Chọn k8s-master-1 làm cụm master 
+	- sudo nano /etc/containerd/config.toml -> sandbox_image = "registry.k8s.io/pause:3.9"
+	- sudo kubeadm init  
+	- mkdir -p $HOME/.kube
+	- sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+	- sudo chown $(id -u):$(id -g) $HOME/.kube/config
+	( ta sẽ thấy thông tin câu lệnh kubeadm join ip của cụm k8s-master-1:6443 --token h2kmsp. và sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2)
+	- kubectl get nodes
+	- kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
+	- kubectl get nodes
+	- kubectl label node k8s-master-2 node-role.kubernetes.io/worker=
+	- kubectl label node k8s-master-3 node-role.kubernetes.io/worker=
+	
+	// khiến cụm master cũng có thể đẩy được dự án lên 3 cụm vừa lá master vừa là worker
+	- sudo kubeadm reset -f ( chạy trên cả 3 cụm )
+	- sudo rm -rf /var/lib/etcd
+	- sudo rm -rf /etc/kubernetes/manifests/*
+	- kubectl get no
+	- clear 
+	- sudo kubeadm init --control-plane-endpoint "ip-server-k8s-master-1:6443" --upload-certs
+	- mkdir -p $HOME/.kube
+	- sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+	- sudo chown $(id -u):$(id -g) $HOME/.kube/config
+	- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
+	( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes) nhưng với vai trò là --control-plane --certificate-key 
+	- kubectl get no
+	- kubectl taint nodes k8s-master-1 node-role.kubernetes.io/control-plane:NoSchedule-
+	- kubectl taint nodes k8s-master-2 node-role.kubernetes.io/control-plane:NoSchedule-
+	- kubectl taint nodes k8s-master-3 node-role.kubernetes.io/control-plane:NoSchedule-
+	
+	Chọn k8s-master-2 && k8s-master-3 làm cụm worker
+	- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
+	- kubectl get nodes
+	( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes)
+	
+	// khiến cụm master cũng có thể đẩy được dự án lên 3 cụm vừa lá master vừa là worker
+	- sudo kubeadm reset -f ( chạy trên cả 3 cụm )
+	- sudo rm -rf /var/lib/etcd
+	- sudo rm -rf /etc/kubernetes/manifests/*
+	- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
+	( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes) nhưng với vai trò là --control-plane --certificate-key 
 
 
 * bài 6
 Triển khai kubernetes trên nền tảng GCP (GKE)
-- Đăng ký visa và đăng ký tài khoản gg cloud để được 300$ miễn phí 
-- vào 3 thanh sọc -> kubernetes Engine -> Clusters -> Create -> Standard:you manage Your Cluster(Configure)
-- Sau đó sẽ thấy  (Cluster basics) -> đặt tên (Cluster) theo dự án hoặc môi trường -> Zone(asia-northeast1-c) -> target release channel (regular) // đừng vội nhấn create
-  Sang tab (Fleet registration) // chưa cần thiết nên không chọn gì 
-  Chọn Default-pool ( để mặc định ) -> nodes -> image type -> Ubuntu with containerd
-				    -> Networking ( để mặc định )
-				    -> Security ( để mặc định )
-				    -> Metadata -> Kubernetes lables -> ADD KUBERNETS LABEL ( key 1 : env , value : develop )
-  Cluster -> Tất cả đều đều mặc định -> Create
-- Sau khi dựng xong chọn CONNECT -> sau đó enter để xác thực kết nối 
--				 - kubectl get node -o wide
+	- Đăng ký visa và đăng ký tài khoản gg cloud để được 300$ miễn phí 
+	- vào 3 thanh sọc -> kubernetes Engine -> Clusters -> Create -> Standard:you manage Your Cluster(Configure)
+	- Sau đó sẽ thấy  (Cluster basics) -> đặt tên (Cluster) theo dự án hoặc môi trường -> Zone(asia-northeast1-c) -> target release channel (regular) // đừng vội nhấn create
+	  Sang tab (Fleet registration) // chưa cần thiết nên không chọn gì 
+	  Chọn Default-pool ( để mặc định ) -> nodes -> image type -> Ubuntu with containerd
+					    -> Networking ( để mặc định )
+					    -> Security ( để mặc định )
+					    -> Metadata -> Kubernetes lables -> ADD KUBERNETS LABEL ( key 1 : env , value : develop )
+	  Cluster -> Tất cả đều đều mặc định -> Create
+	- Sau khi dựng xong chọn CONNECT -> sau đó enter để xác thực kết nối 
+	-				 - kubectl get node -o wide
 
 * bài 7
-Mô hình triển khai dự án trên k8s , reaseach kubernetest flow 
+	Mô hình triển khai dự án trên k8s , reaseach kubernetest flow 
 
-* bài 8
-File yaml Cấu hình trong k8s
+* bài 8 File yaml Cấu hình trong k8s
 
-- Ưu điểm file yaml
-. Cú pháp đơn giản
-. Định dạng phong phú 
-. Cấu trúc rõ ràng 
-. Cộng đồng lơn
-
-- Cấu trúc file yaml
-. key là tên thuộc tính
-. value là giá trị tương ứng
+	- Ưu điểm file yaml
+	. Cú pháp đơn giản
+	. Định dạng phong phú 
+	. Cấu trúc rõ ràng 
+	. Cộng đồng lơn
+	
+	- Cấu trúc file yaml
+	. key là tên thuộc tính
+	. value là giá trị tương ứng
 ➡️ Ví dụ trong Kubernetes: name: my-app
 
 	key: value
@@ -285,37 +283,107 @@ File yaml Cấu hình trong k8s
 	✅ spec
 * Bài 9 
 NameSpace trong K8S
-	- Trong k8s namespace là một cách tổ chức và phân tách các tài nguyên trong một cụm k8s để quả lý tốt hơn , 
+	* Trong k8s namespace là một cách tổ chức và phân tách các tài nguyên trong một cụm k8s để quả lý tốt hơn , 
 	được sử sụng để chia nhỏ tài nguyên của một cụm lớn thành các không gian làm việc logic nhỏ hơn , giúp dễ dàng quản lý và vận hành 
-	- vào k8s-master-1 
-		* kubectl get pod --namespace default
-		* kubectl get ns
-		* kubectl create ns project-1 (sẽ tạo ra namespace/project-1 created)
-		* kubectl delete ns project-1 (sẽ xoá namespace/project-1 deleted)
-		* mkdir projects
-		* cd projects
-		* mkdir project-1
-		* cd project-1
-		* nano ns.yaml // tạo ra một namespace
-			apiVersion: v1
-			kind: Namespace
-			metadata:
-			  name: project-1
-		* kubectl apply -f ns.yaml(namespace/project-1 created)
-		* kubectl get ns
-		* ls
-		* kubectl delete -f ns.yaml(namespace/project-1 deleted)
-		* kubectl apply -f ns.yaml(namespace/project-1 created)
-		* nano resourcequota.yaml // giới hạn tài nguyên cho namespace đó
-			apiVersion: v1
-			kind: ResourceQuota
-			metadata:
-			  name: mem-cpu-quota
-			  namespace: project-1
-			spec:
-			  hard:
-			    requets.cpu: "2"
-			    requets.memory: 4Gi
-		* kubectl apply -f resourcequota.yaml
-		* ls
+	* vào k8s-master-1 
+	- kubectl get pod --namespace default
+	- kubectl get ns
+	- kubectl create ns project-1 (sẽ tạo ra namespace/project-1 created)
+	- kubectl delete ns project-1 (sẽ xoá namespace/project-1 deleted)
+	- mkdir projects
+	- cd projects
+	- mkdir project-1
+	- cd project-1
+	- nano ns.yaml // tạo ra một namespace
+		apiVersion: v1
+		kind: Namespace
+		metadata:
+		  name: project-1
+	- kubectl apply -f ns.yaml(namespace/project-1 created)
+	- kubectl get ns
+	- ls
+	- kubectl delete -f ns.yaml(namespace/project-1 deleted)
+	- kubectl apply -f ns.yaml(namespace/project-1 created)
+	- nano resourcequota.yaml // giới hạn tài nguyên cho namespace đó
+		apiVersion: v1
+		kind: ResourceQuota
+		metadata:
+		  name: mem-cpu-quota
+		  namespace: project-1
+		spec:
+		  hard:
+		    requets.cpu: "2"
+		    requets.memory: 4Gi
+	- kubectl apply -f resourcequota.yaml
+	- ls
+			
+* Bài 10 : Phương pháp triển khai dự án trên Kubernetes hiệu quả
+	- Dựa vào nhu cầu -> Sử dụng công cụ giao diện -> trích xuất file yaml -> Nghiên cứu cú pháp , format , giá trị , template , các tùy chọn khác -> Triển khai tương tự chuẩn format 
+
+* Bài 11 : Công cụ quản lý Kubernetes 
+	* K8s management tools ( command app , Desktop app , Website app)
+	* K9s là 1 công cụ quản lý k8s trên môi trường command line
+	* Công cụ quản lý k8s bằng Desktop App (lens) quản lý bằng giao diện
+	* Công cụ quản lý k8s bằng nền tảng web Rancher (được hỗ trợ phân quyền mạnh mẽ)
+
+* Bài 12: Cài đặt Rancher và quản lý K8S
+	- Rancher là một công cụ giúp triển khai và quản lý giám sát nhiều cum K8S trên các môi trường khác nhau
+	bao gồm cả On-premise và các dịch vụ như AWS , Azure , Google Cloud Plasform 
+	- Rancher làm được gì
+		* Quản lý nhiều cụm K8S
+		* Phân quyền mạnh mẽ ( based RBAC Kubernets)
+		* Hõ trợ giám sát cụm Kubernetes
+		* Bảo mật tốt
+	- Cài đặt Rancher bằng Docker hoặc chạy Rancher lên trực tiếp cụm K8S
+		* Tạo một server để install Rancher và add thêm một ổ đĩa khác trong phần edit 
+		* tiếng hành mount ổ đĩa 
+			- sudo mkfs.ext4 -m 0 /dev/sdb
+			- mkdir /data
+			- echo "/dev/sdb  /data  ext4  defaults  0  0" | sudo tee -a /etc/fstab
+			- mount -a
+			- sudo df -h
+
+			// tiến hành tải docker và tải rancher bằng docker-compose
+			- apt-update
+			- apt install docker && apt install docker-compose
+			- mkdir /data/rancher
+			- cd /data/rancher
+			- nano docker-compose.yml
+				version: '3'
+				services:
+				  rancher-server:
+				    image: rancher/rancher:v2.9.2
+				    container_name: rancher-server
+				    restart: unless-stopped
+				    ports:
+				      - "80:80"
+				      - "443:443"
+				    volumes:
+				      - /data/rancher/data:/var/lib/rancher
+				    privileged: true
+			- docker-compose up -d --build
+			- docker ps -a
+			- vào google truy cập https://ip của server
+			- docker logs rancher-server 2>&1 | grep "Bootstrap Password:" // lấy mật khẩu
+			- dán passworld vừa lấy được vào trong web Rancher
+				* chọn Set a specifsc password to use // dùng để setup passworld mới
+				* New Password
+				* Confirem New Password
+				* Tích chọn By checking the box , you accept the End User -> Saving
+			- vào hosts của windows trong system32 với linux thì nano /etc/hosts
+				* thêm ip của server-rancher và domain bạn tự đặt
+			 	* Dùng domain đã thêm vào hosts rồi vào google sử dụng domain đó nhập username và passworld
+			// kết nối cụm K8S lên rancher để quản lý 
+			- trên Dashboard rancher -> chọn Import Existing -> chọn Generic 
+                                * Cluster Name (là cụm K8s của mình ví dụ Devopsk8s) -> Create 
+				// nếu SSL tự ký thì sử dụng dòng thứ 2 
+				* Coppy dòng thứ 2 
+				* Vào server k8s-master-1 và paste dòng lệnh đã copy ở trên vào 
+				* Vào lại web Rancher sẽ lấy trạng thái pending chuyển thành waiting 
+				* chờ một vào phút sau đó nhấn vào Machine Pools sẽ lấy các cụm k8s đã được tạo
+				* Ra home sẽ thấy một cụm Devopsk8s nhấn vào và coi thông tin (các Pods , CPU , Memory)
+				
+
+			
+				
 			
