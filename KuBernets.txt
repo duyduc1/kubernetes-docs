@@ -215,17 +215,13 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	Ví dụ: StorageClass, CSIDriver, VolumeAttachment
 
 	✅ kind: Pod
-	Ý nghĩa: Là đơn vị nhỏ nhất trong Kubernetes, chứa container hoặc nhiều container chạy chung network.
-
+	Ý nghĩa: Là đơn vị nhỏ nhất trong Kubernetes, chứa container hoặc nhiều container chạy chung 		network.
 	Khi dùng: Khi bạn muốn chạy một container (hoặc vài cái gắn liền) đơn lẻ.
-
 	Lưu ý: Không nên deploy trực tiếp Pod trong production — dùng Deployment sẽ tốt hơn.
 
 	✅ kind: Deployment
 	Ý nghĩa: Quản lý việc tạo và cập nhật nhiều bản sao (Replica) của một Pod.
-
 	Khi dùng: Khi muốn deploy ứng dụng ổn định, có khả năng tự động cập nhật, rollback.
-
 	Ví dụ: Web app, backend services...
 
 	✅ kind: StatefulSet
@@ -238,41 +234,31 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	✅ kind: DaemonSet
 	Ý nghĩa: Đảm bảo mỗi node đều có 1 bản chạy của Pod.
 
-	Khi dùng: Chạy các agent như log collector (Fluentd, Filebeat), monitoring (Prometheus Node Exporter).
-
+	Khi dùng: Chạy các agent như log collector (Fluentd, Filebeat), monitoring (Prometheus Node 		Exporter).
 	Đặc biệt: Tự động thêm Pod khi có node mới được thêm vào cluster.
 
 	✅ kind: Service
 	Ý nghĩa: Cung cấp endpoint ổn định (DNS/IP ảo) để các Pod khác có thể truy cập.
-
 	Khi dùng: Khi muốn expose Pod ra bên ngoài hoặc kết nối giữa các Pod nội bộ.
-
 	Loại phổ biến: ClusterIP, NodePort, LoadBalancer.
 
 	✅ kind: Ingress
 	Ý nghĩa: Cung cấp routing HTTP(S) đến Service theo domain/path.
-
 	Khi dùng: Khi bạn cần truy cập ứng dụng từ bên ngoài qua địa chỉ như myapp.com.
-
 	Yêu cầu: Cần cài Ingress Controller (nghĩ như reverse proxy).
 
 	✅ kind: ConfigMap
 	Ý nghĩa: Lưu trữ cấu hình dạng key-value không nhạy cảm.
-
 	Khi dùng: Truyền file config, biến môi trường vào Pod.
-
 	Ví dụ: application.properties, flags...
 
 	✅ kind: Secret
 	Ý nghĩa: Tương tự ConfigMap nhưng dùng để lưu thông tin nhạy cảm (đã mã hóa base64).
-
 	Khi dùng: Lưu mật khẩu, token, SSH key...
-
 	An toàn hơn ConfigMap: Vì kube-apiserver xử lý đặc biệt.
 
 	✅ kind: PersistentVolume (PV)
 	Ý nghĩa: Tài nguyên lưu trữ được cung cấp bởi admin (file system, cloud disk…).
-
 	Khi dùng: Tạo volume lưu trữ cố định cho Pod.
 	
 	✅ kind: PersistentVolumeClaim (PVC)
@@ -281,10 +267,9 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	Khi dùng: Gắn volume vào Pod bằng cách claim (yêu cầu) từ PV có sẵn hoặc tự tạo theo StorageClass
 	✅ Metadata, 
 	✅ spec
-* Bài 9 
-NameSpace trong K8S
-	* Trong k8s namespace là một cách tổ chức và phân tách các tài nguyên trong một cụm k8s để quả lý tốt hơn , 
-	được sử sụng để chia nhỏ tài nguyên của một cụm lớn thành các không gian làm việc logic nhỏ hơn , giúp dễ dàng quản lý và vận hành 
+* Bài 9 : NameSpace trong K8S
+	* Trong k8s namespace là một cách tổ chức và phân tách các tài nguyên trong một cụm k8s để quả lý 	tốt hơn , 
+	được sử sụng để chia nhỏ tài nguyên của một cụm lớn thành các không gian làm việc logic nhỏ hơn , 	giúp dễ dàng quản lý và vận hành 
 	* vào k8s-master-1 
 	- kubectl get pod --namespace default
 	- kubectl get ns
@@ -318,7 +303,7 @@ NameSpace trong K8S
 	- ls
 			
 * Bài 10 : Phương pháp triển khai dự án trên Kubernetes hiệu quả
-	- Dựa vào nhu cầu -> Sử dụng công cụ giao diện -> trích xuất file yaml -> Nghiên cứu cú pháp , format , giá trị , template , các tùy chọn khác -> Triển khai tương tự chuẩn format 
+	- Dựa vào nhu cầu -> Sử dụng công cụ giao diện -> trích xuất file yaml -> Nghiên cứu cú pháp , 		format , giá trị , template , các tùy chọn khác -> Triển khai tương tự chuẩn format 
 
 * Bài 11 : Công cụ quản lý Kubernetes 
 	* K8s management tools ( command app , Desktop app , Website app)
@@ -327,7 +312,7 @@ NameSpace trong K8S
 	* Công cụ quản lý k8s bằng nền tảng web Rancher (được hỗ trợ phân quyền mạnh mẽ)
 
 * Bài 12: Cài đặt Rancher và quản lý K8S
-	- Rancher là một công cụ giúp triển khai và quản lý giám sát nhiều cum K8S trên các môi trường khác nhau
+	- Rancher là một công cụ giúp triển khai và quản lý giám sát nhiều cum K8S trên các môi trường khác 	nhau
 	bao gồm cả On-premise và các dịch vụ như AWS , Azure , Google Cloud Plasform 
 	- Rancher làm được gì
 		* Quản lý nhiều cụm K8S
@@ -420,3 +405,43 @@ NameSpace trong K8S
 				* Tích chọn By checking the box , you accept the End User -> Saving
 	- Vào dashboard của Rancher -> ở thanh 3 sọc -> chọn VPC Network -> chọn RESERVE EXTERNAL STATIC IP ADDRESS -> kéo xuống  Attached to (gõ tìm rancher-server)
 	- có thể không dùng IP STATIC cũng được 
+
+* Bài 14 : Pod K8S
+	- Pod là đơn vị triển khai nhỏ nhất và đơn giãn nhất trong k8s 1 pod sẽ đại diện cho 1 hay nhiều 
+	container được nhóm lại với nhau để chia sẻ tài nguyên hay là mạng và mỗi pods sẽ có 1 IP server
+	riêng , có thể nói pods là 1 môi trường chia sẻ hoặc là máy chủ ứng dụng 
+	// Vào server k8s-master-1
+	- cd projects
+	- vào google tìm dockerhubs và tìm dockerhubs của chính mình (ví dụ vuduyduc)
+	- vào lại server k8s-master-1
+	- mkdir frontend
+	- cd frontend 
+	- nano ns.yaml
+		apiVersion: v1
+		kind: Namespace
+		metadata:
+		  name: frontend
+	- nano pod.yaml
+		apiVersion: v1
+		kind: Pod
+		metadata:
+		  name: frontend
+		  namespace: frontend
+		spec:
+		  containers:
+		  - name: vegetfood
+		    image: vuduyduc/frontend
+		    ports:
+		    - containerPort: 80
+	- kubectl apply -f ns.yaml
+	- kubectl apply -f pod.yaml
+	- kubectl get pod -n frontend // trong đó frontend là namespace trong pod.yaml
+	- kubectl exec -it frontend -n frontend -- /bin/bash // dùng để truy cập vào môi trường của 		namespace đó
+	- kubectl delete -f pod.yaml // dùng để xoá pods này đi 
+	* hiện tại chúng ta đang có 1/1 pods , chúng ta có thể tăng số lượng lên 2,3,4 để tăng khả năng 
+	chịu tải , nhưng chỉ khuyến khích chỉ nên triển khai 1 container trong 1 pods thôi.
+* Bài 15 : Deployment với Kubernetes
+	* Deployment là 1 đối tượng quản lý pods quản lý về mãng ứng dụng
+	* Scale ứng dụng : tăng số lượng pods để đảm bảo tính hoạt động ổn định
+	* Tự động khôi phục lỗi : khi một pods bị lỗi sẽ tự tạo lại một pods mới để luôn đảm bảo đủ số lượng
+	pods
