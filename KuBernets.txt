@@ -429,7 +429,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 		  namespace: frontend
 		spec:
 		  containers:
-		  - name: vegetfood
+		  - name: frontend
 		    image: vuduyduc/frontend
 		    ports:
 		    - containerPort: 80
@@ -445,3 +445,75 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	* Scale ứng dụng : tăng số lượng pods để đảm bảo tính hoạt động ổn định
 	* Tự động khôi phục lỗi : khi một pods bị lỗi sẽ tự tạo lại một pods mới để luôn đảm bảo đủ số lượng
 	pods
+	// Vào ranger của devopsk8s trên web đã tạo ở bài trước
+	* trên thanh header có Only User Namespaces -> chon vào namespaces Frontend đã triển khai bài trước
+	* ở Thanh Cluster -> chọn workloads -> trên thanh headers thấy chỗ mũi tên đi lên (import yaml)
+	nhấn vào sau đó sẽ thấy Default Namespaces -> chọn frontend -> cancel vì chưa cần thiết
+	* bên cạnh nút (import yaml) sẽ thấy nút >_ thì nhấn vào sẽ xuất hiện command line ở dưới giúp chúng
+	ta đỡ phải truy cập vào server
+		- kubectl get no
+	* bên cạnh nút >_ sẽ có nút (Download KubeConfig) , Coppy , tìm kiếm các tài nguyên
+	* Trong workloads sẽ có những phàn triển khai các Deployment và Pods
+	// ví dụ đầu tiên 
+	* Chọn vào Pods -> Create 
+		- Namespaces : frontend
+		- Name : frontend
+		- Container Name : frontend
+		- Container image : vuduyduc/frontend
+		* Ở phần Networking -> chọn Add Port or Service
+			- Name : đặt là tcp
+			- Private Container Port : 80
+			- Create
+	* Chúng ta sẽ tạo được một pods và biết được pods đó được tạo trên server nào
+	* bên cạnh Age (phần thời gian đang chạy) có nút 3 chấm
+		* Excute Shell (truy cập vào môi trường của container)
+		* View Log (xem logs của pod đó)
+		* Edit Config (chỉnh sửa config của pods)
+		* Edit YAML (File yaml của pods)
+		* Clone
+		* Download YAML
+		* Delete // ở đây chúng ta sẽ xoá ngay lập tức cụm này 
+	* Trong workloads -> chọn Deployments -> Chọn create
+		- Namespaces : frontend
+		- Name : frontend-deployment
+		- Replicas : đặt lên 3 (có thể đăt bao nhiêu tuỳ theo dự án)
+		- Container Name : frontend
+		- Container image : vuduyduc/frontend
+		* Ở phần Networking -> chọn Add Port or Service
+			- Name : đặt là tcp
+			- Private Container Port : 80
+			- Create
+		* Sau đó qua lại phần Pods có thể nhìn thấy 3 Pods đã được tạo ra (3 pods này cấu hình 
+		hệt nhau) - và từng Pods đã được triển khai trên từng server như nhau , ngay cả khi có
+		tự xoá pods hoặc pods đó có bị sập thì Schedule vẫn có thể tự tạo lại cái Pods đó 
+		* Vào lại phần Deployment vào phần Health -> sẽ thấy xuất hiện Scale thêm bằng cách 
+		nhấn dấu + hoặc giảm bằng dấu trừ // tăng giảm số lượng pods cần thiết
+		* Sau đó quay trở lại pods thì sẽ thấy một pods mới được tạo ra 
+	* Tiến hành Download YAML trong Deployment -> tiếp theo mở file đó lên trong visual code
+		apiVersion: apps/v1
+		kind: Deployment
+		metadata:
+		  labels:
+		    workload.user.cattle.io/workloadselector: apps.deployment-frontend-frontend-deployment
+		  name: frontend-deployment
+		  namespace: frontend
+		spec:
+		  replicas: 2 // số lượng pods
+		  revisionHistoryLimit: 11 // Lưu lịch sử 
+		  selector:
+		    matchLabels:
+		      workload.user.cattle.io/workloadselector: apps.deployment-frontend-frontend-deployment
+		  template:
+		    metadata:
+		      labels:
+		        workload.user.cattle.io/workloadselector: apps.deployment-frontend-frontend-deployment
+		      namespace: frontend
+		    spec:
+		      containers:
+		        - image: vuduyduc/frontend
+			  imagePullPolicy: Always
+		          name: frontend
+		          ports:
+		            - containerPort: 80
+		              name: tcp
+		              protocol: TCP
