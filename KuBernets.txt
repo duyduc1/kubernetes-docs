@@ -643,7 +643,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 		# ExternalName : sẽ liên kết với 1 tên miền ở bên ngoài (domain)
 	* Cluster IP và LoadBalancer là 2 loại service giúp chuyển khai dự án chuyên nghiệp và thực tế với Cluster IP sẽ được áp dụng trên môi trường On-premise và LoadBalancer sẽ áp dụng cho môi trường cloud
 
-* Bài 19 : NodePort 
+* Bài 19 : NodePort // có thể truy cập trực tiếp từ bên ngoài vào 
 	* Chỉ cho phép sử dụng các port từ 300000 - 32767
 	* vào trong devopsk8s
 	* Trong phần giao diện của Ranchers -> phần Service Discovery -> nhấn chọn vào service
@@ -705,4 +705,8 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	// vào lại Command Line của Cloud 
 	- curl đến IP của 1 server EXTERNAL-IP:32080 (ví dụ 34.86.21.171:32080)
 	* mở tag google mới dán 34.86.21.171:32080 sẽ thấy giao diện của trang frontend
-	
+* Bài 21 : ClusterIP // không thể truy cập trực tiếp từ bên ngoài vào
+	// Khởi tạo Cluster IP 
+	* Trong Service Discovery (của devopsk8s) -> chọn Services -> Chọn Create ->  Chọn ClusterIP -> đặt tên Cho Name (frontend1-service) && PortName đặt là tcp && listerning Port là 80 && TargetPort cũng là 80
+	* Xuống task Selectors ở bên cạnh -> key là app && Value là frontend-deployment -> CREATE
+	* Sau khi tạo xong ở mục target sẽ có một chỗ để link nhấn vào sẽ ra trang web
