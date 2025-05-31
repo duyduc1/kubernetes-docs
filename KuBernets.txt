@@ -272,7 +272,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	được sử sụng để chia nhỏ tài nguyên của một cụm lớn thành các không gian làm việc logic nhỏ hơn , 	giúp dễ dàng quản lý và vận hành 
 	* vào k8s-master-1 
 	- kubectl get pod --namespace default
-	- kubectl get ns
+	- kubectl get ns // dùng để coi số namespace
 	- kubectl create ns project-1 (sẽ tạo ra namespace/project-1 created)
 	- kubectl delete ns project-1 (sẽ xoá namespace/project-1 deleted)
 	- mkdir projects
@@ -522,3 +522,25 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	* chọn Import YAML dán phần đã edit vào file YAML nhớ chọn Default Namespace của dự án 
 	(ví dụ frontend) -> sau đó import 
 	* Sau khi khởi tạo thành công sang Pods sẽ thấy 2 Pods được tạo ra
+* Bài 16 : Các commands hay dùng Deployment
+	// vào trong server k8s-master-1
+	- cd /projects/frontend
+	- kubectl get deployments -n frontend ( // trong đó frontend là namespaces)
+		sẽ xuất thiện thông tin NAME (ví dụ frontend-deployment)
+	- kubectl get rs -n frontend
+	- kubectl edit deployment/frontend-deployment
+	- kubectl rollout status deployment/frontend-deployment -n frontend
+	- kubectl scale deployment/frontend-deployment --replicas=4 -n frontend 
+						(trong đó replicas tăng số lương pods)
+	* Sau đó vào trong Deployment ở Workloads để xem số lượng pods đã được tạo ra  
+
+	// một số câu lệnh deployment thường dùng (ví dụ ten-deployment : deployment/frontend-deployment)
+						  (namesplace là frontend)
+	# kubectl scale deployment <ten-deployment> --replicas=<so-replicas> // Cập nhật trực tiếp số lượng replicas
+	# kubectl describe deployment -n <namespace> // Xem chi tiết cụ thể về một Deployment
+	# kubectl get deployment <ten-deployment> -o yaml // Xem cấu hình YAML của một Deployment
+	# kubectl set image deployment/<ten-deployment> <ten-container>=<ten-image>:<tag-moi> // Cập nhật Deployment bằng cách thay đổi hình ảnh container
+	# kubectl rollout undo deployment <ten-deployment> // Rollback Deployment về phiên bản trước
+	# kubectl rollout history deployment <ten-deployment> // Kiểm tra lịch sử các phiên bản của Deployment
+	# kubectl get pods -l app=<ten-deployment> -n <namespace> // Liệt kê các Pod được tạo bởi một Deployment cụ thể
+	# kubectl set env deployment/<ten-deployment> <key>=<value> // Cập nhật biến môi trường cho các container trong Deployment
