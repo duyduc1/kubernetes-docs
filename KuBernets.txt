@@ -532,7 +532,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	- kubectl rollout status deployment/frontend-deployment -n frontend
 	- kubectl scale deployment/frontend-deployment --replicas=4 -n frontend 
 						(trong đó replicas tăng số lương pods)
-	* Sau đó vào trong Deployment ở Workloads để xem số lượng pods đã được tạo ra  
+	* Sau đó vào trong Deployment ở Workloads ở web Rancher để xem số lượng pods đã được tạo ra  
 
 	// một số câu lệnh deployment thường dùng (ví dụ ten-deployment : deployment/frontend-deployment)
 						  (namesplace là frontend)
@@ -544,3 +544,89 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	# kubectl rollout history deployment <ten-deployment> // Kiểm tra lịch sử các phiên bản của Deployment
 	# kubectl get pods -l app=<ten-deployment> -n <namespace> // Liệt kê các Pod được tạo bởi một Deployment cụ thể
 	# kubectl set env deployment/<ten-deployment> <key>=<value> // Cập nhật biến môi trường cho các container trong Deployment
+
+* Bài 17 : Các chiến lược triển khai Deployment k8s
+	* Có 2 chiến lượng triển khai
+	* Rolling Update (cập nhật dần các Pods) 
+		- ví dụ chúng ta có 2 pods và triển khai version mới chúng ta thiết lập rằng cứ có 1 pods
+		mới lên thì xoá một pods cũ đi vậy chúng ta sẽ có 1 pods version cũ và 1 pods version mới
+		vẫn có thể đảm bảo dự án hoạt động được .
+	* Recreate (tạo mới hoàn toàn các Pods)
+		- Xoá toàn bộ pods đi và khởi tạo lại toàn bộ pods mới 
+	* Thông thường hay sử dụng chiến lượt đầu tiên
+	* Vào web Rancher > Deployment xoá đi deployment cũ 
+	* Vào trong phần visual edit lại file YAML
+		// Đây là file YAML của Recreate - chiến lượt thứ 2 
+		apiVersion: apps/v1
+		kind: Deployment
+		metadata:
+		  labels:
+		    app: frontend-deployment // chỉnh sửa ngắn gọn ở chỗ này
+		  name: frontend-deployment
+		  namespace: frontend
+		spec:
+		  replicas: 4 // số lượng pods
+		  strategy:
+		    type: Recreate
+		  revisionHistoryLimit: 11 // Lưu lịch sử 
+		  selector:
+		    matchLabels:
+		      app: frontend-deployment // chỉnh sửa ngắn gọn ở chỗ này
+		  template:
+		    metadata:
+		      labels:
+		        app: frontend-deployment // chỉnh sửa ngắn gọn ở chỗ này
+		      namespace: frontend
+		    spec:
+		      containers:
+		        - image: nginx 
+			  imagePullPolicy: Always
+		          name: frontend
+		          ports:
+		            - containerPort: 80
+		              name: tcp
+		              protocol: TCP
+	* tiến hành apply lên rancher ở phần Deployment nhấn chọn Import YAML và paste vào -> Default 
+	Namespace vẫn chọn là Frontend -> Import  
+	* Vào trong Pods ở rancher để kiểm tra số lượng pods đã được tạo 
+	* Vào Edit Config (ở dấu 3 chấm) ở frontend-deployment trong Deployment
+		- Thay Container Imge thành vuduyduc/frontend -> Save
+	* Vào lại Pods -> sẽ thấy Pods cũ sẽ hoàn toàn bị xoá đi và thay bằng Pods mới 
+
+	// tiến hành triển khai chiến lược Rolling Update
+	* Đầu tiên phải xoá đi phần frontend-deployment 
+	* Quay lại visual code để Edit file YAML
+		apiVersion: apps/v1
+		kind: Deployment
+		metadata:
+		  labels:
+		    app: frontend-deployment
+		  name: frontend-deployment
+		  namespace: frontend
+		spec:
+		  replicas: 2
+		  strategy:
+		    rollingUpdate:
+		      maxSurge: 1 #25%
+		      maxUnavailable: 1 #25%
+		    type: RollingUpdate
+		  revisionHistoryLimit: 11
+		  selector:
+		    matchLabels:
+		      app: frontend-deployment
+		  template:
+		    metadata:
+		      labels:
+		        app: frontend-deployment
+		      namespace: frontend
+		    spec:
+		      containers:
+		        - image: vuduyduc/frontend
+		          imagePullPolicy: Always
+		          name: frontend
+		          ports:
+		            - containerPort: 80
+		              name: tcp
+		              protocol: TCP
+	* tiến hành apply lên rancher ở phần Deployment nhấn chọn Import YAML và paste file YAML đã edit 	trong visual code vào -> Default Namespace vẫn chọn là Frontend -> Import  
+	* Vào trong Pods ở rancher để kiểm tra số lượng pods đã được tạo 
