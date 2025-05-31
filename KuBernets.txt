@@ -517,3 +517,8 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 		            - containerPort: 80
 		              name: tcp
 		              protocol: TCP
+	* Bước tiếp theo copy file YAML vừa được edit xong
+	* vào Deployment xoá frontend-deployment cũ đi
+	* chọn Import YAML dán phần đã edit vào file YAML nhớ chọn Default Namespace của dự án 
+	(ví dụ frontend) -> sau đó import 
+	* Sau khi khởi tạo thành công sang Pods sẽ thấy 2 Pods được tạo ra
