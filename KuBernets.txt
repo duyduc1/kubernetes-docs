@@ -215,7 +215,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	Ví dụ: StorageClass, CSIDriver, VolumeAttachment
 
 	✅ kind: Pod
-	Ý nghĩa: Là đơn vị nhỏ nhất trong Kubernetes, chứa container hoặc nhiều container chạy chung 		network.
+	Ý nghĩa: Là đơn vị nhỏ nhất trong Kubernetes, chứa container hoặc nhiều container chạy chung network.
 	Khi dùng: Khi bạn muốn chạy một container (hoặc vài cái gắn liền) đơn lẻ.
 	Lưu ý: Không nên deploy trực tiếp Pod trong production — dùng Deployment sẽ tốt hơn.
 
@@ -234,7 +234,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	✅ kind: DaemonSet
 	Ý nghĩa: Đảm bảo mỗi node đều có 1 bản chạy của Pod.
 
-	Khi dùng: Chạy các agent như log collector (Fluentd, Filebeat), monitoring (Prometheus Node 		Exporter).
+	Khi dùng: Chạy các agent như log collector (Fluentd, Filebeat), monitoring (Prometheus Node Exporter).
 	Đặc biệt: Tự động thêm Pod khi có node mới được thêm vào cluster.
 
 	✅ kind: Service
@@ -268,8 +268,8 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	✅ Metadata, 
 	✅ spec
 * Bài 9 : NameSpace trong K8S
-	* Trong k8s namespace là một cách tổ chức và phân tách các tài nguyên trong một cụm k8s để quả lý 	tốt hơn , 
-	được sử sụng để chia nhỏ tài nguyên của một cụm lớn thành các không gian làm việc logic nhỏ hơn , 	giúp dễ dàng quản lý và vận hành 
+	* Trong k8s namespace là một cách tổ chức và phân tách các tài nguyên trong một cụm k8s để quả lý tốt hơn , 
+	được sử sụng để chia nhỏ tài nguyên của một cụm lớn thành các không gian làm việc logic nhỏ hơn , giúp dễ dàng quản lý và vận hành 
 	* vào k8s-master-1 
 	- kubectl get pod --namespace default
 	- kubectl get ns // dùng để coi số namespace
@@ -303,7 +303,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	- ls
 			
 * Bài 10 : Phương pháp triển khai dự án trên Kubernetes hiệu quả
-	- Dựa vào nhu cầu -> Sử dụng công cụ giao diện -> trích xuất file yaml -> Nghiên cứu cú pháp , 		format , giá trị , template , các tùy chọn khác -> Triển khai tương tự chuẩn format 
+	- Dựa vào nhu cầu -> Sử dụng công cụ giao diện -> trích xuất file yaml -> Nghiên cứu cú pháp , format , giá trị , template , các tùy chọn khác -> Triển khai tương tự chuẩn format 
 
 * Bài 11 : Công cụ quản lý Kubernetes 
 	* K8s management tools ( command app , Desktop app , Website app)
@@ -312,7 +312,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	* Công cụ quản lý k8s bằng nền tảng web Rancher (được hỗ trợ phân quyền mạnh mẽ)
 
 * Bài 12: Cài đặt Rancher và quản lý K8S
-	- Rancher là một công cụ giúp triển khai và quản lý giám sát nhiều cum K8S trên các môi trường khác 	nhau
+	- Rancher là một công cụ giúp triển khai và quản lý giám sát nhiều cum K8S trên các môi trường khác nhau
 	bao gồm cả On-premise và các dịch vụ như AWS , Azure , Google Cloud Plasform 
 	- Rancher làm được gì
 		* Quản lý nhiều cụm K8S
@@ -436,7 +436,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	- kubectl apply -f ns.yaml
 	- kubectl apply -f pod.yaml
 	- kubectl get pod -n frontend // trong đó frontend là namespace trong pod.yaml
-	- kubectl exec -it frontend -n frontend -- /bin/bash // dùng để truy cập vào môi trường của 		namespace đó
+	- kubectl exec -it frontend -n frontend -- /bin/bash // dùng để truy cập vào môi trường của namespace đó
 	- kubectl delete -f pod.yaml // dùng để xoá pods này đi 
 	* hiện tại chúng ta đang có 1/1 pods , chúng ta có thể tăng số lượng lên 2,3,4 để tăng khả năng 
 	chịu tải , nhưng chỉ khuyến khích chỉ nên triển khai 1 container trong 1 pods thôi.
