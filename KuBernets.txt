@@ -642,6 +642,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 
 * Bài 19 : NodePort 
 	* Chỉ cho phép sử dụng các port từ 300000 - 32767
+	* vào trong devopsk8s
 	* Trong phần giao diện của Ranchers -> phần Service Discovery -> nhấn chọn vào service
 		- nhấn chọn Create -> nhấn chọn vào NodePort -> đặt Name là frontend-service && Port Name để là tcp && Listening Port đặt là 80 && Target Port là 80 && Node Port đặt ví dụ 32080
 		- Tiếp theo nhìn kỹ sẽ thấy Selectors -> để key là app && Value là frontend-deployment (coi lại file YAML đã cấu hình trong phần Rolling Update ) -> Create
