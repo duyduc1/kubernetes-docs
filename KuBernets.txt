@@ -1,14 +1,12 @@
 1. Triển khai dự án trên k8s và vận hành hệ thống trên k8s
 
-* Bài 1
-K8s là gì ?
+* Bài 1 : K8s là gì ?
 Kubernetes là một công cụ giúp thuận lợi trong việc cấu hình tự động hóa triển khai các ứng dụng.
 
 K8s dùng để làm gì ?
 Khắc phục vấn đề tự động backup , tự động sửa lỗi , tự động tăng giảm tài nguyên phù hợp với lượng người dùng và quản lý chuyên nghiệp , tự động triển khai dự án
 
-* Bài 2
-Khi nào nên sử dụng k8s ?
+* Bài 2 : Khi nào nên sử dụng k8s ?
 	Điều kiện áp dụng giải pháp
 	- Hiệu quả , minh bạch , khả năng vận hành , tối ưu chi phí
 	
@@ -19,16 +17,15 @@ Khi nào nên sử dụng k8s ?
 	- Dự án theo mô hình Microservices
 	- Dự án cần khả năng tự phục hồi (Self-Healing)
 
-* Bài 3
-Triển khai Cluster 
-1. 
-node(máy chủ) có thể có nhiều pod , 
+* Bài 3: Triển khai Cluster 
+// Trong 1 cụm K8S bao gồm những gì : là 1 cụm Cluster bao gồm các Node và 1 cụm Control Plane
+1. Node 
+- Có thể có nhiều pod , 
 - mỗi pod lưu trữ các containter có thể có nhiều container , pod là đơn vị nhỏ nhất trong cum k8s 
 - kubelet là thành phần nhận yêu cầu từ Kube-api-server để thực thi các pod trên node,
 - kube-proxy là thành phần network chạy trên mỗi node cho phép các pod giao tiếp với nhau và giao tiếp ra bên ngoài
 
-2. 
-Control Plane 
+2. Control Plane 
 - cloud-control-manager máy chủ quản lý
 - kube-api-server : là một API quy chuẩn chung để giao tiếp ở ngoài vào trong cụm
 ví dụ cloud control manager có yêu cầu lấy thông tin pod của node thì kube-api-server sẽ lấy thông tin tương ứng pod của node cần đó
@@ -37,8 +34,7 @@ ví dụ cloud control manager có yêu cầu lấy thông tin pod của node th
 - Controller Manager : Là thành phần quản lý các controller và tiến trình để chịu trách nhiệm giám sát các trạng thái của cluster và thực hiện các hành động sửa chửa tự động nếu cần
 (Ví dụ khi dự án của bạn đang chạy trên node 1 mà bị lỗi thì controller manager sẽ tự động giám sát và tạo ra một pod mới để đảm bảo dự án của bạn chạy ổn định)
 
-* Bài 4
-Chia thành 2 môi trường chính đó là On-premise và Cloud
+* Bài 4 K8S Chia thành 2 môi trường chính đó là On-premise và Cloud
 Có 2 cách cài là cài đặt thủ công và cài đặt tự động 
 - Cài đặt bằng kubeadm là cài đặt thủ công và rành mạch nhất
 - Cài đặt tự động bằng kubespray , kops , RKE
@@ -131,9 +127,7 @@ bước 3 :
 	- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
 	( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes) nhưng với vai trò là --control-plane --certificate-key 
 
-
-* bài 6
-Triển khai kubernetes trên nền tảng GCP (GKE)
+* bài 6 : Triển khai kubernetes trên nền tảng GCP (GKE)
 	- Đăng ký visa và đăng ký tài khoản gg cloud để được 300$ miễn phí 
 	- vào 3 thanh sọc -> kubernetes Engine -> Clusters -> Create -> Standard:you manage Your Cluster(Configure)
 	- Sau đó sẽ thấy  (Cluster basics) -> đặt tên (Cluster) theo dự án hoặc môi trường -> Zone(asia-northeast1-c) -> target release channel (regular) // đừng vội nhấn create
@@ -146,20 +140,19 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	- Sau khi dựng xong chọn CONNECT -> sau đó enter để xác thực kết nối 
 					 - kubectl get node -o wide
 
-* bài 7
-	Mô hình triển khai dự án trên k8s , reaseach kubernetest flow 
+* Bài 7 : Mô hình triển khai dự án trên k8s , reaseach kubernetest flow 
 
-* bài 8 File yaml Cấu hình trong k8s
+* Bài 8 : File yaml Cấu hình trong k8s
 
 	- Ưu điểm file yaml
-	. Cú pháp đơn giản
-	. Định dạng phong phú 
-	. Cấu trúc rõ ràng 
-	. Cộng đồng lơn
+		# Cú pháp đơn giản
+		# Định dạng phong phú 
+		# Cấu trúc rõ ràng 
+		# Cộng đồng lớn
 	
 	- Cấu trúc file yaml
-	. key là tên thuộc tính
-	. value là giá trị tương ứng
+		# key là tên thuộc tính
+		# value là giá trị tương ứng
 ➡️ Ví dụ trong Kubernetes: name: my-app
 
 	key: value
@@ -718,6 +711,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	* Ingress nginx && Kong Gateway && HAProxy 3 loại hay sử dụng để triển khai trên ingress trên on-premise 
 	* Helm là một loại công cụ quản lý các tài nguyên được cài đặt bằng helm
 	* Loadbalencer làm nhiệm vụ cân bằng tải các traffic của NodePort trong K8S đi ra bên ngoài Client
+
 	// vào lại server k8s-master-1 - cài đặt Helm
 	- cd && sudo -i
 	- wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz // wget tới đường link để tải xuống 
@@ -736,7 +730,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	>> Sửa nodePort https: "" => https: "30443"
 	- cp -rf ingress-nginx /home/dev
 	- su dev
-	// mỗi tài nguyên mỗi dự án mỗi môi trường đều tạo ra 1 ns riêng
+	// mỗi tài nguyên mỗi dự án mỗi môi trường đều tạo ra 1 namespace riêng
 	- kubectl create ns ingress-nginx 
 	- helm -n ingress-nginx install ingress-nginx -f ingress-nginx/values.yaml ingress-nginx
 	- helm version
@@ -795,3 +789,83 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	* Vào system32 để add hosts và IP của server Nginx Ingress vào
 		ví dụ (192.168.1.110 frontend-onpre.devopsk8s.vn)
 	* Truy cập bằng domain frontend-onpre.devopsk8s.vn 
+
+* Bài 22 : Triển khai Ingress on Cloud GCP
+	// Tiến hành vào lại Cloud trên GCP và SSH vào bên trong 
+	- kubectl get all -n frontend 
+	- kubectl delete -f frontend.yaml
+	- clear
+
+	// ở trên On-premise thì sử dụng NodePort còn trên cloud thì sử dụng LoadBalancer 
+	// tiến hành cài Helm trên Clound
+	- wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz
+	- tar xvf helm-v3.16.2-linux-amd64.tar.gz
+	- sudo mv linux-amd64/helm /usr/bin/
+	- helm version
+
+	// Ingress Controller
+	- helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+	- helm repo update
+	- helm pull ingress-nginx/ingress-nginx
+	- tar -xzf ingress-nginx-4.11.3.tgz
+	- kubectl create ns ingress-nginx
+	- helm -n ingress-nginx install ingress-nginx -f ingress-nginx/values.yaml ingress-nginx
+	- nano frontend-service-dp-sv-ig.yaml
+			apiVersion: apps/v1
+			kind: Deployment
+			metadata:
+			  name: frontend-deployment
+			  namespace: frontend
+			spec:
+			  selector:
+			    matchLables:
+			      app: frontend
+			  replicas:1
+			  template:
+			    metadata:
+			      labels:
+				app: frontend
+			    spec:
+			      containers:
+				- name: frontend
+				  image: vuduyduc/frontend
+				  ports:
+				    - containers: 80
+			
+			apiVersion: v1
+			kind: Service
+			metadata:
+			  name: frontend-service
+			  namespace: frontend
+			spec:
+			  type: ClusterIP
+			  selector:
+			    app: frontend
+			  ports:
+			    - protocol: TCP
+			      port: 80
+			      targetPort: 80
+
+			apiVersion: networking.k8s.io/v1
+			kind: Ingress
+			metadata:
+			  name: frontend-ingress
+			  namespace: frontend
+			  annotations:
+			    kubernetes.io/ingress.class: *nginx*
+			spec:
+			  rules:
+			    - host: frontend-cloud.devopsk8s.vn
+			      http:
+			        paths:
+				    path: /
+			            pathType: Prefix
+			            backend:
+			              service:
+			                name: frontend-service
+			                port:
+			                  number: 80
+	- kubectl apply -f frontend-dp-sv-ig.yaml
+	// nếu không có domain thì chỉ cần add host vào system32 
+	- kubectl get all -n frontend
+	- kubectl get ingress -n frontend // sẽ thấy địa chỉ Address và domain tự tạo tiến hành copy Address bỏ vào hosts System32
