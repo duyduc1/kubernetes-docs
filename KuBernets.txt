@@ -639,7 +639,7 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	* Service Type : có 4 loại 
 		# Cluster IP : tạo ra một địa chỉ IP chỉ có thể truy cập được ở trong cụm có thể giao tiếp được với nhau , nếu muốn giao tiếp ra bên ngoài thì cần phải đi qua ingress
 		# NodePort : Service này sẽ trực tiếp mở 1 port truy cập từ bên ứng dụng ra bên ngoài , tức là chúng ta có thể truy cập trực tiếp vào pods mà không cần phải đi qua bất cứ cổng nào nữa.
-		# LoadBalancer : Dành cho clound Provider chỉ dành cho cloud , sẽ điều phối lưu lượng tới các service tương ứng 
+		# LoadBalancer : Dành cho clound Provider , sẽ điều phối lưu lượng tới các service tương ứng 
 		# ExternalName : sẽ liên kết với 1 tên miền ở bên ngoài (domain)
 	* Cluster IP và LoadBalancer là 2 loại service giúp chuyển khai dự án chuyên nghiệp và thực tế với Cluster IP sẽ được áp dụng trên môi trường On-premise và LoadBalancer sẽ áp dụng cho môi trường cloud
 
@@ -711,3 +711,87 @@ Triển khai kubernetes trên nền tảng GCP (GKE)
 	* Trong Service Discovery (của devopsk8s) -> chọn Services -> Chọn Create ->  Chọn ClusterIP -> đặt tên Cho Name (frontend1-service) && PortName đặt là tcp && listerning Port là 80 && TargetPort cũng là 80
 	* Xuống task Selectors ở bên cạnh -> key là app && Value là frontend-deployment -> CREATE
 	* Sau khi tạo xong ở mục target sẽ có một chỗ để link nhấn vào sẽ ra trang web
+
+* Bài 22 : Ingress Kubernetes
+	* Ingress Kubernetes là một tài nguyên dùng để quản lý cách thức truy cập từ bên ngoài vào các service bên trong cụm K8S giúp định hướng lưu lượng truy cập HTTP và HTTPS tới các service nội bộ
+	* Mô hình đi từ Client -> đến loadbalancer -> đén ingress -> dựa theo hướng dẫn đến các service chính xác và từ service đến Pod tương ứng
+	* Ingress nginx && Kong Gateway && HAProxy 3 loại hay sử dụng để triển khai trên ingress trên on-premise 
+	* Helm là một loại công cụ quản lý các tài nguyên được cài đặt bằng helm
+	* Loadbalencer làm nhiệm vụ cân bằng tải các traffic của NodePort trong K8S đi ra bên ngoài Client
+	// vào lại server k8s-master-1 - cài đặt Helm
+	- cd && sudo -i
+	- wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz // wget tới đường link để tải xuống 
+	- tar xvf helm-v3.16.2-linux-amd64.tar.gz // tar xvf để giải nén 
+	- sudo mv linux-amd64/helm /usr/bin/
+
+	// add Chart của Ingress Nginx Controller 
+	- helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+	- helm repo update
+	- helm search repo nginx
+	- helm pull ingress-nginx/ingress-nginx
+	- tar -xzf ingress-nginx-4.11.3.tgz // tar -xzf cũng dùng để giải nén 
+	- nano ingress-nginx/values.yaml
+	>> Sửa type: LoadBalancer => type: NodePort // vì đang triển khai trên On-premise nên sử dụng NodePort
+	>> Sửa nodePort http: "" => http: "30080"
+	>> Sửa nodePort https: "" => https: "30443"
+	- cp -rf ingress-nginx /home/dev
+	- su dev
+	// mỗi tài nguyên mỗi dự án mỗi môi trường đều tạo ra 1 ns riêng
+	- kubectl create ns ingress-nginx 
+	- helm -n ingress-nginx install ingress-nginx -f ingress-nginx/values.yaml ingress-nginx
+	- helm version
+	- kubectl get all -n ingress-nginx
+
+	// Tạo thêm 1 server mới để triển khai Ingress Nginx 
+	- SSH vào server của Ingress Nginx vừa tạo 
+	- apt install net-tools -y 
+	- apt install nginx -y 
+	- nano /etc/nginx/sites-available/default
+		đổi listern 80 -> sang port khác (ví dụ : 9999)
+	- nano /etc/nginx/conf.d/devops-kubernets.vn.conf
+			upstream my_servers {
+			    server 192.168.1.111:30080; // k8s-master-1
+			    server 192.168.1.112:30080; // k8s-master-2
+			    server 192.168.1.113:30080; // k8s-master-3
+			}
+			
+			server {
+			    listen 80;
+			
+			    location / {
+			        proxy_pass http://my_servers;
+			        proxy_redirect off;
+			        proxy_set_header Host $host;
+			        proxy_set_header X-Real-IP $remote_addr;
+			        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+			        proxy_set_header X-Forwarded-Proto $scheme;
+			    }
+			}
+	- nginx -s reload 
+	- systemctl restart nginx 
+
+	// trên web Rancher-server trong devopsk8s tạo Ingress trên Rancher 
+	* Chọn Servivce Discovery -> chọn Ingress -> Chọn Import YAML
+			apiVersion: networking.k8s.io/v1
+			kind: Ingress
+			metadata:
+			  name: frontend-ingress
+			  namespace: frontend
+			spec:
+			  ingressClassName: nginx
+			  rules:
+			    - host: frontend-onpre.devopsk8s.vn
+			      http:
+			        paths:
+			          - backend:
+			              service:
+			                name: frontend1-service
+			                port:
+			                  number: 80
+			            path: /
+			            pathType: Prefix
+	* Import 
+	* Muốn biết chính xác tài nguyên Ingress này đã trỏ đúng service chưa thì chọn vào phần này frontend1-service nếu nó di chuyển sang Pods và ở đó có các pods thì bạn đã triển khai đúng 
+	* Vào system32 để add hosts và IP của server Nginx Ingress vào
+		ví dụ (192.168.1.110 frontend-onpre.devopsk8s.vn)
+	* Truy cập bằng domain frontend-onpre.devopsk8s.vn 
