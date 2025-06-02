@@ -1239,9 +1239,58 @@ bước 3 :
 			                  number: 8080
 			            path: /
 			            pathType: Prefix
-		* Import 
-		* Vào deployment sẽ lấy tài nguyên ecommerce-backend-deployment đã được triển khai vào trong sẽ thấy nó đang tiến hành pull images về 
-		* Vào ingress trong Service Discovery sẽ thấy domain 
-		* Vào sysmtem 32 để add host này vào 
-			192.168.1.110 ecommerce-backend-onpre.devopsedu.vn
-		* vào google test domain đã add vào trong hosts của system32
+	* Import 
+	* Vào deployment sẽ lấy tài nguyên ecommerce-backend-deployment đã được triển khai vào trong sẽ thấy nó đang tiến hành pull images về 
+	* Vào ingress trong Service Discovery sẽ thấy domain 
+	* Vào sysmtem 32 để add host này vào 
+		192.168.1.110 ecommerce-backend-onpre.devopsedu.vn
+	* vào google test domain đã add vào trong hosts của system32
+
+* Bài 26 : Configmap K8S
+	- Trong Kubernetes (K8s), ConfigMap là một đối tượng dùng để lưu trữ dữ liệu cấu hình dạng key-value mà ứng dụng của bạn có thể sử dụng.
+	- cd projects/backend/
+	- nano Dockerfile
+		sửa lại ở ENTRYPOINT java -jar /run/VegetFood-1.0.jar --springboot.config.location=/run/src/main/resources/application.properties
+	- docker build -t vuduyduc/ecommerce-backend:v2 .
+	- docker push vuduyduc/ecommerce-backend:v2 .
+	* vào lại web Rancher-server và import YAML
+		apiVersion: v1
+		kind: ConfigMap
+		metadata:
+		  name: ecommerce-backend-application-properties-configmap
+		  namespace: ecommerce
+		data:
+		  application.properties: |
+		    spring.datasource.url=jdbc:mysql://192.168.1.115:3306/full-stack-ecommerce #chú ý thay đổi địa chỉ IP của bạn 
+		    spring.datasource.username=ecommerce
+		    spring.datasource.password=ecommerce
+		    spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
+		    spring.datasource.sql-script-encoding=UTF-8
+		
+		    spring.jpa.properties.hibernate.globally_quoted_i/dentifiers=true
+		    spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+		    spring.jpa.hibernate.ddl-auto=none
+		    spring.jpa.show-sql=true
+		    spring.jpa.properties.hibernate.format_sql=true
+
+	* Import
+	* ConfigMaps sẽ ở trong Storage của devopsk8s
+		# vào trong này sẽ thấy ecommerce (ecommerce-backend-application-properties-configmap)
+
+	* Vào Deployment của devopsk8s trong ecommerce-backend-edployment nhấn Edit YAML
+		volumeMounts: // cái này để ngang hàng với các image và imagePullPolicy
+	          - name: application-properties-config-volume
+		    mountPath: /run/src/main/resources/application.properties
+	            subPath: application.properties
+		volumes: // volumes này phải ngang cột với lại containers
+	          - name: application-properties-config-volume
+		    configMap:
+	              name: ecommerce-backend-application-properties-configmap
+	* Save
+	* vào lại bên trong ecommerce-backend-edployment và Excute Shell
+	- ls /run/src/main/resources/  // sẽ thấy file application.properties bên trong 
+	- cat /run/src/main/resources/application.properties
+	// thử sửa file application trong ConfigMaps trong Storage của devopsk8s
+	* Vào ecommerce-backend-application-properties-configmap -> Edit configmap
+	* thử sửa với 1 comment #application.hehe
+	* Vào Deployment của ecommerce-backend-deployment -> nhấn chọn Redeploy -> nhấn chọn vào edit Config -> sửa vuduyduc/ecommerce-backend:v1 thành v2 -> Save
