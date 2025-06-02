@@ -688,7 +688,7 @@ bước 3 :
 	- kubectl apply -f frontend.yaml // áp dụng toàn bộ cấu hình cho file Yaml
 	- kubectl get all -n frontend // lấy toàn bộ thông tin cấu hình 
 	- kubectl get no -o wide
-	* Vào thanh 3 sọc -> Hover vào VPC Network -> Chọn phân Firewall -> tiến hành Create FIREWAKK RULE
+	* Vào thanh 3 sọc -> Hover vào VPC Network -> Chọn phân Firewall -> tiến hành Create FIREWALL RULE
 	-> kéo xuống Name và điền vào ô Input đó là (allow-port:32080) 
 	-> kéo xuống Targets -> chọn vào All instances in the network
 	-> kéo xuống source IPv4 rangers -> điền vào 0.0.0.0/0
@@ -736,7 +736,7 @@ bước 3 :
 	- helm version
 	- kubectl get all -n ingress-nginx
 
-	// Tạo thêm 1 server mới để triển khai Ingress Nginx 
+	// Tạo thêm 1 server mới để triển khai Ingress Nginx - server Loadbalancer (192.168.1.110)
 	- SSH vào server của Ingress Nginx vừa tạo 
 	- apt install net-tools -y 
 	- apt install nginx -y 
@@ -797,7 +797,7 @@ bước 3 :
 	- clear
 
 	// ở trên On-premise thì sử dụng NodePort còn trên cloud thì sử dụng LoadBalancer 
-	// tiến hành cài Helm trên Clound
+	// tiến hành cài Helm trên Cloud
 	- wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz
 	- tar xvf helm-v3.16.2-linux-amd64.tar.gz
 	- sudo mv linux-amd64/helm /usr/bin/
@@ -869,3 +869,379 @@ bước 3 :
 	// nếu không có domain thì chỉ cần add host vào system32 
 	- kubectl get all -n frontend
 	- kubectl get ingress -n frontend // sẽ thấy địa chỉ Address và domain tự tạo tiến hành copy Address bỏ vào hosts System32
+
+* Bài 23 : Template yaml Kubernetes 
+	// Trong web Ranger-server
+	* Vào trong Deployments của devopsk8s
+	* Tiến hành Download YAML của dự án frontend-deployment trong Deployment của Discoverty
+	* Tiến hành download YAML frontend1-service với Type là CLuster IP bên trong Serivce của Serivce Discovery
+	* Tiếp đến là download YAML trong ingress của Discovery Service
+	* Copy tất cả file YAML vào trong visual để sửa lại 
+
+	// Sau khi copy xong 
+	* Đầu tiên thì vào Deployment của devopsk8s và xóa đi phần đã triển khai là frontend-deployment lúc trước đó
+	* Vào Service của Serivce Discovery và xóa đi NodePort và ClusterIP của frontend-service
+	* Vào trong Ingress của Service Discovery xóa đi frontend-ingress 
+	* Tiến hành Import YAML và default Namespace là frontend
+			---
+			apiVersion: apps/v1
+			kind: Deployment
+			metadata:
+			  labels:
+			    app: fronted
+			  name: frontend-deployment
+			  namespace: frontend
+			spec:
+			  replicas: 2
+			  revisionHistoryLimit: 11
+			  selector:
+			    matchLabels:
+			      app: frontend
+			  strategy:
+			    rollingUpdate:
+			      maxSurge: 25%
+			      maxUnavailable: 25%
+			    type: RollingUpdate
+			  template:
+			    metadata:
+			      labels:
+			        app: frontend
+			      namespace: frontend
+			    spec:
+			      containers:
+			        - image: vuduyduc/frontend
+			          imagePullPolicy: Always
+			          name: frontend
+			          ports:
+			            - containerPort: 80
+			              name: tcp
+			              protocol: TCP
+			---
+			apiVersion: v1
+			kind: Service
+			metadata:
+			  name: frontend-service
+			  namespace: frontend
+			spec:
+			  internalTrafficPolicy: Cluster
+			  ipFamilies:
+			    - IPv4
+			  ipFamilyPolicy: SingleStack
+			  ports:
+			    - name: tcp
+			      port: 80
+			      protocol: TCP
+			      targetPort: 80
+			  selector:
+			    app: frontend
+			  sessionAffinity: None
+			  type: ClusterIP
+			---
+			apiVersion: networking.k8s.io/v1
+			kind: Ingress
+			metadata:
+			  name: frontend-ingress
+			  namespace: frontend
+			spec:
+			  ingressClassName: nginx
+			  rules:
+			    - host: frontend-onpre.devopsedu.vn
+			      http:
+			        paths:
+			          - backend:
+			              service:
+			                name: frontend-service
+			                port:
+			                  number: 80
+			            path: /
+			            pathType: Prefix
+	* Import
+	* Vào google và test bằng host đã tạo ở trong file YAML
+	* để có tài nguyên cho các bài sau thì có thể xóa như những bước ở trên
+
+* Bài 24 : Triển khai dự án FullStack
+	// Triển khai Database mysql hoặc mariaDB
+	* Tạo một server mới để triển khai mariaDB // ví dụ 192.168.1.115
+	* SSH vào server
+	- apt update -y 
+	- apt install mariadb-server
+	- nano /etc/mysql/mariadb.conf.d/50-server.cnf
+		sửa bind-address = 0.0.0.0
+	- systemctl restart mariadb
+	- mysql -u root
+	- show databases;
+	* vào thư mục chưa dự án frontend
+	- scp -r tab đến thư mục frontend.zip tới user root@192.168.1.115:/tmp
+	- scp -r tab đến thư mục backend.zip tới user root@192.168.1.115:/tmp
+	// vào lại server databse 
+	- ls /tmp/
+	- mkdir /projects
+	- mv /tmp/frontend.zip /projects
+	- cd projects
+	- apt install unzip 
+	- unzip frontend.zip
+	- mv /tmp/backend.zip /projects
+	- cd projects
+	- apt install unzip 
+	- unzip backend.zip
+
+	// tiến hành install Docker
+	- nano install-docker.sh
+			[#!/bin/bash
+			sudo apt update
+			sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+			echo "deb [signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+			sudo apt update
+			sudo apt install -y docker-ce
+			sudo systemctl start docker
+			sudo systemctl enable docker
+			sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+			sudo chmod +x /usr/local/bin/docker-compose
+			docker --version
+			docker-compose --version]
+	- chmod +x install-docker.sh
+    	- bash install-docker.sh
+
+	// triển khai dự án frontend lên K8S
+	- cd frontend
+	- nano Dockerfile
+		FROM node:18.18-alpine as build
+
+		WORKDIR /app
+		COPY . .
+
+		RUN npm install --force
+		RUN npm run build
+
+		FROM nginx:alpine
+
+		COPY --from-build /app/dist /usr/share/nginx/html
+
+		EXPOSE 80
+		CMD ["nginx", "-g", "daemon off;"]
+	- docker build -t ecommerce-frontend:v1 .
+	* push image này lên dockerhubs 
+	- docker login
+		# Username: vuduyduc764
+		# Passworld: Vuduyduc28042002@
+	- docker tag ecommerce-frontend:v1 vuduyduc/ecommerce-frontend:v1
+		# Tạo repository trên dockerhub trước khi push và giống như tên của tag đã đổi
+	- docker push vuduyduc/ecommerce-frontend:v1
+	* Lên dockerhub phần repository để kiểm tra xem có tags đó không
+	- Edit lại file YAML của bài trước 
+	// Tiến hành tạo ra một Namespace riêng
+	* Truy cập vào Cluster của Devopsk8s
+	* sẽ thấy Projects/Namespaces 
+	* Nhấn vào Create Projects
+		-> Name (ví dụ đặt là ecommerce) -> Create -> sau khi tạo xong sẽ xuất hiện create Namespaces và nhấn vào nó -> điền vào các thuộc tính Name (ecommerce) -> Create 
+	* Import yaml -> chọn phần default Namespace (chọn ecommerce vừa tạo trong namespace)
+			---
+			apiVersion: apps/v1
+			kind: Deployment
+			metadata:
+			  labels:
+			    app: ecommerce-frontend
+			  name: ecommerce-frontend-deployment
+			  namespace: ecommerce
+			spec:
+			  replicas: 2
+			  revisionHistoryLimit: 11
+			  selector:
+			    matchLabels:
+			      app: ecommerce-frontend
+			  strategy:
+			    rollingUpdate:
+			      maxSurge: 25%
+			      maxUnavailable: 25%
+			    type: RollingUpdate
+			  template:
+			    metadata:
+			      labels:
+			        app: ecommerce-frontend
+			      namespace: ecommerce-frontend
+			    spec:
+			      containers:
+			        - image: vuduyduc/ecommerce-frontend:v1
+			          imagePullPolicy: Always
+			          name: frontend
+			          ports:
+			            - containerPort: 80
+			              name: tcp
+			              protocol: TCP
+			---
+			apiVersion: v1
+			kind: Service
+			metadata:
+			  name: ecommerce-frontend-service
+			  namespace: ecommerce
+			spec:
+			  internalTrafficPolicy: Cluster
+			  ipFamilies:
+			    - IPv4
+			  ipFamilyPolicy: SingleStack
+			  ports:
+			    - name: tcp
+			      port: 80
+			      protocol: TCP
+			      targetPort: 80
+			  selector:
+			    app: frontend
+			  sessionAffinity: None
+			  type: ClusterIP
+			---
+			apiVersion: networking.k8s.io/v1
+			kind: Ingress
+			metadata:
+			  name: ecommerce-frontend-ingress
+			  namespace: ecommerce
+			spec:
+			  ingressClassName: nginx
+			  rules:
+			    - host: ecommerce-frontend-onpre.devopsedu.vn
+			      http:
+			        paths:
+			          - backend:
+			              service:
+			                name: ecommerce-frontend-service
+			                port:
+			                  number: 80
+			            path: /
+			            pathType: Prefix
+		* Import 
+		* Vào deployment sẽ lấy tài nguyên ecommerce-frontend-deployment đã được triển khai vào trong sẽ thấy nó đang tiến hành pull images về 
+		* Vào ingress trong Service Discovery sẽ thấy domain 
+		* Vào sysmtem 32 để add host này vào 
+			192.168.1.110 ecommerce-frontend-onpre.devopsedu.vn
+		* vào google test domain đã add vào trong hosts của system32
+		* Để tiết kiệm tài nguyên có thể vào Deployment hạ scale pods của dự án fe xuống 1
+
+		// Triển khai dự án Backend K8S
+		* Vào lại server 192.168.1.115
+		- cd projects/
+		- cd backend
+		// đối với dự án springboot
+		- mysql -u root
+			  show databases;
+			  create database full-stack-ecommerce;
+			 	      // user                     //password
+			  create user 'ecommerce'@'%' identified by 'ecommerce';
+			 			 //database   //user
+			  grant all privileges on full-stack-ecommerce.* to 'ecommerce'@'%';
+			  flush privileges;
+			  exit
+	   	- mysql -h 192.168.1.111 -P 3306 -u FoodWeb -p [Nhập pass FoodWeb]
+			  show databases;
+			  use FoodWeb;
+			  show tables;
+	   	- nano src/main/resources/application.properties
+			[Setup username và password thành FoodWeb
+			 port mysql thành 192.168.1.111:3306/FoodWeb]
+		- nano src/main/resources/application.properties
+			# Sửa thông tin database url && username && password theo cấu hình đã tạo trong mysql
+		- nano Dockerfile
+			# Maven build stage
+			FROM maven:3.8-openjdk-17 AS build
+			
+			WORKDIR /app
+			COPY . .
+			RUN mvn install -DskipTests=true
+			
+			# Runtime stage
+			FROM openjdk:17-jdk
+			
+			WORKDIR /run
+			COPY --from=build /app/target/VegetFood-1.0.jar /run/VegetFood-1.0.jar
+			EXPOSE 8080
+			ENTRYPOINT ["java", "-jar", "/run/VegetFood-1.0.jar"]
+	- docker build -t ecommerce-backend:v1 .
+	* push image này lên dockerhubs 
+	- docker login
+		# Username: vuduyduc764
+		# Passworld: Vuduyduc28042002@
+	- docker tag ecommerce-backend:v1 vuduyduc/ecommerce-backend:v1
+		# Tạo repository trên dockerhub trước khi push và giống như tên của tag đã đổi
+	- docker push vuduyduc/ecommerce-backend:v1
+	* Lên dockerhub phần repository để kiểm tra xem có tags đó không
+	- Edit lại file YAML của bài trước 
+	// Tiến hành tạo ra một Namespace riêng
+	* Truy cập vào Cluster của Devopsk8s
+	* Import yaml -> chọn phần default Namespace (chọn ecommerce vừa tạo trong namespace)
+			---
+			apiVersion: apps/v1
+			kind: Deployment
+			metadata:
+			  labels:
+			    app: ecommerce-backend
+			  name: ecommerce-backend-deployment
+			  namespace: ecommerce
+			spec:
+			  replicas: 2
+			  revisionHistoryLimit: 11
+			  selector:
+			    matchLabels:
+			      app: ecommerce-backend
+			  strategy:
+			    rollingUpdate:
+			      maxSurge: 25%
+			      maxUnavailable: 25%
+			    type: RollingUpdate
+			  template:
+			    metadata:
+			      labels:
+			        app: ecommerce-backend
+			      namespace: ecommerce-backend
+			    spec:
+			      containers:
+			        - image: vuduyduc/ecommerce-backend:v1
+			          imagePullPolicy: Always
+			          name: frontend
+			          ports:
+			            - containerPort: 8080
+			              name: tcp
+			              protocol: TCP
+			---
+			apiVersion: v1
+			kind: Service
+			metadata:
+			  name: ecommerce-backend-service
+			  namespace: ecommerce
+			spec:
+			  internalTrafficPolicy: Cluster
+			  ipFamilies:
+			    - IPv4
+			  ipFamilyPolicy: SingleStack
+			  ports:
+			    - name: tcp
+			      port: 8080
+			      protocol: TCP
+			      targetPort: 8080
+			  selector:
+			    app: frontend
+			  sessionAffinity: None
+			  type: ClusterIP
+			---
+			apiVersion: networking.k8s.io/v1
+			kind: Ingress
+			metadata:
+			  name: ecommerce-backend-ingress
+			  namespace: ecommerce
+			spec:
+			  ingressClassName: nginx
+			  rules:
+			    - host: ecommerce-backend-onpre.devopsedu.vn
+			      http:
+			        paths:
+			          - backend:
+			              service:
+			                name: ecommerce-backend-service
+			                port:
+			                  number: 8080
+			            path: /
+			            pathType: Prefix
+		* Import 
+		* Vào deployment sẽ lấy tài nguyên ecommerce-backend-deployment đã được triển khai vào trong sẽ thấy nó đang tiến hành pull images về 
+		* Vào ingress trong Service Discovery sẽ thấy domain 
+		* Vào sysmtem 32 để add host này vào 
+			192.168.1.110 ecommerce-backend-onpre.devopsedu.vn
+		* vào google test domain đã add vào trong hosts của system32
