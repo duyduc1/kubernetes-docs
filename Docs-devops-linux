@@ -16,7 +16,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 * bài 1
 	// setup IP tĩnh cho Server
 	- sudo -i 
-	- nano /etc/netplan/ + tab (trong quá trình setup IP tĩnh không được dùng space để cách)
+	- nano /etc/netplan/ + tab (trong quá trình setup IP tĩnh không được dùng tab để cách)
 		dhcp4: false
 		addresses: [192.168.1.110/24]
 		gateway4: 192.168.1.1
