@@ -356,6 +356,7 @@ bước 3 :
                                 * Cluster Name (là cụm K8s của mình ví dụ Devopsk8s) -> Create 
 				// nếu SSL tự ký thì sử dụng dòng thứ 2 
 				* Coppy dòng thứ 2 
+				* Nhớ add hosts vào trong k8s-master-1 
 				* Vào server k8s-master-1 và paste dòng lệnh đã copy ở trên vào 
 				* Vào lại web Rancher sẽ lấy trạng thái pending chuyển thành waiting 
 				* chờ một vào phút sau đó nhấn vào Machine Pools sẽ lấy các cụm k8s đã được tạo
