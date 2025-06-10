@@ -348,16 +348,15 @@ bước 3 :
 				* New Password
 				* Confirem New Password
 				* Tích chọn By checking the box , you accept the End User -> Saving
-			- vào hosts của windows trong system32 với linux thì nano /etc/hosts
-				* thêm ip của server-rancher và domain bạn tự đặt
-			 	* Dùng domain đã thêm vào hosts rồi vào google sử dụng domain đó nhập username và password
 			// kết nối cụm K8S lên rancher để quản lý 
 			- trên Dashboard rancher -> chọn Import Existing -> chọn Generic 
                                 * Cluster Name (là cụm K8s của mình ví dụ Devopsk8s) -> Create 
 				// nếu SSL tự ký thì sử dụng dòng thứ 2 
 				* Coppy dòng thứ 2 
-				* Nhớ add hosts vào trong k8s-master-1 
 				* Vào server k8s-master-1 và paste dòng lệnh đã copy ở trên vào 
+				// để theo dõi sau khi paster dòng lệnh vào dùng calina
+				- kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
+				- watch kubectl get pod -n kube-system
 				* Vào lại web Rancher sẽ lấy trạng thái pending chuyển thành waiting 
 				* chờ một vào phút sau đó nhấn vào Machine Pools sẽ lấy các cụm k8s đã được tạo
 				* Ra home sẽ thấy một cụm Devopsk8s nhấn vào và coi thông tin (các Pods , CPU , Memory)
