@@ -728,8 +728,8 @@ bước 3 :
 	>> Sửa type: LoadBalancer => type: NodePort // vì đang triển khai trên On-premise nên sử dụng NodePort
 	>> Sửa nodePort http: "" => http: "30080"
 	>> Sửa nodePort https: "" => https: "30443"
-	- cp -rf ingress-nginx /home/dev
-	- su dev
+	- cp -rf ingress-nginx /home/devops-k8s
+	- su devops-k8s
 	// mỗi tài nguyên mỗi dự án mỗi môi trường đều tạo ra 1 namespace riêng
 	- kubectl create ns ingress-nginx 
 	- helm -n ingress-nginx install ingress-nginx -f ingress-nginx/values.yaml ingress-nginx
