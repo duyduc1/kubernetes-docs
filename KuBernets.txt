@@ -1101,13 +1101,14 @@ bước 3 :
 			    - host: ecommerce-frontend-onpre.devopsedu.vn
 			      http:
 			        paths:
-			          - backend:
+				  - path: /
+			            pathType: Prefix
+			            backend:
 			              service:
 			                name: ecommerce-frontend-service
 			                port:
 			                  number: 80
-			            path: /
-			            pathType: Prefix
+
 		* Import 
 		* Vào deployment sẽ lấy tài nguyên ecommerce-frontend-deployment đã được triển khai vào trong sẽ thấy nó đang tiến hành pull images về 
 		* Vào ingress trong Service Discovery sẽ thấy domain 
@@ -1232,13 +1233,13 @@ bước 3 :
 			    - host: ecommerce-backend-onpre.devopsedu.vn
 			      http:
 			        paths:
-			          - backend:
+				  - path: /
+			            pathType: Prefix
+			            backend:
 			              service:
 			                name: ecommerce-backend-service
 			                port:
 			                  number: 8080
-			            path: /
-			            pathType: Prefix
 	* Import 
 	* Vào deployment sẽ lấy tài nguyên ecommerce-backend-deployment đã được triển khai vào trong sẽ thấy nó đang tiến hành pull images về 
 	* Vào ingress trong Service Discovery sẽ thấy domain 
