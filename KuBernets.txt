@@ -1246,6 +1246,101 @@ bước 3 :
 		192.168.1.110 ecommerce-backend-onpre.devopsedu.vn
 	* vào google test domain đã add vào trong hosts của system32
 
+	// nếu dự án dùng 1 domain thì file yaml sẽ có dạng thế này
+			apiVersion: apps/v1
+			kind: Deployment
+			metadata:
+			  name: ecommerce-backend-deployment
+			  namespace: ecommerce
+			spec:
+			  replicas: 2
+			  selector:
+			    matchLabels:
+			      app: ecommerce-backend
+			  template:
+			    metadata:
+			      labels:
+			        app: ecommerce-backend
+			    spec:
+			      containers:
+			        - name: backend
+			          image: vuduyduc/ecommerce-backend:v1
+			          ports:
+			            - containerPort: 8080
+			---
+			apiVersion: v1
+			kind: Service
+			metadata:
+			  name: ecommerce-backend-service
+			  namespace: ecommerce
+			spec:
+			  selector:
+			    app: ecommerce-backend
+			  ports:
+			    - port: 8080
+			      targetPort: 8080
+			  type: ClusterIP
+			---
+			apiVersion: apps/v1
+			kind: Deployment
+			metadata:
+			  name: ecommerce-frontend-deployment
+			  namespace: ecommerce
+			spec:
+			  replicas: 2
+			  selector:
+			    matchLabels:
+			      app: ecommerce-frontend
+			  template:
+			    metadata:
+			      labels:
+			        app: ecommerce-frontend
+			    spec:
+			      containers:
+			        - name: frontend
+			          image: vuduyduc/ecommerce-frontend:v1
+			          ports:
+			            - containerPort: 80
+			---
+			apiVersion: v1
+			kind: Service
+			metadata:
+			  name: ecommerce-frontend-service
+			  namespace: ecommerce
+			spec:
+			  selector:
+			    app: ecommerce-frontend
+			  ports:
+			    - port: 80
+			      targetPort: 80
+			  type: ClusterIP
+			---
+			apiVersion: networking.k8s.io/v1
+			kind: Ingress
+			metadata:
+			  name: ecommerce-ingress
+			  namespace: ecommerce
+			spec:
+			  ingressClassName: nginx
+			  rules:
+			    - host: ecommerce-onpre.greenglobal.com.vn
+			      http:
+			        paths:
+			          - path: /api
+			            pathType: Prefix
+			            backend:
+			              service:
+			                name: ecommerce-backend-service
+			                port:
+			                  number: 8080
+			          - path: /
+			            pathType: Prefix
+			            backend:
+			              service:
+			                name: ecommerce-frontend-service
+			                port:
+			                  number: 80
+
 * Bài 26 : Configmap K8S
 	- Trong Kubernetes (K8s), ConfigMap là một đối tượng dùng để lưu trữ dữ liệu cấu hình dạng key-value mà ứng dụng của bạn có thể sử dụng.
 	- cd projects/backend/
