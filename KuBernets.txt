@@ -751,7 +751,7 @@ bước 3 :
 			
 			server {
 			    listen 80;
-			    server_name frontend-onpre.greenglobal.com.vn // chỉ áp dụng với trường hợp có domain còn không có thì phải tự add host
+			    server_name frontend-onpre.greenglobal.com.vn backend-onpre.greenglobal.com.vn; // chỉ áp dụng với trường hợp có domain còn không có thì phải tự add host
 			    location / {
 			        proxy_pass http://my_servers;
 			        proxy_redirect off;
