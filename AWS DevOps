@@ -41,3 +41,8 @@ Buổi 7: Quản lý chi phí với AWS Budgets
 Buổi 8: Tổng quan các loại dịch vụ trên AWS
 
 Buổi 9: Khởi tạo EC2 Ubuntu với VPC default
+- gần thanh Header click chọn vào EC2 -> click chọn vào instances -> tích chọn Launch instances
+                                                                  - Name đặt là EC2_Ubuntu
+                                                                  - Quick Start (click chọn Ubuntu)
+                                                                  - Key pair name - required (đặt tên instance_Key_DevOps_On_AWS)
+                                                                  - 
