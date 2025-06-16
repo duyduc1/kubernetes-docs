@@ -1,1 +1,43 @@
+Buổi 1:
+- Giới thiệu sơ lượt về DevOps On AWS
 
+Buổi 2: DevOps RoadMap Sơ lược
+- Research DevOps RoadMap để xem tổng quan sơ đồ cần học
+
+Buổi 3: Nguồn tài liệu DevOps
+- có thể research aws documentation
+- aws training
+
+Buổi 4: Vấn đề cẩn trọng trong DevOps
+1.Security DevOps On AWS
+- Tránh bị lộ key quan trọng lên Github
+- Lộ trên ChatGPT
+- Cần thân trong quá trình làm việc tránh mất tiền 
+- Tăng cường bảo mật cho Account
+
+Buổi 5: Credit Free - DevOps On AWS
+
+Buổi 6: IAM User Admin và bảo mật 2 lớp 
+1. Accout IAM Admin - MFA
+- Chúng ta sẽ có một devide bên ngoài, device sẽ nhận và cho ra một số id và dựa vào số id đó để nhập vào yêu cầu của AWS mỗi lần đăng nhập
+Tránh trường hợp hacker có thể đăng nhập vào sử dụng resource
+// Tiến hành vào AWS Account
+- Nhấn đăng nhập vào bảng điều khiển -> chọn Sign in using root user email (điền tài khoản gmail -> nhấn next và điền mật khẩu)
+// Tạo một user mới
+- Search (IAM) chọn IAM mở với tab mới -> sẽ thấy Dashboard -> bên thanh Side Bar sẽ thấy list danh sách -> chọn Users -> Create User -> User name (điền vào ô input Admin_User_DevOps
+và tích chọn Provide user access to the AWS Management Console -> chọn i want to create an IAM user và tích chọn Users must create a new password at next sign-in-Recommended để không tạo lại password) -> Create
+- Set permissions trong Permissions options có thể chọn Add user to group và gán quyền AdministratorAccess sau này có thể tích bỏ AdministratorAccess cũng được hoặc có thể chọn thẳng 
+Attach policies directly -> tích chọn AdministratorAccess -> Next
+- Review and create -> tích chọn Create User 
+- Retrieve password -> sẽ thấy phần user và password và đường link console(lấy id trong phần đường link này) -> qua tab khác đăng nhập bằng tài khoản và id vừa được tạo
+- Sau khi đăng nhập xong sẽ thấy Console Home -> nếu muốn bật xác thực thì chọn Security Credential -> chọn asign MFA -> trong Device name tự đặt (ví dụ AWS-lab-AdminuserDevOps) -> chọn Authenticator app -> Next (Có thể không cần cũng được)
+
+Buổi 7: Quản lý chi phí với AWS Budgets
+- Đăng nhập với User Root
+// Trong Console Home
+- Tích chọn vào Billing and Cost Management và sẽ thấy Tích chọn vào Billing and Cost Management home
+- Click vào Budgets bên thanh sidebar -> create budgets -> click chọn use a template -> kéo xuống Enter your budgeted amount($) ví dụ là 10 đô -> kéo xuống Email recipients (điền mail của mình vào) -> Create budget
+
+Buổi 8: Tổng quan các loại dịch vụ trên AWS
+
+Buổi 9: Khởi tạo EC2 Ubuntu với VPC default
