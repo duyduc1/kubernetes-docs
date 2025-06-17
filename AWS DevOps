@@ -41,8 +41,127 @@ Buổi 7: Quản lý chi phí với AWS Budgets
 Buổi 8: Tổng quan các loại dịch vụ trên AWS
 
 Buổi 9: Khởi tạo EC2 Ubuntu với VPC default
-- gần thanh Header click chọn vào EC2 -> click chọn vào instances -> tích chọn Launch instances
+- gần thanh Header click chọn vào EC2 -> click chọn vào instances -> tích chọn Launch instances bên thanh sidebar
                                                                   - Name đặt là EC2_Ubuntu
                                                                   - Quick Start (click chọn Ubuntu)
-                                                                  - Key pair name - required (đặt tên instance_Key_DevOps_On_AWS)
-                                                                  - 
+                                                                  - Key pair name - required (đặt tên instance_Key_DevOps_On_AWS) -> Create key pair -> trong thư mục được tải về
+                                                                  - Security group name - required (sg_for_devops_on_aws)
+                                                                  - configure storage (1x tăng lên 18) 
+                                                                  - click launch instance để tạo máy chủ
+                                                                  // Hướng dẫn truy cập vào server
+                                                                  - vào visual code kéo thư mục key đã được download vào thư mục visualcode -> sau đó ssh -i instance_Key_DevOps_On_AWS.pem ubuntu@ip của server (truy cập thành công vào server)
+                                                                  - Có thể connect trực tiếp trên Connect to instance sau khi tạo máy ảo thành công -> kéo xuống sẽ thấy connect
+
+Buổi 10: Triển khai ứng dụng trên EC2 Ubuntu
+- cd
+- curl -sL https://deb.nodesource.com/setup_20.x -0 nodesource_setup.sh
+- sudo bash nodesource_setup.sh
+- sudo apt install nodejs -y
+- npm -v
+- node -v
+- mkdir my-app 
+- cd my-app 
+- npx create-next-app@latest frontend
+- cd frontend
+- ls
+- npm run dev
+- vào lại instance bên thanh sidebar của máy chủ Ubuntu đã tạo lúc nãy -> Security
+- Nhìn ở dưới thấy Security groups ( click chọn vào sg-06654axxxxxxxxxxxxx(sg_for_devops_on_aws) đây là ví dụ) 
+- Sau khi tích chọn sẽ thấy inbound rules (1) -> chọn edit inbound rules -> Add rule -> tất cả custom như SSH trừ port range để lại port 3000 của ứng dụng frontend -> save rules
+
+Buổi 11: Cài đặt Jenkins trên EC2
+- sudo apt update
+- sudo apt install fontconfig openjdk-17-jre
+- java -version
+
+# Setup Jenkins
+- sudo wget -O /usr/share/keyrings/jenkins-keyring.asc \
+    https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+
+- echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+    https://pkg.jenkins.io/debian-stable binary/" | \
+    sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+- sudo apt-get update
+- sudo apt-get install jenkins -y
+- sudo systemctl enable jenkins
+- sudo systemctl start jenkins
+- sudo systemctl status jenkins
+- vào lại instance bên thanh sidebar của máy chủ Ubuntu đã tạo lúc nãy -> Security
+- Nhìn ở dưới thấy Security groups ( click chọn vào sg-06654axxxxxxxxxxxxx(sg_for_devops_on_aws) đây là ví dụ) 
+- Sau khi tích chọn sẽ thấy inbound rules (1) -> chọn edit inbound rules -> Add rule -> tất cả custom như SSH trừ port range để lại port 8080 của ứng dụng jenkins -> save rules
+// vào lại server
+- cat /var/lib/jenkins/secrets/initialAdminPassword // copy password
+- dán vào password jenkins 
+- Install các plugins mặc định
+// Ở format của  Create First Admin User
+- điền là Admin hết để dễ quản lý
+
+Buổi 12: Triển khai một VPC mới (là network là nơi tạo các resource bên trong)
+- Trên thanh header tích chọn VPC
+- Vào VPCs để xem sơ đồ của network
+- click chọn vào Create VPC gần thanh header
+- ở Resources to create (chọn VPC and more)
+- Sửa Auto-generate thành (devops)
+- Click Create VPC 
+- Sau khi cài xong nhấn vào (View VPC)
+
+Buổi 13: Khởi tạo EC2 tên VPC mới
+- Chọn launch instance trong dashboard 
+- Name and tags (EC2_Ubuntu)
+- Quick Start (click chọn Ubuntu)
+- Key pair name - required (đặt tên instance_Key_DevOps_On_AWS) -> Create key pair
+- VPC - required (thay đổi thành devops-vpc bài trước đã tạo)
+- Subnet chọn devops-subnet-public2
+- Auto-assign public IP (chọn Enable)
+- Security group name - required (devops_sg)
+- configure storage (1x tăng lên 18) 
+- click launch instance để tạo máy chủ
+
+Buổi 14: Cài đặt Database trên EC2 Ubuntu
+- apt install mysql-server
+- systemctl stop mysql
+- ls /etc/mysql/mysql.conf.d
+- nano /etc/mysql/mysql.conf.d/mysqld.cnf
+		* [set up 127.0.0.1 thành 0.0.0.0]
+- systemctl restart mysql
+- mysql -u root
+		  show databases;
+		  create database FoodWeb;
+		 	      // user                     //password
+		  create user 'FoodWeb'@'%' identified by 'FoodWeb';
+		 			 //database   //user
+		  grant all privileges on FoodWeb.* to 'FoodWeb'@'%';
+		  flush privileges;
+		  exit
+   	- mysql -h 192.168.1.111 -P 3306 -u FoodWeb -p [Nhập pass FoodWeb]
+		  show databases;
+		  use FoodWeb;
+		  show tables;
+// Install PostgreSQL
+- sudo apt install postgresql postgresql-contrib
+- sudo systemctl start postgresql
+- sudo systemctl status postgresql
+- sudo nano /etc/postgresql/14/main/postgresql.conf
+      listen_addresses = '*' hoặc 0.0.0.0
+- sudo systemctl restart postgresql
+// truy cập vào database postgre
+- sudo -i -u postgres
+- psql
+- \l
+- \dt // xem thử có bao nhiêu table
+- \c postgres // kết nối với database 
+
+-- Tạo cơ sở dữ liệu
+CREATE DATABASE mydatabase;
+
+-- Tạo user (tùy chọn)
+CREATE USER myuser WITH PASSWORD 'mypassword';
+
+-- Cấp toàn quyền cho user trên database (tùy chọn)
+GRANT ALL PRIVILEGES ON DATABASE mydatabase TO myuser;
+
+- vào lại instance bên thanh sidebar của máy chủ Ubuntu đã tạo lúc nãy -> Security
+- Nhìn ở dưới thấy Security groups ( click chọn vào sg-06654axxxxxxxxxxxxx(sg_for_devops_on_aws) đây là ví dụ) 
+- Sau khi tích chọn sẽ thấy inbound rules (1) -> chọn edit inbound rules -> Add rule -> tất cả custom như SSH trừ port range để lại port 3306 hoặc 5432 của ứng dụng database mysql hoặc postgresql -> save rules
+
+Buổi 15: Tạo Database RDS trên AWS
