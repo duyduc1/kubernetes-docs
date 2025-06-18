@@ -394,3 +394,34 @@ Buổi 22: Build images với Dockerfile
 - docker push vuduyduc764/nest-docker
 
 Buổi 23: Quản lý container với docker-compose
+- docker stop nest-docker 
+- docker rm nest-docker
+- nano docker-compose
+	version: '3.8'
+
+	services:
+	  app:
+	    build: . // cũng có thể thay đổi build bằng image đã được build sẵn
+	    container_name: nest-docker
+	    ports:
+	      - "3000:3000"
+	    volumes:
+	      - /storage:/app
+	    environment:
+	      - NODE_ENV=development
+	      - DATABAE_URL=0
+	    depends_on:
+	      - db
+	
+	  db:
+	    image: mongo:6
+	    container_name: mongodb
+	    ports:
+	      - "27017:27017"
+	    volumes:
+	      - mongo_data:/data/db
+	
+	volumes:
+	  mongo_data:
+- docker-compose -f docker-compose.yaml up -d
+- docker-compose down
