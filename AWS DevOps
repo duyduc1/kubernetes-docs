@@ -433,3 +433,11 @@ Buổi 24: Triển khai CI/CD với Github Action
 - bên cạnh sidebar kéo xuống sẽ thấy Developer Settings -> Personal access tokens (nhấn nút xuống) -> Token(classic) 
 -> Generate new token -> Note (devops-ci) && chỉnh Expiration (No expiration) -> kéo xuống tích chọn workflow -> Generate Token // nhớ copy Token vừa được tạo 
 - vào lại server git clone lại repo
+- cd tới repo vừa clone về 
+- nest new project-name
+- npm run start
+- sau đó thao tác git để push project lên
+- cd đến thư mục .ssh
+- ssh-keygen // để tạo key
+- copy key vừa tạo ở bằng lệnh cat id_key.pub 
+- dán id_key.pub vào trong nano authorized_keys 
