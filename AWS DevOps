@@ -425,3 +425,11 @@ Buổi 23: Quản lý container với docker-compose
 	  mongo_data:
 - docker-compose -f docker-compose.yaml up -d
 - docker-compose down
+
+Buổi 24: Triển khai CI/CD với Github Action
+- Dùng lại ubuntu-server 
+- cd nest-docker
+- Vào repo của github vào profile cá nhân
+- bên cạnh sidebar kéo xuống sẽ thấy Developer Settings -> Personal access tokens (nhấn nút xuống) -> Token(classic) 
+-> Generate new token -> Note (devops-ci) && chỉnh Expiration (No expiration) -> kéo xuống tích chọn workflow -> Generate Token // nhớ copy Token vừa được tạo 
+- vào lại server git clone lại repo
