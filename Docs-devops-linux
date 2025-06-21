@@ -857,4 +857,28 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			* Chọn nguồn dữ liệu Prometheus vừa thêm.
 			* Lưu dashboard để xem metric từ 3 máy chủ.
 
-
+* buổi 12: thiết lập harbor_registry thay dockerhub
+		- wget https://github.com/goharbor/harbor/releases/download/v2.9.3/harbor-online-installer-v2.9.3.tgz
+		- tar -xvzf harbor-online-installer-v2.9.3.tgz
+		- cd harbor
+		- cp harbor.yml.tmpl harbor.yml
+		- nano harbor.yml
+			hostname: 192.168.230.132 // sửa hostname thành IP hoặc domain 
+			# https related config
+			#https: // tắt https nếu không dùng domain và SSL
+			  # https port for harbor, default is 443
+			  # port: 443
+			  # The path of cert and key files for nginx
+			  # certificate: /your/certificate/path
+			  # private_key: /your/private/key/path
+		- harbor_admin_password: admin123 // đổi mật khẩu nếu cần
+		- sudo nano /etc/docker/daemon.json
+			{
+			  "insecure-registries": ["192.168.230.132"]
+			}
+		- ./install.sh
+		- docker login 192.168.230.132
+		- docker images
+		// nhớ phải tạo project demo ở harbor_web trước khi push lên
+		- docker tag registry:2 192.168.230.132/demo/myapp:latest 
+		- docker push 192.168.230.132/demo/myapp:latest
