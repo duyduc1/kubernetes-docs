@@ -557,3 +557,26 @@ Buổi 32: Triển khai từng bước với terraform
 - terraform plan
 - terraform apply --auto-approve
 - touch outputs.tf
+
+// bắt đầu test thử 
+touch outputs.tf
+	output "public_ip" {
+	  value = aws_instance.app_server.public_ip
+	}
+- terraform plan
+- terraform init
+- terraform apply --auto-approve
+
+// cấu trúc 1 module EC2 bao gồm 
+- mkdir ec2
+- cd ec2
+- touch main.tf
+	module "ec2" {
+	  source        = "../"
+	  ami           = "ami-0474aac020852b87a9"
+	  instance_type = "t2.micro"
+	}
+
+- touch variables.tf
+- touch ouputs.tf
+- touch version.tf // có thể có hoặc không cũng được
