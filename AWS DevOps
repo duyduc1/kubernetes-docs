@@ -507,6 +507,7 @@ Buổi 31: Làm quen với Terraform
 - terraform apply 
 
 Buổi 32: Triển khai từng bước với terraform
+// Tiến hành tạo một EC2
 - terrafrom destroy --auto-approve
 - touch variables.tf
 	variable "region" {
@@ -580,3 +581,38 @@ touch outputs.tf
 - touch variables.tf
 - touch ouputs.tf
 - touch version.tf // có thể có hoặc không cũng được
+
+Buổi 33: Tiến hành Deploy ứng dụng trên Elastic Beanstalk
+- Vào thanh header của dashboard của AWS 
+- tìm dịch vụ elastic Beanstalk
+- Sau đó truy cập vào và nhấn Create application
+
+Step 1: Configure enviroment
+- Configure Environment
+	* Application name (devops)
+	* Environment informatio -> ở phần Domain (ví dụ đặt devops314)
+	* Platform (Docker)
+	* Application code (chọn Sample application)
+	-> Next
+Step 2: Configure service access
+	* Existing service roles (chọn aws-elasticbeanstalk-service-role)
+	* EC2 key pair (chọn key pair đã tạo từ bài IAM user)
+	* EC2 instance profile (chọn elastic_beanstalk_ec2_role)
+	-> Next
+Step 3: Set up networking , database , and tags
+	* VPC (chọn VPC defualt vpc-0d8f7b637fad1b5fc)
+	* tích chọn Public IP address
+	// Database
+	* tích chọn Enable database
+	-> Next
+Step 4: Configure instance traffic and scaling
+	* Root volume (boot device) -> root volume type (chọn General Purpose 3(SSD))
+	* EC2 security groups (chọn default)
+	* Auto scaling group (Environment type -> chọn single instance)
+	* instance types (chỉ chọn 1 t3.micro và remove cái còn lại đi) 
+	-> Next
+Step 5: Configure updatees, monitoring, and logging
+	* Để mặc định
+Step 6: submit
+
+- ssh -i key_instance ec2-user@ip-public
