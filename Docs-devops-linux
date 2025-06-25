@@ -390,7 +390,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		    - sudo chown -R backend:backend $DEPLOY_DIR
 		    - sudo runuser -u backend -- bash -c "cd $DEPLOY_DIR && nohup java -jar $JAR_NAME > nohup.out 2>&1 &"
 		    - sudo nginx -t
-		    - nohup sudo nginx -s reload > /dev/null 2>&1 &
+		    - sudo nginx -s reload 
 		  tags:
 		    - devops
 		
