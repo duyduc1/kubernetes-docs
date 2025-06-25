@@ -199,8 +199,19 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		[external_url 'http://git.duyduc.tech']
 	  - sudo gitlab-ctl reconfigure
 		bỏ cái 192.168.1.111 git.duyduc.tech vào hosts của system32 // đói với linux thì nano /etc/hosts
-  	  - sudo gitlab-ctl reconfigure
+	  // hoặc nếu có domain thật và SSL 
   	  - nano /etc/gitlab/gitlab.rb
+	  - external_url 'https://gitlab-ctl.greenglobal.com.vn'
+		# Tắt HTTPS nội bộ (vì SSL nằm ở proxy ngoài)
+		nginx['listen_https'] = false
+		nginx['listen_port'] = 80
+		
+		# Bắt buộc GitLab tin tưởng proxy
+		nginx['proxy_set_headers'] = {
+		  "X-Forwarded-Proto" => "https",
+		  "X-Forwarded-Ssl" => "on"
+		}
+	  - sudo gitlab-ctl reconfigure
   	  - cat /etc/gitlab/initial_root_password
 		[username là root , password lấy trong initial_root_password]
 		[ cấu hình Sign-up restrictions tắt Sign-up enabled và Require admin approval for new sign-ups admin sẽ tự tạo tk cho user]
