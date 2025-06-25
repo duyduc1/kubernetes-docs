@@ -399,7 +399,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		  variables:
 		    GIT_STRATEGY: none
 		  script:
-		    - sudo runuser -u backend -- bash -c "cd $DEPLOY_DIR && tail -n 100 nohup.out
+		    - sudo runuser -u backend -- bash -c "cd $DEPLOY_DIR && tail -n 100 nohup.out"
 		  tags:
 		    - devops
 
