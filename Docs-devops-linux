@@ -250,6 +250,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/cp*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/chown*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/rm*
+		gitlab-runner ALL=(ALL) NOPASSWD: /sbin/runuser
 		gitlab-runner ALL=(ALL) NOPASSWD: /usr/sbin/nginx*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/su springbe* ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
 		springbe ALL=(ALL) NOPASSWD: ALL ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
@@ -285,7 +286,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			        - sudo mkdir -p datas/springbe
 			        - sudo cp target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar datas/springbe
 			        - sudo chown springbe:springbe datas/springbe
-			        - sudo su springbe -c "cd datas/springbe; nohup java -jar SpringSecurity.JWT-0.0.1-SNAPSHOT.jar > nohup.out 2>&1 &"
+			        - sudo runuser -u backend -- bash -c "cd datas/backend && nohup java -jar SpringSecurity.JWT-0.0.1-SNAPSHOT.jar > nohup.out 2>&1 &"
 				- sudo nginx -s reload // nếu như có sử dụng domain
 			    tags:
 			        - devops-server
