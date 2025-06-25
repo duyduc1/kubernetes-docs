@@ -257,14 +257,15 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		root    ALL=(ALL:ALL) ALL
 		gitlab-runner ALL=(ALL) NOPASSWD: ALL
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/mkdir*
+		backend ALL=(ALL) NOPASSWD: /bin/systemctl restart nginx
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/mv*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/cp*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/chown*
 		gitlab-runner ALL=(ALL) NOPASSWD: /bin/rm*
 		gitlab-runner ALL=(ALL) NOPASSWD: /sbin/runuser
 		gitlab-runner ALL=(ALL) NOPASSWD: /usr/sbin/nginx*
-		gitlab-runner ALL=(ALL) NOPASSWD: /bin/su springbe* ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
-		springbe ALL=(ALL) NOPASSWD: ALL ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
+		gitlab-runner ALL=(ALL) NOPASSWD: /bin/su backend*
+		backend ALL=(ALL) NOPASSWD: ALL
 	  - Vào gitlab của dự án sau đó vào CI/CD phần gitlab-runner reload lại sẽ có một runner đã chạy vào 
 		-> nhấn vào phần cây bút (edit) dữ tích chọn 1 , còn lại bỏ tích chọn 
 	  - Vào gitlab của dự án tạo file (.gitlab-ci.yml)
@@ -357,6 +358,50 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			    - sudo tail -n 1000 /var/log/nginx/error.log || true
 			  tags:
 			    - devops-server
+	    // áp dụng cho domain thật có dùng nginx
+		stages:
+		  - build
+		  - deploy
+		  - showlog
+		
+		variables:
+		  DEPLOY_DIR: /opt/backend-data
+		  JAR_NAME: SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
+		  JAR_PATH: target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
+		  PORT: 8080
+		
+		build:
+		  stage: build
+		  variables:
+		    GIT_STRATEGY: clone
+		  script:
+		    - mvn clean install
+		  tags:
+		    - devops
+		
+		deploy:
+		  stage: deploy
+		  variables:
+		    GIT_STRATEGY: none
+		  script:
+		    - sudo fuser -k $PORT/tcp || true
+		    - sudo mkdir -p $DEPLOY_DIR
+		    - sudo cp $JAR_PATH $DEPLOY_DIR
+		    - sudo chown -R backend:backend $DEPLOY_DIR
+		    - sudo runuser -u backend -- bash -c "cd $DEPLOY_DIR && nohup java -jar $JAR_NAME > nohup.out 2>&1 &"
+		    - sudo nginx -t
+		    - nohup sudo nginx -s reload > /dev/null 2>&1 &
+		  tags:
+		    - devops
+		
+		showlog:
+		  stage: showlog
+		  variables:
+		    GIT_STRATEGY: none
+		  script:
+		    - sudo runuser -u backend -- bash -c "cd $DEPLOY_DIR && tail -n 100 nohup.out
+		  tags:
+		    - devops
 
 * Bài 6 : Cài đặt và sử dụng Docker
 
