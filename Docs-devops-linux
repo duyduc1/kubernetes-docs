@@ -201,7 +201,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		bỏ cái 192.168.1.111 git.duyduc.tech vào hosts của system32 // đói với linux thì nano /etc/hosts
 	  // hoặc nếu có domain thật và SSL 
   	  - nano /etc/gitlab/gitlab.rb
-	  - external_url 'https://gitlab-ctl.greenglobal.com.vn'
+	        external_url 'http://gitlab-ctl.greenglobal.com.vn'
 		# Tắt HTTPS nội bộ (vì SSL nằm ở proxy ngoài)
 		nginx['listen_https'] = false
 		nginx['listen_port'] = 80
