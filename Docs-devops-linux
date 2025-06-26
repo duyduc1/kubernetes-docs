@@ -359,7 +359,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			  tags:
 			    - devops-server
 
-	    // áp dụng cho domain thật có dùng nginx
+	    // áp dụng cho domain thật có dùng nginx dự án be
 			stages:
 			  - build
 			  - deploy
@@ -405,6 +405,50 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			    - tail -n 100 $DEPLOY_DIR/nohup.out
 			  tags:
 			    - deploy
+
+	// áp dụng cho domain thật có dùng nginx dự án fe
+			stages:
+			  - build
+			  - deploy
+			  - showlog
+			
+			build:
+			  stage: build
+			  variables:
+			    GIT_STRATEGY: clone
+			  script:
+			    - npm install
+			    - npm run build || true
+			  artifacts:
+			    paths:
+			      - build/
+			  tags:
+			    - deploy
+			
+			deploy:
+			  stage: deploy
+			  variables:
+			    GIT_STRATEGY: none
+			  script:
+			    - sudo rm -rf /var/www/html/*
+			    - sudo mv build/ /var/www/html/
+			    - sudo chown -R gitlab-runner:gitlab-runner /var/www/html/build/
+			    - sudo nginx -t
+			    - sudo nginx -s reload
+			  tags:
+			    - deploy
+		
+		showlog:
+		  stage: showlog
+		  variables:
+		    GIT_STRATEGY: none
+		  script:
+		    - echo "Nginx Access Log:"
+		    - sudo tail -n 100 /var/log/nginx/access.log || true
+		    - echo "Nginx Error Log:"
+		    - sudo tail -n 100 /var/log/nginx/error.log || true
+		  tags:
+		    - deploy
 
 
 * Bài 6 : Cài đặt và sử dụng Docker
