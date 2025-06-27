@@ -270,6 +270,19 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		-> nhấn vào phần cây bút (edit) dữ tích chọn 1 , còn lại bỏ tích chọn 
 	  - Vào gitlab của dự án tạo file (.gitlab-ci.yml)
 
+	  // Dấu Key .env của dự án 
+		1. Vào dự án GitLab của bạn
+		2. Truy cập: Settings → CI/CD → Variables
+		3. Bấm “Add variable”
+		4. Nhập:
+			Key: ENV_CONTENT
+			Value:
+			   DB_HOST=192.168.230.140
+			   DB_PORT=5432
+			   DB_USERNAME=postgres
+			   DB_PASSWORD=postgres
+			   DB_DATABASE=mydb
+
 	    // áp dụng cho domain thật có dùng nginx dự án be java 
 			stages:
 			  - build
@@ -392,6 +405,8 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		    - sudo mkdir -p $DEPLOY_DIR
 		    - sudo cp -r $DIST_DIR/* $DEPLOY_DIR/
 		    - sudo cp package*.json $DEPLOY_DIR/
+		    # Tạo file .env từ GitLab CI variable
+		    - echo "$ENV_CONTENT" > .env
 		    - sudo cp .env $DEPLOY_DIR/  
 		    - sudo chown -R gitlab-runner:gitlab-runner $DEPLOY_DIR
 		    - cd $DEPLOY_DIR
@@ -412,6 +427,68 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		    - tail -n 100 $DEPLOY_DIR/nohup.out
 		  tags:
 		    - deploy
+
+	// CI/CD cho dự án frontend nextjs
+		stages:
+		  - build
+		  - deploy
+		  - showlog
+		
+		variables:
+		  DEPLOY_DIR: /opt/frontend-data
+		  PORT: 4000
+		
+		build:
+		  stage: build
+		  variables:
+		    GIT_STRATEGY: clone
+		  script:
+		    - npm install
+		    - npm run build       # tạo .next/
+		  artifacts:
+		    paths:
+		      - .next
+		      - public
+		      - package*.json
+		  tags:
+		    - deploy-next
+		
+		deploy:
+		  stage: deploy
+		  variables:
+		    GIT_STRATEGY: none
+		  script:
+		    # Dừng app cũ (nếu có)
+		    - sudo fuser -k $PORT/tcp || true
+		
+		    # Chuẩn bị thư mục deploy
+		    - sudo mkdir -p $DEPLOY_DIR
+		    - sudo cp -r .next public package*.json $DEPLOY_DIR/
+		
+		    # Copy file .env từ biến CI
+		    # - echo "$ENV_CONTENT" > .env
+		    # - sudo cp .env $DEPLOY_DIR/
+		
+		    - sudo chown -R gitlab-runner:gitlab-runner $DEPLOY_DIR
+		    - cd $DEPLOY_DIR
+		    - npm install --omit=dev
+		    - nohup npm run start > nohup.out 2>&1 &
+		
+		    # Reload nginx nếu dùng reverse proxy
+		    # - sudo nginx -t
+		    # - sudo nginx -s reload
+		  tags:
+		    - deploy-next
+		
+		showlog:
+		  stage: showlog
+		  variables:
+		    GIT_STRATEGY: none
+		  script:
+		    - sleep 20
+		    - tail -n 1000 $DEPLOY_DIR/nohup.out
+		  tags:
+		    - deploy-next
 
 
 * Bài 6 : Cài đặt và sử dụng Docker
