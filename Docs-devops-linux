@@ -450,6 +450,55 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		  tags:
 		    - deploy
 
+	// CI/CD dự án be nestJS
+		stages:
+		  - build
+		  - deploy
+		  - showlog
+		
+		variables:
+		  DEPLOY_DIR: /opt/backend-data
+		  APP_NAME: main.js
+		  DIST_DIR: dist
+		  PORT: 3000
+		
+		build:
+		  stage: build
+		  variables:
+		    GIT_STRATEGY: clone
+		  script:
+		    - npm install
+		    - npm run build 
+		  tags:
+		    - deploy
+		
+		deploy:
+		  stage: deploy
+		  variables:
+		    GIT_STRATEGY: none
+		  script:
+		    - sudo fuser -k $PORT/tcp || true
+		    - sudo mkdir -p $DEPLOY_DIR
+		    - sudo cp -r $DIST_DIR/* $DEPLOY_DIR/
+		    - sudo cp package*.json $DEPLOY_DIR/
+		    - sudo cp .env $DEPLOY_DIR/  
+		    - sudo chown -R gitlab-runner:gitlab-runner $DEPLOY_DIR
+		    - cd $DEPLOY_DIR
+		    - export $(cat .env | xargs)
+		    - npm install --omit=dev
+		    - nohup node $APP_NAME > nohup.out 2>&1 &
+		  tags:
+		    - deploy
+		
+		showlog:
+		  stage: showlog
+		  variables:
+		    GIT_STRATEGY: none
+		  script:
+		    - tail -n 100 $DEPLOY_DIR/nohup.out
+		  tags:
+		    - deploy
+
 
 * Bài 6 : Cài đặt và sử dụng Docker
 
