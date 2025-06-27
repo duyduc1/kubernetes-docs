@@ -398,6 +398,9 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		    - export $(cat .env | xargs)
 		    - npm install --omit=dev
 		    - nohup node $APP_NAME > nohup.out 2>&1 &
+		    // nếu có dùng domain
+		    - sudo nginx -t
+		    - sudo nginx -s reload
 		  tags:
 		    - deploy
 		
