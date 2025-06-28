@@ -111,10 +111,10 @@ bước 3 :
 	- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
 	( Sau khi add xong nhớ quay lại k8s-master-1 để kiểm tra với câu lệnh kubectl get nodes) nhưng với vai trò là --control-plane --certificate-key 
 	- kubectl get no
-	- kubectl taint nodes k8s-master-1 node-role.kubernetes.io/control-plane:NoSchedule-
-	- kubectl taint nodes k8s-master-2 node-role.kubernetes.io/control-plane:NoSchedule-
-	- kubectl taint nodes k8s-master-3 node-role.kubernetes.io/control-plane:NoSchedule-
-	
+	- kubectl label node k8s-master-1 node-role.kubernetes.io/control-plane:NoSchedule-
+	- kubectl label node k8s-master-2 node-role.kubernetes.io/control-plane:NoSchedule- || kubectl label node k8s-master-2 node-role.kubernetes.io/worker=worker
+	- kubectl label node k8s-master-3 node-role.kubernetes.io/control-plane:NoSchedule- || kubectl label node k8s-master-2 node-role.kubernetes.io/worker=worker
+
 	Chọn k8s-master-2 && k8s-master-3 làm cụm worker
 	- copy câu lệnh và dán sudo kubeadm join ip của k8s-master-1:6443 --token h2kmsp.sau đó - nhớ copy khúc câu lệnh đó bỏ qua 2 cụm worker k8s-master-1 và k8s-master-2
 	- kubectl get nodes
