@@ -329,6 +329,28 @@ bước 3 :
 			- nano docker-compose.yml
 				version: '3'
 				services:
+				  rancher:
+				    image: rancher/rancher:latest
+				    container_name: rancher
+				    restart: unless-stopped
+				    privileged: true
+				    ports:
+				      - "80:80"  # Tùy chọn, để chuyển hướng HTTP sang HTTPS
+				      - "443:443"
+				    volumes:
+				      - rancher-data:/var/lib/rancher
+				      # - /path/to/fullchain.pem:/etc/rancher/ssl/cert.pem // nếu có chứng chỉ 
+				      # - /path/to/privkey.pem:/etc/rancher/ssl/key.pem // nếu có chứng chỉ 
+				    environment:
+				      - CATTLE_SYSTEM_DEFAULT_REGISTRY=rancher
+				      - CATTLE_SYSTEM_CATALOG=stable
+				      - CATTLE_SERVER_URL=https://rancher.greenglobal.com.vn  # Thay bằng domain thật của bạn
+				    command: --no-cacerts  # Tắt chứng chỉ tự ký
+				volumes:
+				  rancher-data:
+			// hoặc nếu không có domain thì có thể viết file docker-compose như sau
+				version: '3'
+				services:
 				  rancher-server:
 				    image: rancher/rancher:v2.9.2
 				    container_name: rancher-server
@@ -351,6 +373,8 @@ bước 3 :
 			// kết nối cụm K8S lên rancher để quản lý 
 			- trên Dashboard rancher -> chọn Import Existing -> chọn Generic 
                                 * Cluster Name (là cụm K8s của mình ví dụ Devopsk8s) -> Create 
+				// Nếu SSL đã được mua và có domain thật 
+				* thì copy dòng thứ nhất
 				// nếu SSL tự ký thì sử dụng dòng thứ 2 
 				* Coppy dòng thứ 2 
 				* Vào server k8s-master-1 và paste dòng lệnh đã copy ở trên vào 
