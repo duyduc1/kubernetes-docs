@@ -186,13 +186,15 @@ Buổi 15: Tạo Database RDS trên AWS
 Buổi 16: Hướng dẫn Connect tới Database và thao tác
 - Vào Databases bên thanh Sidebar của Dashboard -> sẽ thấy database devops-2 đã được tạo -> click vào 
 * Chú ý Endpoint trong phần Endpoint & port
-* Bên cạnh sẽ thấy Security -> chọn vào default (sg-xxxxxxxxxx) -> nếu chưa có hãy mở bằng Edit inbound rules
+* Bên cạnh sẽ thấy Security -> chọn vào default (sg-07bb862d092e3b2c2) ở VPC security groups -> nếu chưa có hãy mở bằng Edit inbound rules
 // đối với database postgresql
 - SSH vào server EC2 // ssh -i tới thư mục chứac key ubuntu@ip
 - sudo apt update
 - sudo apt install postgresql postgresql-contrib
 - sudo systemctl start postgresql.service
 - PGPASSWORD=vuduyduc psql -h <endpoint> -p 5432 -U postgres -d postgres
+
+Vào Security Group đang gắn → Thêm Inbound Rule:
 // đối với database mysql 
 - sudo apt update
 - sudo apt install mysql-client -y
