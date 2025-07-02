@@ -1,0 +1,93 @@
+IMA & AWS CLI
+Bài 12: IAM introduction: Users, Groups, Polices
+IAM = identity and Access Management, Global service
+
+Bài 13: IAM Policies
+Step 1:
+Tìm kiếm IAM trên thanh search -> sau đó click vào Users bên thanh sidebar -> createa user ->
+                                * Specify user details -> User name (duyduc) -> tích chọn Provide user access to the AWS Management Console -> User type (tích chọn i want to create an IAM user) -> tích chọn Custom password và đặt mật khẩu và bỏ tích chọn User must create a new password at the next signin -> next
+
+Step 2:
+Click chọn Create group -> trong create user group -> User group name -> tích chọn AdministratorAccess -> Create User Group -> sau khi tạo xong sẽ tích chọn admin đã xuất hiện trong Group name -> xuống Tags chọn Add new tag -> key (department) && value-optional (Engineering) 
+
+Step 3:
+Sau khi đăng nhập xong có thể quay lại trang dashboard của IAM rồi -> Create trong Account Alias -> để edit lại Sign-in URL for IAM users in this account 
+
+-> Bài học rút ra trong bài này là phân quyền người dùng đã được tạo ra trong IAM user 
+
+Bài 14: IAM Policies
+IAM Policies (chính sách IAM) trong AWS được dùng để quản lý quyền truy cập (permissions) cho người dùng, nhóm, hoặc dịch vụ trong hệ thống AWS.
+
+Bài 15: IAM Policies Hands On
+// remove quyền của một User
+Vào User -> ở phần group click và số 1 ở dưới -> click vào admin -> tích chọn user ở dưới -> sau đó remove => dùng để xoá quyền của một user
+// Add thêm quyền cho một User
+Vào User đó trong Permisstions policies -> chọn Add permissions -> chọn Attach policies directly -> sẽ xuất hiện Permissions policies (tích chọn quyền theo yêu cầu) -> next
+// Có thể tạo group sau đó thêm User đó vào group
+vào User groups -> create group -> User group name (đặt tên group) -> ở Attach permissions policies - Optional tích chọn quyền (ví dụ AdministratorAccess) -> Create user group 
+-> sau khi tạo xong vào group đã tạo -> chọn Add users -> thêm user vào trong -> click Add users
+
+Bài 16: IAM MFA Hands On
+=> Nói về bảo mật 
+
+Bài 17: IAM MFA Hands On
+- Vào Account settings bên thanh sidebar trong IAM -> click vào Edit -> sẽ xuất hiện Edit password policy -> custom password
+
+Bài 18: AWS Access Keys, CLI and SDK
+How can users access AWS ?
+To access AWS, you have three options
+   1. AWS Manament Console (protected by password + MFA)
+   2. AWS Command Line Interface (CLI): protected by access keys
+   3. AWS Software Developer Kit (SDK) - for code 
+
+Bài 19 + Bài 20 + Bài 21:
+How to install AWS CLI for windows , MacOs , Linux
+// Documents cài đặt cho 3 nền tảng trên
+https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+
+Bài 22: AWS CLI Hands On
+// Muốn tạo Access key 
+👤 Bước 2: Mở trang quản lý IAM
+
+- Trên thanh điều hướng, chọn Services → tìm và chọn IAM.
+- Trong thanh bên trái, chọn Users.
+- Nhấp vào tên người dùng IAM mà bạn muốn tạo Access Key.
+
+🔑 Bước 3: Tạo Access Key
+- Trong trang chi tiết của user, chọn tab Security credentials.
+- Cuộn xuống phần Access keys.
+- Nhấn nút Create access key.
+- Trong bước chọn cách dùng:
+Nhấn Next và Create access key.
+
+// SSH vào server 
+- aws configure
+        Access Key ID: {điền Access key đã tạo}
+        Secret Access Key: {điền Secret Access Key đã tạo}
+        Region (ví dụ: ap-southeast-1)
+        Output format (ví dụ: json)
+- aws iam list-users // dùng để xem tất cà User 
+
+Bài 24: AWS CloudShell 
+Shell một biểu tượng nằm trên thanh header của aws -> click vào nó
+- Thao tác các lệnh tương tự như trên Ubuntu Linux
+
+Bài 25: IAM Roles for AWS Services
+- IAM Role for AWS Service là một vai trò (role) IAM mà bạn gán cho một dịch vụ AWS (như EC2, Lambda, ECS...) để cấp quyền truy cập đến các dịch vụ AWS khác
+
+Bài 26: IAM Roles Hands On
+- Vào Roles của IAM -> chọn Create Roles -> Chọn AWS service -> Use case (chọn dịch vụ như EC2 hoặc Lambda) -> Next
+- ở Permissions policies -> tìm kiếm trên thanh search (tuỳ chọn quyền bạn cho dịch vụ đó ví dụ như IAMReading) -> Next
+
+Bài 27: IAM Security Tools
+- IAM Security Tools
+Dùng để:
+* Tạo báo cáo CSV cho toàn bộ IAM user trong tài khoản AWS:
+* Lần cuối sử dụng password, access key
+* MFA đã bật chưa
+* Password cũ, hết hạn chưa…
+Mục đích:
+- Kiểm tra người dùng có tuân thủ bảo mật không, có đang dùng access key cũ/mất an toàn không.
+
+Bài 28: IAM Security Tools hands On
+- Vào User trong IAM - click vào một user bất kỳ -> chon Last Accessed => để xem hành vi 
