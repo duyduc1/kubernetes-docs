@@ -369,3 +369,185 @@ Bài 42: EC2 Instance Connect
 
 Bài 43: EC2 instance Roles Demo
 - vào EC2 -> chọn máy chủ cần cấp quyền -> chọn Action -> Security -> chọn Modify IAM ROLE -> IAM role -> chọn Security Groups -> sau đó Update IAM role
+=> Là IAM Role được gán cho EC2, giúp EC2 có thể tự động truy cập dịch vụ AWS khác (S3, CloudWatch, DynamoDB, v.v.) mà không cần gán Access Key thủ công.
+
+Bài 44: EC2 instance Purchasing Options
+💰 EC2 Instance Purchasing Options – Các lựa chọn mua EC2 trên AWS
+AWS cung cấp nhiều hình thức mua và sử dụng EC2 instance để bạn có thể tối ưu chi phí tùy theo nhu cầu:
+
+✅ 1. On-Demand Instances (Trả tiền theo giờ/giây – linh hoạt)
+Đặc điểm	Mô tả
+💸 Giá cao nhất	Nhưng không cam kết gì cả
+⏰ Trả theo giờ hoặc giây	Không cần cam kết lâu dài
+📦 Dễ dùng, dễ quản lý	Phù hợp để test, dev, workload không ổn định
+
+👉 Dùng khi bạn cần EC2 ngay lập tức, không rõ thời gian chạy là bao lâu.
+
+✅ 2. Reserved Instances (RI) (Đặt chỗ trước, cam kết sử dụng dài hạn)
+Đặc điểm	Mô tả
+💰 Giá rẻ hơn On-Demand (~30-72%)	Đổi lại phải cam kết dùng 1 năm hoặc 3 năm
+🧾 Trả một phần hoặc toàn bộ trước	Có 3 hình thức thanh toán: No Upfront, Partial, All Upfront
+🚫 Không thể hủy	Nhưng có thể đổi loại trong cùng family/zone (convertible RI)
+
+👉 Phù hợp với hệ thống chạy 24/7 như backend, web server cố định.
+
+✅ 3. Spot Instances (Đấu giá – cực rẻ)
+Đặc điểm	Mô tả
+💸 Giá rẻ hơn rất nhiều (~70-90%)	Nhưng AWS có thể thu hồi bất cứ lúc nào
+🚫 Không đảm bảo duy trì 100%	Bạn sẽ bị dừng nếu có người khác trả giá cao hơn
+🧠 Dùng cho batch jobs, ML training, CI/CD runners	Những workload tạm thời, không yêu cầu uptime cao
+
+👉 Phù hợp để tiết kiệm chi phí, nếu app có thể tự xử lý khi bị mất máy.
+
+✅ 4. Savings Plans (Linh hoạt hơn Reserved Instances)
+Đặc điểm	Mô tả
+💸 Cam kết sử dụng một mức tiền cố định/tháng	Ví dụ: cam kết dùng $200 EC2 mỗi tháng trong 1 năm
+🔁 Linh hoạt về instance type, size, region	Không khóa cứng như Reserved Instances
+📈 Dễ dự đoán ngân sách	Có thể áp dụng với Lambda, Fargate (tùy loại plan)
+
+👉 Phù hợp nếu bạn dùng EC2 thường xuyên nhưng muốn linh hoạt cấu hình.
+
+✅ 5. Dedicated Hosts / Dedicated Instances (Thuê nguyên máy vật lý)
+Loại	Mô tả
+Dedicated Instance	Máy vật lý chỉ có instance của bạn, nhưng AWS vẫn quản lý
+Dedicated Host	Bạn thuê hẳn máy vật lý → tự phân bổ EC2, tự license (VD: Windows, Oracle)
+
+👉 Phù hợp cho tuân thủ bảo mật, yêu cầu license riêng, hoặc hệ thống đặc biệt.
+
+Bài 45: IP Address Charges in AWS
+Trong AWS, IP address chủ yếu liên quan đến các địa chỉ sau:
+
+- Public IP (địa chỉ IP công cộng)
+- Elastic IP (địa chỉ IP tĩnh công cộng do bạn quản lý)
+- Private IP (IP nội bộ trong VPC)
+
+✅ 1. Public IP (Tạm thời – Auto-Assigned)
+Khi bạn khởi tạo EC2 mà không gán Elastic IP, AWS sẽ tự cấp một Public IPv4 tạm thời.
+
+⛔ Không bị tính phí
+⚠️ Nhưng IP này sẽ thay đổi nếu bạn stop/start lại EC2.
+🟢 Miễn phí, nhưng không ổn định (không dùng cho domain hoặc hệ thống cần IP cố định).
+
+✅ 2. Elastic IP (EIP) – IP tĩnh, bạn quản lý
+Là địa chỉ IP công cộng cố định gán cho EC2, Load Balancer, NAT Gateway,…
+
+✅ Miễn phí nếu:
+IP được gán cho một EC2 đang chạy
+Chỉ dùng 1 Elastic IP đầu tiên
+
+💸 Tính phí nếu:
+Trường hợp bị tính phí	Chi phí
+EIP không gán vào instance nào	$0.005/giờ ($3.6/tháng)
+EIP gán vào instance bị tắt (stopped)	~$0.005/giờ
+Sử dụng nhiều hơn 1 EIP cùng lúc	~$0.005/giờ cho mỗi EIP thứ 2 trở đi
+
+💡 AWS khuyến khích không giữ IP mà không dùng ⇒ vì vậy sẽ tính phí nếu bạn lãng phí IP.
+
+✅ 3. Private IP (IP nội bộ trong VPC)
+Được cấp tự động trong VPC (ví dụ: 10.0.0.0/16, 192.168.0.0/16)
+Không bị tính phí
+
+🟢 Miễn phí hoàn toàn – dùng cho giao tiếp nội bộ giữa các EC2, RDS, v.v.
+
+✅ 4. IPv6 Addresses
+AWS cung cấp miễn phí các địa chỉ IPv6 (vì IPv6 chưa khan hiếm như IPv4)
+Không bị tính phí
+
+Bài 46: Spot instance & Spot Fleet AWS 
+1. Spot Instance là gì?
+Spot Instance là loại EC2 bạn thuê với giá rẻ hơn rất nhiều (giảm đến 90%) so với On-Demand, bằng cách "đấu giá tài nguyên EC2 nhàn rỗi của AWS".
+
+💰 Giá siêu rẻ, nhưng có thể bị AWS thu hồi bất kỳ lúc nào nếu có người dùng khác trả giá cao hơn hoặc AWS cần lại tài nguyên.
+
+📌 Khi nào nên dùng Spot Instance?
+Tình huống	Có nên dùng Spot không?
+✅ Xử lý batch job	Rất nên – rẻ và chấp nhận mất
+✅ Training AI / ML	Rất nên – tiết kiệm GPU
+✅ CI/CD runners	Nên – nếu job có thể chạy lại
+❌ Web server production	Không – vì có thể bị dừng
+❌ Database, hệ thống cần ổn định	Không – cần uptime cao
+
+💥 Điều gì xảy ra khi bị thu hồi?
+AWS sẽ gửi thông báo trước 2 phút (spot instance termination notice)
+
+Bạn có thể dùng script để gracefully shutdown hoặc lưu tiến trình
+
+📊 Ví dụ giá Spot:
+Instance Type	On-Demand	Spot Price (ước tính)
+t3.large	$0.0832/h	~$0.024/h
+c6g.2xlarge	$0.272/h	~$0.081/h
+p3.2xlarge (GPU)	$3.06/h	~$0.90/h
+
+🔹 2. Spot Fleet là gì?
+Spot Fleet = Tập hợp nhiều Spot Instance + quản lý tự động hóa chọn loại máy và vùng (AZ) để đảm bảo khả năng chạy ổn định nhất với giá rẻ nhất.
+
+Tưởng tượng như một nhóm Spot Instance được AWS quản lý theo chiến lược tối ưu (về giá hoặc dung lượng).
+
+⚙️ Spot Fleet cho phép bạn:
+Chọn nhiều loại instance khác nhau (c5.large, m5.large, t3.medium, ...)
+
+Chọn nhiều Availability Zones
+
+AWS sẽ:
+
+Chọn các loại đang rẻ nhất, ổn định nhất
+
+Quản lý việc khởi tạo/thu hồi Spot instance
+
+Có thể dùng cho Auto Scaling Group, chạy ECS, EMR, v.v.
+
+Bài 47: EC2 instances Launch Types Hands On 
+- Hands-on các loại Launch Types của EC2 instances trong AWS,
+giúp bạn hiểu rõ cách tạo, cấu hình và sử dụng từng loại như On-Demand, Spot, Reserved, Dedicated Host.
+
+🧪 Hands-on 1: Khởi tạo EC2 kiểu On-Demand (UI)
+- Truy cập AWS Console → EC2 → Launch Instance
+- Chọn AMI: ví dụ Amazon Linux 2023
+- Chọn loại máy: t2.micro (Free Tier eligible)
+- Storage: giữ mặc định
+- Key pair: tạo hoặc chọn sẵn (để SSH vào)
+- Security Group: mở port 22 (SSH), 80 (web)
+- Chọn Launch Type mặc định là On-Demand
+- Nhấn Launch
+
+✅ Xong! Bạn vừa tạo xong một On-Demand EC2.
+
+🧪 Hands-on 2: Tạo Spot Instance
+- AWS Console → EC2 → Instances → Launch Instance
+- Trong bước chọn instance type, tick vào:
+
+✅ "Request Spot Instances"
+- Các bước còn lại giống như On-Demand:
+- Chọn AMI, loại máy, key pair, v.v.
+Bạn có thể cấu hình thêm:
+- Max price (giá cao nhất bạn chịu)
+- Duration (thời gian tối đa chạy)
+Nhấn Launch
+
+📌 Lưu ý:
+Nếu AWS không có tài nguyên rảnh hoặc có người trả giá cao hơn → request không được cấp
+Spot có thể bị thu hồi nếu không còn tài nguyên
+
+🧪 Hands-on 3: Reserved Instance (RI)
+⚠️ Bạn không tạo instance mới mà mua quyền sử dụng cố định như sau:
+
+Vào EC2 → Reserved Instances → Purchase Reserved Instance
+Chọn:
+- Instance Type (ví dụ: t3.medium)
+Region & AZ
+- Term: 1 năm hoặc 3 năm
+- Payment: No upfront, Partial, All upfront
+Xác nhận thanh toán
+
+➡️ Khi bạn chạy EC2 đúng cấu hình, sẽ được tính giá RI thay vì On-Demand.
+
+🧪 Hands-on 4: Dedicated Host
+- EC2 Console → Dedicated Hosts → Allocate Host
+Chọn:
+- Instance family (ví dụ c6i)
+- AZ (Availability Zone)
+Host Tenancy
+- Sau khi Allocate, quay lại Launch Instance
+- Trong Tenancy, chọn Dedicated host
+* EC2 sẽ được gán vào host riêng
+📌 Phù hợp cho những ai cần host riêng biệt, tuân thủ bảo mật, kiểm soát license (BYOL).
