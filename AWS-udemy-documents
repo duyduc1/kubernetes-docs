@@ -75,7 +75,7 @@ Bài 22: AWS CLI Hands On
 👤 Bước 2: Mở trang quản lý IAM
 
 - Trên thanh điều hướng, chọn Services → tìm và chọn IAM.
-- Trong thanh bên trái, chọn Users.
+- Trong thanh sidebar chọn Users.
 - Nhấp vào tên người dùng IAM mà bạn muốn tạo Access Key.
 
 🔑 Bước 3: Tạo Access Key
@@ -255,3 +255,117 @@ Bài 33: Create an EC2 instance with EC2 User Data to have a Website Hands On
 - Security group name - required (devops_sg)
 - configure storage (1x tăng lên 18) 
 - click launch instance để tạo máy chủ
+
+Bài 34: EC2 Instance Types Basics
+- Khi bạn tạo một EC2 instance trên AWS, bạn sẽ phải chọn Instance Type – đây là lựa chọn quan trọng vì nó quyết định:
+
+✅ CPU (số lõi, tốc độ)
+✅ RAM (bộ nhớ)
+✅ Băng thông mạng
+✅ Dung lượng lưu trữ tạm thời (nếu có)
+✅ Giá tiền bạn sẽ trả theo giờ hoặc theo giây
+✅ EC2 Instance Types – Tổng quan cơ bản
+EC2 Instance Types được chia thành nhiều "family" (họ), mỗi họ tối ưu cho một mục đích riêng.
+
+🔹 1. General Purpose – Cân bằng CPU, RAM
+- Family	Mục đích	Ví dụ loại
+- t	Tiết kiệm, tải nhẹ	t2.micro, t3.small
+- m	Đa năng	m5.large, m6i.xlarge
+
+📌 Dùng cho webserver, app nhỏ, dev/test
+
+🔹 2. Compute Optimized – Tối ưu CPU
+- Family	Mục đích	Ví dụ loại
+- c	Tính toán cao, xử lý mạnh	c5.large, c6g.2xlarge
+
+📌 Dùng cho web server có tải cao, xử lý nhiều yêu cầu/người dùng
+
+🔹 3. Memory Optimized – Tối ưu RAM
+- Family	Mục đích	Ví dụ loại
+- r	RAM lớn cho DB	r5.large, r6g.4xlarge
+- x, u	RAM cực lớn	x1e.32xlarge
+
+📌 Dùng cho database, in-memory cache (Redis, Memcached), xử lý dữ liệu lớn
+
+🔹 4. Storage Optimized – Tối ưu IOPS, disk
+- Family	Mục đích	Ví dụ loại
+- i	SSD cực nhanh	i3.large, i4i.xlarge
+- d	HDD lớn	d2.8xlarge
+
+📌 Dùng cho big data, log processing, ElasticSearch
+
+🔹 5. Accelerated Computing – GPU hoặc phần cứng đặc biệt
+- Family	Mục đích	Ví dụ loại
+- p	GPU cho ML/AI	p3.2xlarge, p4d.24xlarge
+- g	GPU cho game, đồ hoạ	g4dn.xlarge
+- f	FPGA (logic tùy biến)	f1.2xlarge
+
+📌 Dùng cho training AI/ML, rendering 3D, video, game streaming
+
+🔢 Kích thước instance (Size)
+- Mỗi loại family có các size khác nhau:
+
+Ký hiệu	Ý nghĩa
+- .micro	Nhỏ nhất (ít RAM, CPU)
+- .small, .medium	Trung bình
+- .large, .xlarge	Lớn hơn
+- 2xlarge, 4xlarge, 8xlarge, v.v.	Gấp nhiều lần về tài nguyên
+
+📌 Ví dụ: t3.micro (1 vCPU, 1GB RAM), m5.2xlarge (8 vCPU, 32GB RAM)
+
+💡 Cách chọn instance type
+- Nhu cầu	Instance đề xuất
+- Thử nghiệm, dev nhỏ	t2.micro hoặc t3.micro (nằm trong Free Tier)
+- Web server vừa	t3.medium hoặc m5.large
+- DB MySQL	r5.large hoặc r6g.large
+- Dự án AI	p3, g4
+- Game server	c5, c6i
+- ElasticSearch, log	i3, d2
+
+🧠 Tổng kết
+- Họ (family)	Dùng cho
+- t, m	Tổng quát
+- c	CPU-intensive
+- r, x	Memory-intensive
+- i, d	Storage-intensive
+- p, g, f	GPU, AI/ML, đồ họa
+
+Bài 35: Security Groups && Classic Ports Overview
+* Giới thiệu về Security Groups trong AWS
+✅ Security Group là gì?
+* Security Group là tường lửa ảo (virtual firewall) trong AWS, được gắn vào EC2 hoặc các dịch vụ khác như RDS, Lambda (vPC-based), ENI…
+
+* Nó giúp kiểm soát lưu lượng mạng vào (inbound) và ra (outbound) của tài nguyên AWS theo:
+
+- Giao thức (TCP, UDP, ICMP,…)
+- Cổng (Port: 22, 80, 443, …)
+
+* Nguồn hoặc đích (IP, CIDR, Security Group khác)
+
+📦 Đặc điểm chính của Security Group
+- Tính năng	Mô tả
+- Stateful	Tự động cho phép lưu lượng phản hồi, không cần rule ngược lại
+- Chỉ cho phép (allow)	Bạn chỉ có thể cho phép, không có khái niệm “deny”
+- Áp dụng theo instance	Có thể gắn 1 hoặc nhiều Security Group vào EC2 instance
+- Hoạt động ở layer 4	Kiểm soát theo giao thức và cổng, không theo hostname hay URL
+
+=> Chỉ cho phép từ bên ngoài truy cập vào bên trong khi bạn mở inbounds bên trong EC2
+
+
+Bài 36: Security Groups Hands On
+- Trong EC2 Ubuntu vừa tạo ở phần dưới có Security -> ở phía dưới có Security groups -> có thể nhấn vào để xem các IP và Port đã mở
+- bên cạnh thanh sidebar -> Network & Security ở phần Security Groups -> click vào sẽ thấy các Security group đã tạo -> có thể nhấn vào security groups để coi các port nào đã được mở
+          -> nếu muốn mở thêm port có thể mở thê port bằng cách Edit inbound rules và add rules để thêm port
+
+Bài 37: SSH Overview
+- SSH (Secure Shell) là giao thức mạng mã hóa dùng để:
+Truy cập từ xa vào máy chủ (remote login)
+Thực thi lệnh trên máy Linux từ xa
+Truyền file an toàn qua SFTP hoặc SCP
+
+Bài 38 + 39 + 40 + 41 SSH tools
+Bài 42: EC2 Instance Connect 
+- Connect bên trong EC2 instance 
+
+Bài 43: EC2 instance Roles Demo
+- vào EC2 -> chọn máy chủ cần cấp quyền -> chọn Action -> Security -> chọn Modify IAM ROLE -> IAM role -> chọn Security Groups -> sau đó Update IAM role
