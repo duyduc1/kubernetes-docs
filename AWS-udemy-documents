@@ -27,11 +27,36 @@ Vào User đó trong Permisstions policies -> chọn Add permissions -> chọn A
 vào User groups -> create group -> User group name (đặt tên group) -> ở Attach permissions policies - Optional tích chọn quyền (ví dụ AdministratorAccess) -> Create user group 
 -> sau khi tạo xong vào group đã tạo -> chọn Add users -> thêm user vào trong -> click Add users
 
-Bài 16: IAM MFA Hands On
+Bài 16: IAM MFA 
 => Nói về bảo mật 
 
 Bài 17: IAM MFA Hands On
 - Vào Account settings bên thanh sidebar trong IAM -> click vào Edit -> sẽ xuất hiện Edit password policy -> custom password
+
+🧪 Bước 1: Truy cập trang quản lý IAM
+- Vào AWS Console: https://console.aws.amazon.com/
+- Gõ “IAM” trong thanh tìm kiếm và chọn dịch vụ IAM
+- Trong sidebar trái, chọn Users
+- Nhấp vào tên người dùng (IAM User) mà bạn muốn bật MFA
+
+🧪 Bước 2: Cấu hình MFA
+- Trong trang người dùng, chọn tab Security credentials
+- Kéo xuống phần Multi-factor authentication (MFA)
+- Nhấn Assign MFA device
+
+🧪 Bước 3: Chọn loại thiết bị
+- Chọn Authenticator app (ứng dụng xác thực) → Nhấn Next
+- Trên màn hình sẽ xuất hiện QR code
+
+🧪 Bước 4: Cài đặt trên điện thoại
+- Mở ứng dụng Google Authenticator hoặc Authy
+- Chọn “Add account” → Quét mã QR từ AWS Console
+- Ứng dụng sẽ tạo ra mã OTP (6 số, thay đổi mỗi 30 giây)
+
+🧪 Bước 5: Xác thực và hoàn tất
+- Quay lại AWS Console, nhập hai mã OTP liên tiếp từ app (phải chính xác)
+- Nhấn Assign MFA
+🎉 Hoàn tất! IAM User đó đã bật MFA.
 
 Bài 18: AWS Access Keys, CLI and SDK
 How can users access AWS ?
@@ -90,4 +115,143 @@ Mục đích:
 - Kiểm tra người dùng có tuân thủ bảo mật không, có đang dùng access key cũ/mất an toàn không.
 
 Bài 28: IAM Security Tools hands On
-- Vào User trong IAM - click vào một user bất kỳ -> chon Last Accessed => để xem hành vi 
+- Vào User trong IAM - click vào một user bất kỳ -> chon Last Accessed => để xem hành động gần nhất 
+
+Bài 29: IAM Best Practice
+- không sử dụng tài khoản root ngoại trừ khi thiết lập tài khoản AWS
+- Một người dùng vật lý = Một người dùng AWS
+- Chỉ định người dùng vào nhóm và chỉ định quyền cho nhóm
+- Tạo mật khẩu mạnh 
+- Sử dụng và thực thi việc sử dụng Xác thực đa yếu tố
+- Tạo và sử dụng Vai trò để cấp quyền cho các dịch vụ AWS
+- Sử dụng Key cập để truy cập theo chương trình
+- Kiểm tra quyền của tài khoản của bạn bằng Báo cáo thông tin xác thực IAM & Cố vấn truy cập IAM
+- Không bao giờ chia sẻ tài khoản IAM users và Access Keys
+
+Bài 30: IAM Summary 
+- Users: mỗi IAM User được tạo ra cho một người thật cụ thể chứ không phải cho ứng dụng hay dịch vụ
+- Groups: Groups chỉ chứa Users
+- Policies:  JSON dùng để khai báo quyền (permissions) mà một user, group hoặc role được phép thực hiện trên AWS.
+- Roles: được tạo ra để EC2 hoặc dịch vụ AWS sử dụng
+- Security: MFA + Password Policy
+- AWS CLI: quản lý các dịch vụ AWS của bạn bằng cách sử dụng dòng lệnh
+
+// EC2 Fundamentals
+Bài 31: AWS Budget Setup
+- Vào user root -> click chọn account trên thanh header -> chọn Account -> kéo xuống IAM user and role access -> click chọn Edit -> tích chọn Activate IAM Access -> update
+- quay lại User IAM -> nhấn vào Accout và chọn Billing and Cost Management -> 
+- bên thanh sidebar -> kéo xuống Budgets -> click Create budget -> ở phần Email recipients (điền Email cần alert vào bên trong) -> Create Budget
+
+Bài 32: EC2 Basics
+- EC2 là một trong những sản phẩm phổ biến nhất trong AWS
+- EC2 viết tắt của Elastic Compute Cloud (Cơ sở hạ tầng)
+
+1. Renting virtual machines (EC2)
+👉 EC2 (Elastic Compute Cloud) cho phép bạn thuê máy ảo (virtual server) để chạy ứng dụng, web, backend...
+* Bạn có thể chọn cấu hình CPU, RAM, OS (Linux/Windows)
+* Trả phí theo giờ hoặc theo giây
+* Tương đương như thuê máy chủ ở trung tâm dữ liệu
+🖥️ Ví dụ: Chạy backend Java hoặc webserver Nginx trên EC2.
+
+2. Storing data on virtual drives (EBS)
+👉 EBS (Elastic Block Store) là ổ đĩa ảo gắn vào EC2.
+* Giống như ổ cứng của máy thật
+* Lưu trữ dữ liệu: database, file, app log
+* Có thể backup (snapshot), mở rộng dung lượng
+💾 Ví dụ: EC2 chạy MySQL, dữ liệu được lưu trên EBS.
+
+3. Distributing load across machines (ELB)
+👉 ELB (Elastic Load Balancer) giúp phân phối lưu lượng truy cập đến nhiều EC2.
+* Tự động chia tải giữa các server
+* Nếu 1 EC2 chết → ELB bỏ qua, chuyển lưu lượng sang EC2 khác
+Hỗ trợ HTTP(S), TCP, gRPC,...
+🌐 Ví dụ: Website có 3 EC2 → ELB chia đều lượt truy cập.
+
+4. Scaling the services using an auto scaling group (ASG)
+👉 ASG (Auto Scaling Group) giúp tự động tăng/giảm số lượng EC2 theo nhu cầu.
+* Nếu người dùng tăng → tự tạo thêm EC2
+* Nếu ít người dùng → giảm EC2 để tiết kiệm tiền
+* Kết hợp với CloudWatch (theo dõi CPU, RAM)
+📈 Ví dụ: Tăng EC2 khi CPU > 70% trong 5 phút.
+
+5. EFS là gì?
+👉 Amazon EFS là dịch vụ lưu trữ dạng tệp (file storage) có khả năng mở rộng linh hoạt, 
+cho phép nhiều EC2 instances cùng truy cập chung một hệ thống file, giống như chia sẻ ổ đĩa mạng (network drive).
+
+1. Operating System (OS): Linux, Windows, or Mac OS
+Đây là hệ điều hành bạn cài đặt trên EC2 instance.
+AWS hỗ trợ:
+- Linux: Amazon Linux, Ubuntu, Red Hat, SUSE, CentOS
+- Windows: Windows Server (2016, 2019, 2022…)
+- macOS: Mac EC2 dành cho phát triển ứng dụng iOS/macOS (giá rất cao)
+- Hệ điều hành quyết định cách bạn cài phần mềm, bảo mật và vận hành hệ thống.
+
+2. How much compute power & cores (CPU)
+- Bạn chọn loại EC2 instance (ví dụ: t3.micro, m5.large, c6a.xlarge,…)
+- Mỗi loại có số vCPU (virtual CPU) và sức mạnh xử lý khác nhau.
+Ví dụ:
+    * t2.micro → 1 vCPU
+    * m5.large → 2 vCPU
+    * c5.4xlarge → 16 vCPU, dành cho xử lý tính toán cao
+    💡 CPU càng nhiều, xử lý càng nhanh, nhưng giá cũng tăng.
+
+3. How much random-access memory (RAM)
+- Cùng với CPU, mỗi EC2 instance có một lượng RAM (bộ nhớ) cố định.
+- RAM giúp chạy ứng dụng, xử lý dữ liệu nhanh.
+- Ví dụ:
+    * t3.micro: 1 vCPU + 1 GB RAM
+    * m5.large: 2 vCPU + 8 GB RAM
+    * r6g.4xlarge: 16 vCPU + 128 GB RAM (dành cho hệ thống nhiều bộ nhớ)
+
+4. How much storage space
+4.1. Network-attached (EBS & EFS)
+- EBS (Elastic Block Store):
+  * Ổ đĩa block gắn vào EC2
+  * Dùng như ổ cứng C:\ hoặc /dev/xvda
+Có thể mở rộng, backup snapshot
+- EFS (Elastic File System):
+    * File system chia sẻ giữa nhiều EC2
+    * Dùng cho ứng dụng cần chia sẻ file hoặc logs
+
+4.2. Hardware (EC2 Instance Store)
+- Ổ đĩa vật lý gắn trực tiếp vào máy chủ vật lý chạy EC2
+- Nhanh hơn EBS nhưng:
+  * Dữ liệu mất khi tắt EC2
+  * Không backup được
+- Dùng cho cache, dữ liệu tạm thời
+
+5. Network card: speed of the card, Public IP address
+- Mỗi EC2 có card mạng ảo, băng thông phụ thuộc loại instance:
+    t3.micro → thấp (~5 Mbps)
+    c6i.4xlarge → ~10 Gbps
+- Bạn có thể gán public IP để truy cập từ Internet.
+- Hoặc gán Elastic IP (IP tĩnh) để giữ cố định.
+
+6. Firewall rules: security group
+- Security Group là tường lửa ảo cho EC2
+* Quy định:
+- Cổng nào được mở (22, 80, 443,...)
+- Ai được phép truy cập (IP hoặc CIDR)
+* Ví dụ:
+- Cho phép SSH từ IP bạn: TCP 22, Source: your-IP/32
+- Mở web: TCP 80, Source: 0.0.0.0/0
+
+7. Bootstrap script: EC2 User Data
+- User Data là shell script hoặc cloud-init bạn chèn vào lúc khởi tạo EC2.
+- Nó sẽ tự động chạy 1 lần duy nhất khi EC2 khởi động lần đầu.
+- Dùng để:
+    Cài app (Apache, Docker…)
+    Update hệ thống
+    Pull code từ Git
+
+Bài 33: Create an EC2 instance with EC2 User Data to have a Website Hands On
+- Vào màn hình console tìm -> EC2 -> Click instances bên thanh sidebar -> chọn launch instances
+- Name and tags (EC2_Ubuntu)
+- Quick Start (click chọn Ubuntu)
+- Key pair name - required (đặt tên instance_Key_DevOps_On_AWS) -> Create key pair
+- VPC - required (thay đổi thành devops-vpc bài trước đã tạo)
+- Subnet chọn devops-subnet-public2
+- Auto-assign public IP (chọn Enable)
+- Security group name - required (devops_sg)
+- configure storage (1x tăng lên 18) 
+- click launch instance để tạo máy chủ
