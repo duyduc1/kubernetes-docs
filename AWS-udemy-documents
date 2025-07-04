@@ -883,3 +883,49 @@ sudo mount /dev/xvdf /data
 # Kiểm tra dữ liệu
 cat /data/test.txt
 👉 Kết quả: bạn thấy dòng "Backup from EBS snapshot" → Restore thành công!
+
+Bài 61: AMI Overview
+📦 AMI Overview – Amazon Machine Image là gì?
+✅ 1. AMI là gì?
+* AMI (Amazon Machine Image) là một bản sao lưu đầy đủ của EC2 instance, bao gồm:
+- Hệ điều hành (Linux, Windows…)
+- Ổ đĩa EBS (với phần mềm đã cài sẵn, cấu hình hệ thống…)
+- Thông tin khởi động (boot, phân vùng…)
+- Tùy chọn launch permissions (ai có thể dùng AMI)
+
+🧠 AMI giúp bạn tạo ra nhiều EC2 giống hệt nhau chỉ trong vài giây — rất phù hợp để:
+- Tạo template cho server
+- Backup toàn bộ EC2
+- Tự động hóa triển khai môi trường
+
+Bài 62: AMI Hands On
+🛠️ BƯỚC 1: Tạo EC2 và ghi dữ liệu
+- Vào EC2 > Instances > Launch Instance
+- AMI: Amazon Linux 2
+- Instance type: t2.micro
+- Key pair: Chọn/ tạo mới
+- Mở port 22 (SSH)
+- Launch instance
+
+📸 BƯỚC 2: Tạo AMI từ EC2 hiện tại
+- Vào EC2 > Instances
+- Chọn instance → Actions → Image and templates → Create image
+- Đặt tên: my-custom-ami
+- Tick: Include volumes (mặc định)
+- Nhấn Create image
+
+📌 Xem trạng thái tại EC2 > AMIs → đợi status: available
+
+🚀 BƯỚC 3: Tạo EC2 mới từ AMI
+- Vào EC2 > AMIs
+- Chọn AMI my-custom-ami vừa tạo
+- Nhấn Launch instance from image
+- Cấu hình như instance ban đầu
+- Launch instance
+
+✅ BƯỚC 4: SSH và kiểm tra EC2 mới
+- Sau khi tạo xong Ami 
+- vào lại EC2 > instances 
+- laucnh instances 
+- điền như bước 1 nhưng ở phần Applcation and OS images 
+- chọn My AMIs > chọn AMIs vừa tạo lúc ở Amazon Machine image  
