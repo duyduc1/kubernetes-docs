@@ -806,7 +806,7 @@ Bài 58: EBS Hands On
 # Unmount ổ đĩa
 - sudo umount /data-ebs
 
-Bài 58: EBS Snapshots 
+Bài 59: EBS Snapshots 
 ✅ 1. EBS Snapshot là gì?
 EBS Snapshot là bản sao lưu (backup) toàn bộ dữ liệu của một EBS volume tại thời điểm cụ thể. Nó được lưu trong Amazon S3 (ẩn bên dưới), giúp bạn có thể:
 🔄 Khôi phục lại volume khi bị mất dữ liệu
@@ -821,7 +821,7 @@ Tính năng                 	          Mô tả
 🧹 Xóa snapshot cũ an toàn	          Xóa snapshot không làm mất dữ liệu nếu còn snapshot sau
 🗂️ Snapshot quản lý riêng biệt	      Không phụ thuộc EC2 hay volume ban đầu
 
-Bài 59: EBS Snapshots - Hands On
+Bài 60: EBS Snapshots - Hands On
 🛠️ BƯỚC 1: Tạo EC2 instance
 - Vào AWS Console → EC2 > Launch Instance
 - AMI: chọn Amazon Linux 2
