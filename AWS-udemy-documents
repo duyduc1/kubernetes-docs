@@ -469,7 +469,6 @@ Tình huống	Có nên dùng Spot không?
 
 💥 Điều gì xảy ra khi bị thu hồi?
 AWS sẽ gửi thông báo trước 2 phút (spot instance termination notice)
-
 Bạn có thể dùng script để gracefully shutdown hoặc lưu tiến trình
 
 📊 Ví dụ giá Spot:
@@ -621,3 +620,144 @@ Bài 49: Private vs Public vs Elastic IP Hands On
 - Chọn EC2 cần gán
 - Private IP: chọn private IP của EC2 đó
 Xác nhận
+
+Bài 50: EC2 Placement Groups
+* EC2 Placement Groups là gì?
+- Placement Group cho phép bạn quy định cách các EC2 instance được đặt vật lý trong cùng vùng (Availability Zone) để đạt được các mục tiêu hiệu năng hoặc khả năng chịu lỗi.
+
+📦 Có 3 loại Placement Group chính:
+Loại	        Mục đích	                                 Đặc điểm
+Cluster	      Tối đa hiệu năng mạng	                     Các instance đặt rất gần nhau, thường cùng rack. Thích hợp cho workload cần băng thông cao và độ trễ thấp như Big Data, HPC, ML
+Spread	      Tăng độ sẵn sàng	                         Các instance được đặt trên phần cứng tách biệt → nếu 1 máy vật lý lỗi, các instance khác không bị ảnh hưởng
+Partition	    Cân bằng giữa hiệu năng và độ sẵn sàng	   Các instance được đặt vào các partition khác nhau, mỗi partition nằm trên phần cứng riêng biệt. Dùng cho hệ thống phân tán như HDFS, Kafka,...
+
+Bài 51: EC2 Placement Groups Hands On
+🛠️ EC2 Placement Groups – Thực hành
+✅ Bước 1: Tạo Placement Group
+- Vào AWS Console → EC2 → Placement Groups
+- Nhấn Create placement group
+* Nhập:
+- Name: ví dụ pg-cluster-demo
+- Strategy: cluster, spread, hoặc partition
+- Number of partitions (nếu chọn partition)
+- Nhấn Create
+
+✅ Bước 2: Tạo EC2 Instance và gán Placement Group
+- Khi tạo EC2 mới:
+- Vào EC2 → Launch Instance
+- Chọn AMI và loại instance (tốt nhất chọn loại hỗ trợ ENA như t3, c5, m5)
+- Configure Instance Details:
+- Ở phần Placement Group, chọn:
+- "Add instance to placement group" → Chọn placement group vừa tạo
+
+🧠 Chú ý:
+* Với cluster, các instance phải cùng type và cùng AZ
+* Với spread, chỉ tối đa 7 instance / AZ
+* Với partition, cần chọn số lượng partition khi tạo group
+
+✅ Bước 3: Kiểm tra hiệu quả (với Cluster)
+- Nếu bạn chọn loại cluster, bạn có thể kiểm tra hiệu năng truyền dữ liệu mạng giữa các instance:
+
+Bài 52 Elastic Network Interfaces(ENI) - Overview
+Dĩ nhiên! Dưới đây là phần giải thích Elastic Network Interface (ENI) bằng tiếng Việt, dễ hiểu và đầy đủ:
+
+🧠 Elastic Network Interface (ENI) là gì?
+ENI là một card mạng ảo trong AWS, giống như card mạng vật lý trên máy chủ thật. ENI có thể gắn vào các EC2 instance để giúp chúng giao tiếp trong mạng VPC.
+
+🧩 ENI bao gồm những gì?
+Thành phần	                         Chức năng
+Private IP chính	                   IP nội bộ mặc định
+Private IP phụ (tùy chọn)	           Dùng khi cần nhiều IP
+Elastic IP (tùy chọn)	               IP công cộng cố định
+Security Group riêng	               Gán firewall riêng cho ENI
+Subnet	                             ENI luôn thuộc về 1 subnet
+MAC Address	                         Như card mạng thật
+
+Bài 53: Elastic Network Interfaces(ENI) - Hands On
+
+🧰 Điều kiện chuẩn bị
+- Yêu cầu	Mô tả
+- Tài khoản AWS	Đã kích hoạt VPC, EC2
+- Có 2 EC2 instance	Cùng subnet hoặc cùng VPC
+- Subnet và Security Group	Có sẵn hoặc tự tạo
+
+🛠️ Bước 1: Tạo ENI
+- Truy cập EC2 Console → bên trái chọn Network Interfaces
+- Nhấn Create Network Interface
+
+Nhập:
+- Description: eni-lab-demo
+   * Subnet: chọn subnet của EC2 bạn đang dùng
+   * Private IP: để mặc định hoặc chọn IP trong subnet
+   * Security Group: nên chọn security group có mở cổng SSH (22) để dễ test
+   * Nhấn Create network interface
+
+🧷 Bước 2: Gắn ENI vào EC2 instance
+- Trong danh sách Network Interface → chọn ENI vừa tạo
+- Nhấn Actions → Attach
+- Chọn 1 EC2 instance (ví dụ: EC2-A)
+- Nhấn Attach
+
+🖥️ Bước 3: SSH vào EC2 và kiểm tra ENI
+- ip addr show Hoặc: ifconfig
+* Bạn sẽ thấy 2 interface:
+* eth0 là ENI mặc định
+* eth1 là ENI mới vừa gắn
+
+🔁 Bước 4: Tháo ENI và gắn vào EC2 khác (failover demo)
+- Tháo:
+- Quay lại AWS Console → ENI → Actions → Detach
+- Đợi vài giây cho ENI tách ra khỏi EC2-A
+
+- Gắn vào EC2 khác:
+- Attach ENI vào EC2-B
+- SSH vào EC2-B và kiểm tra:
+- ip addr show Bạn sẽ thấy ENI mới đã được gắn vào EC2-B. IP không thay đổi.
+
+🔍 Kiểm tra kết nối
+- Từ máy khác (hoặc máy local), thử ping hoặc SSH tới IP của ENI:
+- ssh ec2-user@<eni-private-ip>
+- Miễn là security group cho phép cổng 22, bạn sẽ truy cập được.
+
+Bài 55: EC2 Hibernate
+- EC2 Hibernate là một tính năng cho phép bạn tạm dừng (pause) EC2 instance và lưu trạng thái bộ nhớ RAM của nó ra ổ đĩa (EBS).
+Khi khởi động lại, instance sẽ khôi phục lại toàn bộ phiên làm việc y như trước (bao gồm RAM, tiến trình, bộ nhớ cache...).
+
+Bài 56: EC2 Hibernate - Hands On
+🛠️ BƯỚC 1: Tạo EC2 Instance có bật Hibernate
+- Vào AWS Console → EC2 → Launch Instance
+- Đặt tên ví dụ: ec2-hibernate-demo
+- Chọn AMI: Amazon Linux 2 hoặc Ubuntu
+- Chọn Instance Type: t3.medium hoặc m5.large
+- Key Pair: Chọn key pair bạn có
+- Network settings: Dùng default VPC/Subnet (hoặc subnet bạn tạo)
+- Configure storage:
+- Đảm bảo ổ EBS được Enable encryption (aws/ebs key hoặc custom key)
+Advanced details:
+Tick vào: ✅ Enable hibernation as an additional stop behavior
+📌 Lưu ý: Nếu checkbox không xuất hiện → có thể instance type hoặc EBS chưa mã hóa!
+Nhấn Launch Instance
+
+🖥️ BƯỚC 2: SSH vào Instance và tạo trạng thái
+- ssh -i your-key.pem ec2-user@<your-ec2-ip>
+
+# Simulate running workload
+echo "Hello from RAM" > /dev/shm/ramfile
+cat /dev/shm/ramfile
+📌 /dev/shm là thư mục RAM (tmpfs), sẽ mất nếu stop thường nhưng giữ lại nếu dùng hibernate.
+
+🔁 BƯỚC 3: Hibernate EC2
+Vào AWS Console → EC2 → Instances
+- Chọn instance vừa tạo
+- Nhấn Instance state → Stop instance
+Trong hộp thoại sẽ thấy:
+
+✅ Tùy chọn "Stop with Hibernate" → nhấn Confirm
+(hoặc dùng CLI)
+- aws ec2 stop-instances --instance-ids i-xxxxxxxxxxxxxxxxx --hibernate
+✅ BƯỚC 4: Start lại và xác minh
+Sau vài phút → EC2 chuyển về trạng thái stopped (hibernated)
+Nhấn Start instance
+- SSH lại vào instance
+- cat /dev/shm/ramfile
+👉 Nếu thấy "Hello from RAM" → Hibernate đã thành công!
