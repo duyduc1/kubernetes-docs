@@ -805,3 +805,81 @@ Bài 58: EBS Hands On
 🔌 BƯỚC 5: Unmount và Tháo Volume
 # Unmount ổ đĩa
 - sudo umount /data-ebs
+
+Bài 58: EBS Snapshots 
+✅ 1. EBS Snapshot là gì?
+EBS Snapshot là bản sao lưu (backup) toàn bộ dữ liệu của một EBS volume tại thời điểm cụ thể. Nó được lưu trong Amazon S3 (ẩn bên dưới), giúp bạn có thể:
+🔄 Khôi phục lại volume khi bị mất dữ liệu
+🚀 Tạo nhanh volume mới từ bản snapshot
+🌍 Sao chép snapshot sang Region khác
+🧪 Tự động hóa backup hàng ngày
+
+🧠 2. Tính năng chính của Snapshot
+Tính năng                 	          Mô tả
+🔁 Incremental backup               	Snapshot đầu tiên lưu toàn bộ dữ liệu, các snapshot sau chỉ lưu phần thay đổi
+🧠 Không cần tắt EC2	                Có thể tạo snapshot trực tiếp khi EC2 đang chạy
+🧹 Xóa snapshot cũ an toàn	          Xóa snapshot không làm mất dữ liệu nếu còn snapshot sau
+🗂️ Snapshot quản lý riêng biệt	      Không phụ thuộc EC2 hay volume ban đầu
+
+Bài 59: EBS Snapshots - Hands On
+🛠️ BƯỚC 1: Tạo EC2 instance
+- Vào AWS Console → EC2 > Launch Instance
+- AMI: chọn Amazon Linux 2
+- Instance type: t2.micro (Free-tier)
+- Cấu hình mạng và SSH key
+- Launch instance
+
+💾 BƯỚC 2: Tạo và gắn Volume
+- Vào EC2 > Volumes > Create Volume
+- Size: 1 GiB
+- Volume type: gp3
+- AZ: trùng với EC2 (ví dụ us-east-1a)
+- Sau khi tạo xong → chọn volume → Actions > Attach volume
+- Chọn instance vừa tạo
+- Device name: /dev/xvdf
+
+🖥️ BƯỚC 3: SSH và ghi dữ liệu
+- ssh -i my-key.pem ec2-user@<EC2-IP>
+- sudo mkfs -t ext4 /dev/xvdf
+- sudo mkdir /data
+- sudo mount /dev/xvdf /data
+- echo "Backup from EBS snapshot" | sudo tee /data/test.txt
+- cat /data/test.txt
+
+📸 BƯỚC 4: Tạo Snapshot từ volume
+- Vào AWS Console → EC2 > Volumes
+- Chọn volume /dev/xvdf vừa gắn
+- Actions → Create Snapshot
+- Đặt tên: snapshot-demo
+- Mô tả: Backup trước khi xóa
+- Nhấn Create Snapshot
+- Vào tab Snapshots để xem tiến trình (status → completed)
+
+🧹 BƯỚC 5: Unmount và Xóa volume
+# Unmount
+- sudo umount /data
+- Vào Console → Detach volume khỏi EC2
+- Sau khi detach → chọn volume → Delete
+
+♻️ BƯỚC 6: Tạo lại Volume từ Snapshot
+- Vào Snapshots
+- Chọn snapshot snapshot-demo
+- Actions → Create Volume
+- Chọn AZ: phải trùng EC2
+- Dung lượng: giữ nguyên hoặc tăng
+- Nhấn Create Volume
+
+🔗 BƯỚC 7: Gắn lại Volume và kiểm tra
+- Vào Volumes → Attach Volume
+- Gắn vào EC2 như cũ, device: /dev/xvdf
+
+# SSH lại vào EC2
+- ssh -i my-key.pem ec2-user@<EC2-IP>
+
+# Mount lại
+sudo mkdir /data
+sudo mount /dev/xvdf /data
+
+# Kiểm tra dữ liệu
+cat /data/test.txt
+👉 Kết quả: bạn thấy dòng "Backup from EBS snapshot" → Restore thành công!
