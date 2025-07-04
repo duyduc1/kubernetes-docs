@@ -761,3 +761,47 @@ Nhấn Start instance
 - SSH lại vào instance
 - cat /dev/shm/ramfile
 👉 Nếu thấy "Hello from RAM" → Hibernate đã thành công!
+
+Phần 7: EC2 instance Storage
+
+Bài 57: EBS Overview
+- Amazon EBS (Elastic Block Store) là dịch vụ lưu trữ dạng ổ đĩa block (giống như ổ cứng) được dùng để gắn vào EC2 instance trong AWS.
+📌 Nó hoạt động tương tự như ổ SSD/HDD trên máy tính, nhưng được quản lý hoàn toàn bởi AWS, có thể mở rộng, mã hóa và backup dễ dàng.
+
+Bài 58: EBS Hands On
+🛠️ BƯỚC 1: Chuẩn bị EC2 instance
+- Vào EC2 → Instances → Launch instance
+- AMI: Amazon Linux 2 hoặc Ubuntu
+- Instance type: t2.micro (cho free-tier)
+- Key pair: chọn hoặc tạo mới
+- Network & Security Group: mở cổng SSH (22)
+- Launch EC2
+
+💾 BƯỚC 2: Tạo EBS Volume
+- Vào EC2 → Volumes (trong mục "Elastic Block Store")
+- Nhấn Create Volume
+
+- Size: ví dụ 1 GiB
+- Volume type: gp3
+- Availability Zone: phải trùng với AZ của EC2 (ví dụ: us-east-1a)
+- Nhấn Create Volume
+
+🔗 BƯỚC 3: Gắn EBS vào EC2
+- Chọn volume mới tạo → Actions → Attach Volume
+- Chọn EC2 instance vừa tạo
+- Device name: /dev/xvdf (hoặc để mặc định)
+- Nhấn Attach
+
+🖥️ BƯỚC 4: SSH vào EC2 và format EBS
+# Kết nối SSH
+- ssh -i my-key.pem ec2-user@<Public-IP>
+- lsblk
+- sudo mkfs -t ext4 /dev/xvdf
+- sudo mkdir /data-ebs
+- sudo mount /dev/xvdf /data-ebs
+- echo "Hello from EBS" | sudo tee /data-ebs/test.txt
+- cat /data-ebs/test.txt
+
+🔌 BƯỚC 5: Unmount và Tháo Volume
+# Unmount ổ đĩa
+- sudo umount /data-ebs
