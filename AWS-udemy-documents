@@ -551,3 +551,73 @@ Host Tenancy
 - Trong Tenancy, chọn Dedicated host
 * EC2 sẽ được gán vào host riêng
 📌 Phù hợp cho những ai cần host riêng biệt, tuân thủ bảo mật, kiểm soát license (BYOL).
+
+Phần 6: EC2 - Solutions Architect Associate Level
+
+Bài 48: Private vs Public vs Elastic IP
+🔹 1. Private IP
+- Được gán tự động cho mỗi EC2 trong VPC
+- Dạng: 10.x.x.x, 172.x.x.x, 192.168.x.x (giống LAN)
+- Chỉ dùng để giao tiếp nội bộ trong cùng VPC (hoặc qua VPN/Peering)
+- Không thể truy cập từ Internet nếu chỉ có Private IP
+
+🔹 2. Public IP
+- IP công khai, ai trên Internet cũng có thể truy cập
+- Gán tự động nếu bạn chọn Auto-assign Public IP khi tạo EC2
+- Tuy nhiên, nếu bạn stop/start EC2, public IP có thể đổi
+- Không nên dùng public IP nếu bạn cần địa chỉ ổn định
+
+3. Elastic IP (EIP)
+- Là Public IP tĩnh (công khai) mà bạn tự quản lý
+- Gắn vào EC2 thủ công (hoặc qua script)
+- Không đổi IP kể cả khi EC2 stop/start
+- Bạn phải trả phí nếu EIP không gắn với instance nào
+
+Bài 49: Private vs Public vs Elastic IP Hands On
+- 🔧 BƯỚC 1: Tạo EC2 và kiểm tra Private IP
+- Vào EC2 Console → Launch Instance
+- AMI: Amazon Linux 2 hoặc Ubuntu
+- Instance Type: t2.micro (free tier)
+- Network settings:
+- VPC: chọn default
+- Subnet: chọn bất kỳ
+- Auto-assign public IP: disable (không bật)
+- Tạo hoặc chọn key pair để SSH
+- Launch instance
+
+✅ Sau khi tạo xong:
+
+- Chọn instance → tab Networking
+- Xem IP:
+- Private IPv4: Ví dụ 10.0.1.5
+- Public IP: ❌ Không có
+
+✅ Đây là instance chỉ có IP nội bộ, không SSH được từ Internet.
+
+🔧 BƯỚC 2: Tạo EC2 có Public IP
+- Lặp lại bước tạo EC2 như trên
+- Ở bước "Network settings":
+- Auto-assign Public IP: Enable
+
+✅ Sau khi launch:
+
+- Instance có Private IP: 10.x.x.x
+- Có thêm Public IPv4: ví dụ 18.208.123.15
+
+📌 Truy cập SSH:
+- ssh -i my-key.pem ec2-user@18.208.123.15
+💡 Lưu ý: Nếu stop/start lại instance này, Public IP sẽ thay đổi!
+
+📌 BƯỚC 3: Gán Elastic IP vào EC2
+🧱 Bước A: Allocate Elastic IP
+- Vào EC2 → Network & Security → Elastic IPs
+- Click Allocate Elastic IP
+- Chọn Amazon pool → Allocate
+- Bạn sẽ thấy 1 Elastic IP ví dụ: 3.91.112.66
+
+🔗 Bước B: Associate Elastic IP với EC2
+- Chọn Elastic IP → Actions → Associate Elastic IP
+- Resource Type: Instance
+- Chọn EC2 cần gán
+- Private IP: chọn private IP của EC2 đó
+Xác nhận
