@@ -929,3 +929,134 @@ Bài 62: AMI Hands On
 - laucnh instances 
 - điền như bước 1 nhưng ở phần Applcation and OS images 
 - chọn My AMIs > chọn AMIs vừa tạo lúc ở Amazon Machine image  
+
+Bài 63: EC2 Instance Store
+EC2 Instance Store (còn gọi là Ephemeral Storage) là một loại lưu trữ tạm thời gắn liền với máy ảo EC2 instance trên AWS. Dưới đây là định nghĩa và các đặc điểm chính:
+
+✅ Định nghĩa:
+- EC2 Instance Store là một loại bộ nhớ vật lý nằm trực tiếp trên máy chủ vật lý (host machine) mà EC2 instance đang chạy.
+Khi bạn tạo một instance, nếu loại instance đó hỗ trợ instance store thì bạn có thể gắn các ổ đĩa này để sử dụng như ổ đĩa cứng tạm thời.
+
+Bài 64: EBS Volume Types
+Amazon EBS (Elastic Block Store) cung cấp nhiều loại Volume (ổ đĩa) để phục vụ các mục đích khác nhau về hiệu suất, chi phí và khối lượng công việc. Dưới đây là bảng tóm tắt các loại EBS Volume phổ biến nhất:
+
+🧱 1. SSD-Based Volumes (Dành cho tác vụ IOPS cao)
+Loại Volume	                  Tên đầy đủ	                            Dùng cho	                        Đặc điểm nổi bật
+gp3	                          General Purpose SSD (phiên bản mới)	    Hầu hết các workload	            ✅ Hiệu năng cao, chi phí thấp hơn gp2
+                                                                                                        ✅ Tùy chỉnh IOPS và throughput
+
+gp2	                          General Purpose SSD (cũ hơn)	          Workload thông thường            	✅ IOPS theo dung lượng (3 IOPS/GB)
+                                                                                                        ⛔ Không tùy chỉnh IOPS
+
+io2	                          Provisioned IOPS SSD (phiên bản mới)	  Database, app latency thấp	      ✅ Độ bền cao (99.999%)
+                                                                                                        ✅ Tối đa 500 IOPS/GB
+
+io1	                          Provisioned IOPS SSD (cũ hơn)          	Database yêu cầu cao	            ✅ Giống io2 nhưng độ bền thấp hơn
+⛔ Chi phí cao hơn
+
+💽 2. HDD-Based Volumes (Dành cho lưu trữ khối lượng lớn, giá rẻ)
+Loại Volume	                 Tên đầy đủ	                              Dùng cho	                        Đặc điểm nổi bật
+st1	                         Throughput Optimized HDD	                Big data, log processing	        ✅ Dung lượng lớn
+                                                                                                        ✅ Tốc độ truyền dữ liệu cao
+                                                                                                        ⛔ Không dùng cho IOPS cao
+
+sc1	                         Cold HDD	                                Lưu trữ ít truy cập	              ✅ Rẻ nhất
+                                                                                                        ⛔ Hiệu năng thấp, chỉ dùng cho dữ liệu “cold”
+
+📊 So sánh nhanh (bảng tóm tắt)
+Volume	                  Kiểu	                IOPS tối đa                  	Throughput tối đa	                  Dùng cho
+gp3	                      SSD	                  16,000                      	1,000 MB/s                        	Web, app, general workload
+gp2                      	SSD	                  16,000                      	250 MB/s (tùy thuộc dung lượng)    	General purpose
+io1                      	SSD	                  64,000                      	1,000 MB/s	                        OLTP, NoSQL, latency-sensitive apps
+io2                      	SSD	                  64,000+                      	1,000 MB/s	                        DB, mission-critical workloads
+st1                      	HDD	                  ~500                        	500 MB/s	                          Big data, streaming
+sc1                      	HDD                  	~250                        	250 MB/s	                          Archival, infrequent access
+
+📌 Gợi ý chọn Volume:
+✅ gp3 – Khuyến nghị dùng cho hầu hết các ứng dụng (cân bằng hiệu suất và chi phí).
+
+✅ io2 – Dùng cho hệ thống cần IOPS cực cao và độ tin cậy tối đa (ví dụ database Oracle, SAP).
+
+✅ st1 – Dùng cho big data cần throughput cao, nhưng không yêu cầu IOPS cao.
+
+✅ sc1 – Dữ liệu lưu trữ lâu dài, ít truy cập (backup, archive).
+
+Bài 65: EBS Multi-Attach
+🔗 Amazon EBS Multi-Attach – Là gì?
+- EBS Multi-Attach là tính năng cho phép nhiều EC2 instances trong cùng một Availability Zone
+(AZ)có thể gắn (attach) đồng thời cùng một EBS volume ở chế độ read-write.
+
+Bài 66: EBS Encryption
+🔐 EBS Encryption – Mã hóa ổ đĩa EBS
+- EBS Encryption là tính năng của AWS cho phép mã hóa dữ liệu trong các ổ đĩa EBS (Elastic Block Store),
+giúp tăng cường bảo mật dữ liệu khi lưu trữ và truyền tải.
+
+Baì 67: Amazon EFS
+✅ Amazon EFS (Elastic File System) là gì?
+- Amazon EFS là một dịch vụ lưu trữ file hệ thống dùng chung, linh hoạt và tự mở rộng được cung 
+cấp bởi AWS, cho phép nhiều EC2 instance truy cập đồng thời cùng một hệ thống file như một ổ đĩa mạng.
+
+Bài 68: Amazon EFS - Hands On
+🛠️ BƯỚC 1: Tạo VPC và Security Group
+Bạn có thể dùng default VPC, hoặc tạo VPC riêng nếu cần cấu hình nâng cao.
+
+✅ Tạo Security Group EFS:
+- Vào EC2 > Security Groups > Create security group
+- Đặt tên: efs-sg
+- Thêm rule:
+     * Type: NFS
+     * Port: 2049
+     * Source: Security group của EC2 hoặc 0.0.0.0/0 (test)
+- Nhấn Create
+
+🧾 BƯỚC 2: Tạo Amazon EFS
+- Vào EFS > Create file system
+- Đặt tên: my-efs
+- Chọn VPC: nên chọn default VPC nếu chưa tạo riêng
+- Add mount targets cho mỗi AZ (mặc định AWS tạo sẵn)
+- Chọn đúng security group efs-sg
+- Nhấn Create
+
+👉 Chờ vài phút để EFS được khởi tạo
+
+💻 BƯỚC 3: Tạo EC2 instances
+- Tạo 2 EC2 instance:
+- AMI: Amazon Linux 2
+- Type: t2.micro
+- Security group: mở port SSH (22) và thêm efs-sg (hoặc cho phép NFS từ EFS)
+- Launch cả 2 instance
+
+🔗 BƯỚC 4: Cài đặt EFS utils và mount
+Trên cả 2 EC2 instance, thực hiện:
+
+# Cập nhật & cài EFS utilities
+- sudo yum update -y
+- sudo yum install -y amazon-efs-utils
+
+# Tạo thư mục mount
+- sudo mkdir /mnt/efs
+
+# Mount EFS (thay ID bằng ID thực tế của bạn)
+- sudo mount -t efs <EFS-ID>:/ /mnt/efs
+
+# Kiểm tra mount thành công
+- df -hT | grep efs
+📌 Ví dụ: nếu EFS-ID là fs-12345678 → bạn mount như:
+- sudo mount -t efs fs-12345678:/ /mnt/efs
+
+🧪 BƯỚC 5: Ghi & chia sẻ dữ liệu
+# Trên EC2 số 1:
+- echo "Hello from EC2-1" | sudo tee /mnt/efs/test.txt
+
+# Trên EC2 số 2:
+- cat /mnt/efs/test.txt
+👉 Nếu đọc được "Hello from EC2-1" → Thành công!
+
+🧼 BƯỚC 6 (tùy chọn): Tự động mount khi reboot
+# Thêm dòng sau vào /etc/fstab để mount EFS khi EC2 khởi động lại:
+- echo "fs-12345678:/ /mnt/efs efs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
+
+🧹 BƯỚC 7: Cleanup
+- EC2: Stop hoặc terminate
+- EFS: Delete trong EFS Console
+- Security Group: xóa nếu không cần
