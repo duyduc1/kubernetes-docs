@@ -1060,3 +1060,25 @@ Trên cả 2 EC2 instance, thực hiện:
 - EC2: Stop hoặc terminate
 - EFS: Delete trong EFS Console
 - Security Group: xóa nếu không cần
+
+Bài 69: EFS và EBS
+Dưới đây là bảng so sánh chi tiết và dễ hiểu giữa Amazon EFS và Amazon EBS – hai dịch vụ lưu trữ chính của AWS dành cho EC2:
+
+✅ So sánh Amazon EFS vs Amazon EBS
+Tiêu chí	                                  Amazon EBS (Elastic Block Store)	                                        Amazon EFS (Elastic File System)
+📦 Loại lưu trữ	                            Block Storage (ổ cứng ảo cho từng EC2)	                                  File Storage (chia sẻ thư mục kiểu NFS)
+🖥️ Gắn với EC2	                            Chỉ gắn được 1 EC2 tại 1 thời điểm	                                      Gắn được cho nhiều EC2 cùng lúc (multi-AZ)
+🌐 Chia sẻ dữ liệu	                        ❌ Không chia sẻ được	                                                  ✅ Chia sẻ dễ dàng giữa nhiều máy chủ
+📈 Tự động mở rộng	                        ❌ Không – cần tăng size thủ công	                                      ✅ Có – tự scale dung lượng lên tới petabyte
+⚙️ Hiệu suất & độ trễ	                      Nhanh, độ trễ thấp (thích hợp cho DB)	                                    Chậm hơn chút, phù hợp cho truy cập đồng thời
+🔄 Tính sẵn sàng	                          Trong 1 AZ duy nhất (phụ thuộc vào EC2 AZ)	                              Multi-AZ (đảm bảo cao)
+💵 Chi phí	                                Rẻ hơn – tính theo dung lượng provisioned	                                Đắt hơn – tính theo dung lượng sử dụng thật
+💾 Trường hợp sử dụng	                      Database, hệ điều hành, ứng dụng cần IOPS cao	                            Web server, log, ứng dụng container, dữ liệu chia sẻ
+🧠 Giao thức truy cập	                      Block level (ext4, xfs trên EC2)	                                        NFS v4 (mount như thư mục mạng)
+
+📌 Khi nào nên dùng cái nào?
+Nhu cầu	                                                          Nên dùng
+Chạy database (MySQL, PostgreSQL, MongoDB...) cần tốc độ cao	    ✅ EBS
+Dùng làm ổ đĩa hệ điều hành EC2	                                  ✅ EBS
+Chia sẻ nội dung website, thư mục upload, log file              	✅ EFS
+Chạy ứng dụng container trên ECS/EKS cần mount thư mục          	✅ EFS
