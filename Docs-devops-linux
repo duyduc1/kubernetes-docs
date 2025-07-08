@@ -778,7 +778,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 
 	  // jenkins 
 	  * vào dashboard -> manage jenkins -> nodes -> new node (đặt tên : lab-server , tích chọn Permanent Agent) -> create
-  	  * Trong Name -> lables ( tương ứng với tên server ví dụ lab-server ) -> Custom WorkDir path (tạo thư mục /var/lib/jenkins và
+  	  * Trong Name -> lables ( tương ứng với tên server ví dụ lab-server ) -> Remote root directory (tạo thư mục /var/lib/jenkins và
           nhớ tạo /var/lib/jenkins trong cả lab-server)-> trước khi save nhìn bước ở dưới -> save
 	  * mở tab google thứ 2 vào link của jenkins -> dashboard -> manage jenkins -> security -> Agents (TCP port for inbound agent) chọn fixed để port 8999 // port này trên jenkins-server
 	  và không có dịch vụ nào chạy -> save -> sau đó hãy save bước ở trên 
