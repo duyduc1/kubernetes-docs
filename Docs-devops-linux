@@ -184,7 +184,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	 - nginx -s reload
 * bài 4 : triển khai gitlab-ctl gitlab doanh nghiệp
   	- curl -s https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash
-  	- sudo apt-get install gitlab-ee=14.4.1-ee.0
+  	- sudo apt-get install gitlab-ee=18.0.2-ee.0
   	- nano /etc/hosts
 	  	127.0.0.1 localhost
 		127.0.1.1 dev-server2
