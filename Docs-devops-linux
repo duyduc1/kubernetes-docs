@@ -473,7 +473,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 		    - cd $DEPLOY_DIR
 		    - export $(cat .env | xargs)
 		    - npm install --omit=dev
-		    - nohup npm run start > nohup.out 2>&1 &
+		    - PORT=$PORT nohup npm run start > nohup.out 2>&1 &
 		
 		    # Reload nginx nếu dùng reverse proxy
 		    # - sudo nginx -t
