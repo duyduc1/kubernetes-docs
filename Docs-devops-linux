@@ -312,8 +312,11 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			    - sudo fuser -k $PORT/tcp || true
 			    - sudo mkdir -p $DEPLOY_DIR
 			    - sudo cp $JAR_PATH $DEPLOY_DIR
+			    - echo "$ENV_CONTENT" > .env                    
+    			    - sudo cp .env $DEPLOY_DIR/
 			    - sudo chown -R gitlab-runner:gitlab-runner $DEPLOY_DIR
 			    - cd $DEPLOY_DIR
+			    - export $(cat .env | xargs)
 			    - java -jar $JAR_NAME > nohup.out 2>&1 &
 			    - sudo nginx -t
 			    - sudo nginx -s reload
