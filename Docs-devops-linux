@@ -807,14 +807,14 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 				* Select scopes -> tích chọn api -> create personal access token
 				* nhớ lưu lại Api token sau khi tạo
 			// qua lại bên Jenkins
-			* Credentials: Add -> jenkins -> Add credentials -> kind (Username with password) -> Username: admingg && Passwword (paste API Token vừa lấy ở gitlab vào đây) -> ID : Jenkins-gitlab-user -> description : Jenkins-gitlab-user -> Add 
+			* Credentials: Add -> jenkins -> Add credentials -> kind (Gitlab API token) -> API token (paste API Token vừa lấy ở gitlab vào đây) -> ID : Jenkins-gitlab-user -> description : Jenkins-gitlab-user -> Add 
 			* Sau khi tạo thành công sẽ thấy ở phần Credentials -> chọn Gitlab API token(jenkins-gitlab-user) - Test Connection -> save
 
 	  // Hướng dẫn kết nối gitlab của dự án đến jenkins
 	  * Dashboard -> Action in lab -> new Item -> pipeline(tên dự án ví dụ shoeshop) -> Ok -> Discard old build -> Max of builds to keep (10) // chức năng giữ lại bảng build
 		      		       -> kéo xuống build triggers -> build when a change is pushed to gitlab -> chọn Push Event && Accepted Merge Request Events
 		      		       -> kéo xuống Pipeline -> Definition ( chọn pipeline script from SCM ) -> SCM ( chọn git ) -> Repository URL ( dùng link git của dự án => http://gitlab.duyduc.tech/vegetfood/vegetfood.git )
-		       		       -> kéo xuống Credentials -> Add -> jenkins -> Add Credentials -> Kind (Username with password) -> Username : jenkins (được tạo trên gitlab) && Password : của user Jenkins trên gitlab 
+		       		       -> kéo xuống Credentials -> Add -> jenkins -> Add Credentials -> Kind (Username with password) -> Username : jenkins (được tạo trên gitlab) && Password : paste API Token vừa lấy ở gitlab vào đây
 															    -> ID : jenkins-gitlab-user-account -> Description : jenkins-gitlab-user-account -> Add
 				       -> Và sau đó out ra Credentials -> chọn user vừa được tạo (jenkins-gitlab-user-account) 
 				       -> kéo xuống Branches to build -> Branch Specifier (chọn nhánh muốn build khi có merge request ví dụ develop , ngoài ra có thể Add Branch các nhánh khác vào) -> save
@@ -823,14 +823,14 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	  * Menu (nằm trên thanh header) -> Admin -> Setting -> Network -> Outbound requests -> click chọn cả 2 tuỳ chọn (Allow Requests to the local network from the web hooks and services , Allow Requests to the local network from system hooks)  -> Save changes
 
 	   // Vào Gitlab của dự án
-	  * Settings -> Webhooks -> ở phần URL (format chính của URL http://<URL của jenkins>/project/<Đường dẫn dự án trên jenkins>/) // ở dưới là ví dụ
+	  * Settings -> Webhooks -> ở phần URL (format chính của URL http://<URL của jenkins>/project/<Đường dẫn dự án trên jenkins>/)
 								      http://103.228.75.154:8080/project/Action_in_lab/vegetfood 
 								     ( tích chọn Push Event && Tags event && merge request events && bỏ tuỳ chọn enable ssl) -> Add webhook // vì chúng ta không dùng https nếu dùng https thì có thể tích chọn enable SSL
  	   // qua jenkins
 	  * Cấu hình Jenkins để cho phép anonymous được trigger job (ít bảo mật hơn)
 	     	Chỉ nên dùng nếu Jenkins bạn không công khai trên internet!
 		Truy cập Jenkins với tài khoản admin.
-		Vào Manage Jenkins → Configure Global Security.
+		Vào Manage Jenkins → Security.
 		Trong mục Authorization, chọn:
 		✅ "Matrix-based security".
 		Tìm hàng "anonymous" → bật quyền:
