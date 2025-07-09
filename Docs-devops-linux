@@ -807,7 +807,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 				* Select scopes -> tích chọn api -> create personal access token
 				* nhớ lưu lại Api token sau khi tạo
 			// qua lại bên Jenkins
-			* Credentials: Add -> jenkins -> Add credentials -> kind (Gitlab API token) -> API token (paste API Token vừa lấy ở gitlab vào đây) -> ID : Jenkins-gitlab-user -> description : Jenkins-gitlab-user -> Add 
+			* Credentials: Add -> jenkins -> Add credentials -> kind (Username with password) -> Username: admingg && Passwword (paste API Token vừa lấy ở gitlab vào đây) -> ID : Jenkins-gitlab-user -> description : Jenkins-gitlab-user -> Add 
 			* Sau khi tạo thành công sẽ thấy ở phần Credentials -> chọn Gitlab API token(jenkins-gitlab-user) - Test Connection -> save
 
 	  // Hướng dẫn kết nối gitlab của dự án đến jenkins
@@ -822,14 +822,23 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	  // Vào Gitlab của dự án 
 	  * Menu (nằm trên thanh header) -> Admin -> Setting -> Network -> Outbound requests -> click chọn cả 2 tuỳ chọn (Allow Requests to the local network from the web hooks and services , Allow Requests to the local network from system hooks)  -> Save changes
 
-	  // Lấy token ở jenkins
-	  * Admin -> security -> API Token -> Add new token ( đặt tên token tùy theo bạn ví dụ access token ) -> Generate (Nhớ copy token đã được gen ra)
-
 	   // Vào Gitlab của dự án
-	  * Settings -> Webhooks -> ở phần URL (format chính của URL http://<user trên jenkins>:<token của user đó trên jenkins>@<URL của jenkins>/project/<Đường dẫn dự án trên jenkins>/) // ở dưới là ví dụ
-								     http://admin:11dda35a0e3b70466878a04f96db4dddc3@jenkins.duyduc.tech/project/Action_in_lab/course 
+	  * Settings -> Webhooks -> ở phần URL (format chính của URL http://<URL của jenkins>/project/<Đường dẫn dự án trên jenkins>/) // ở dưới là ví dụ
+								      http://103.228.75.154:8080/project/Action_in_lab/vegetfood 
 								     ( tích chọn Push Event && Tags event && merge request events && bỏ tuỳ chọn enable ssl) -> Add webhook // vì chúng ta không dùng https nếu dùng https thì có thể tích chọn enable SSL
- 	  * Sau khi Add webhook -> ở dưới sẽ xuất hiện Project Hooks(1) -> Chọn Test -> tích chọn Push events 
+ 	   // qua jenkins
+	  * Cấu hình Jenkins để cho phép anonymous được trigger job (ít bảo mật hơn)
+	     	Chỉ nên dùng nếu Jenkins bạn không công khai trên internet!
+		Truy cập Jenkins với tài khoản admin.
+		Vào Manage Jenkins → Configure Global Security.
+		Trong mục Authorization, chọn:
+		✅ "Matrix-based security".
+		Tìm hàng "anonymous" → bật quyền:
+		Job > Build
+		(và Job > Read, nếu cần)
+		Lưu lại.
+		Kiểm tra lại GitLab webhook.
+	  * Sau khi Add webhook -> ở dưới sẽ xuất hiện Project Hooks(1) -> Chọn Test -> tích chọn Push events 
 	  // Vào lab-server của dự án
 	  - visudo // copy ở dưới rồi bỏ vào bên trong
 			jenkins  ALL=(ALL) NOPASSWD: ALL
@@ -841,51 +850,43 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 
 	  - Tạo một Jenkinsfile bên nhánh develop của gitlab và triển khai pipeline trên Repo nhánh develop của dự án đó 
 			pipeline {
-			    agent { label 'devops-server' }
+			    agent { label 'server-dev' }
 			
 			    environment {
-			        GIT_STRATEGY = 'clone'
+			        DEPLOY_DIR = "/opt/backend-data"
+			        JAR_NAME = "SpringSecurity.JWT-0.0.1-SNAPSHOT.jar"
+			        JAR_PATH = "target/${JAR_NAME}"
+			        PORT = "8080"
 			    }
 			
 			    stages {
 			        stage('Build') {
 			            steps {
 			                script {
-			                    sh 'mvn clean package -DskipTests'
-			                    sh 'ls -lah target/'  
+			                    sh 'mvn clean install'
 			                }
 			            }
 			        }
 			
 			        stage('Deploy') {
-			            environment {
-			                GIT_STRATEGY = 'none'
-			            }
 			            steps {
 			                script {
 			                    sh """
-			                        sudo fuser -k 8080/tcp || true
-			                        sudo mkdir -p /opt/datas/vegetfood
-			                        sudo cp target/VegetFood-1.0.jar /opt/datas/vegetfood/
-			                        sudo chown -R vegetfood:vegetfood /opt/datas/vegetfood
-			                        sudo chmod 755 /opt/datas/vegetfood/VegetFood-1.0.jar
-			                        ls -lah /opt/datas/vegetfood/
-			                        sudo su - vegetfood -c "nohup java -jar /opt/datas/vegetfood/VegetFood-1.0.jar > /opt/datas/vegetfood/nohup.out 2>&1 &"
+			                        sudo fuser -k ${PORT}/tcp || true
+			                        sudo mkdir -p ${DEPLOY_DIR}
+			                        sudo cp ${JAR_PATH} ${DEPLOY_DIR}
+			                        sudo chown -R jenkins:jenkins ${DEPLOY_DIR}
+			                        cd ${DEPLOY_DIR}
+			                        sudo -u jenkins nohup java -jar ${JAR_NAME} > nohup.out 2>&1 &
 			                    """
 			                }
 			            }
 			        }
 			
 			        stage('Show Log') {
-			            environment {
-			                GIT_STRATEGY = 'none'
-			            }
 			            steps {
 			                script {
-			                    sh """
-			                        sleep 10
-			                        sudo su - vegetfood -c "tail -n 50 /opt/datas/vegetfood/nohup.out"
-			                    """
+			                    sh "tail -n 50 ${DEPLOY_DIR}/nohup.out || echo 'No log found.'"
 			                }
 			            }
 			        }
@@ -895,13 +896,14 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			        always {
 			            script {
 			                sh """
-			                    sudo chown -R jenkins:jenkins /opt/datas || true
-			                    sudo chmod -R 755 /opt/datas || true
+			                    sudo chown -R jenkins:jenkins ${DEPLOY_DIR} || true
+			                    sudo chmod -R 755 ${DEPLOY_DIR} || true
 			                """
 			            }
 			        }
 			    }
 			}
+
 		- Sau khi triển khai xong thì qua bên Jenkins của dự án sẽ xuất hiện dưới Build History , có thể vào Blue Ocean để xem logs của Pipelines
 * buổi 11 : Monitor Garafana + prometheus
 	// Monitor bởi docker
