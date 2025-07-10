@@ -849,6 +849,20 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			springbe ALL=(ALL) NOPASSWD: ALL ( springbe* là tên của user đã được tạo trước đó trong thư mục dự án backend )
 
 	  - Tạo một Jenkinsfile bên nhánh develop của gitlab và triển khai pipeline trên Repo nhánh develop của dự án đó 
+
+			// Setup key env cho jenkins
+			Truy cập Jenkins web: http://your-jenkins-url
+			Chọn Manage Jenkins → Credentials
+			Chọn phạm vi Global (hoặc thư mục nếu bạn dùng folder-based structure)
+			Click (global) → Add Credentials
+			Ở màn hình “Add Credentials”, chọn:
+			Kind: Secret file
+			File: chọn file postgres.env bạn đã chuẩn bị
+			ID: đặt một ID dễ nhớ, ví dụ: postgres-env-file
+			Description: PostgreSQL Environment File (tuỳ chọn)
+			Nhấn OK để lưu
+
+			// Jenkins ci for Java Springboot
 			pipeline {
 			    agent { label 'server-dev' }
 			
@@ -903,6 +917,80 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			        }
 			    }
 			}
+
+			
+
+			// Jenkins Ci cho nestJS
+			pipeline {
+			    agent { label 'server-dev' }
+			
+			    environment {
+			        DEPLOY_DIR = '/opt/backend-data'
+			        APP_NAME = 'main.js'
+			        DIST_DIR = 'dist'
+			        PORT = '3000'
+			    }
+			
+			    stages {
+			
+			        stage('Build') {
+			            environment {
+			                GIT_STRATEGY = 'clone'
+			            }
+			            steps {
+			                sh '''
+			                    npm install
+			                    npm run build
+			                '''
+			            }
+			        }
+			
+			        stage('Deploy') {
+			            environment {
+			                GIT_STRATEGY = 'none'
+			            }
+			            steps {
+			                withCredentials([file(credentialsId: 'postgres-env-file', variable: 'ENV_FILE')]) {
+			                    sh '''
+			                        sudo fuser -k $PORT/tcp || true
+			                        sudo mkdir -p $DEPLOY_DIR
+			                        sudo cp -r $DIST_DIR/* $DEPLOY_DIR/
+			                        sudo cp package*.json $DEPLOY_DIR/
+			                        sudo cp $ENV_FILE $DEPLOY_DIR/.env
+			                        sudo chown -R jenkins:jenkins ${DEPLOY_DIR}
+			                        cd $DEPLOY_DIR
+			                        export $(cat .env | xargs)
+			                        npm install --omit=dev
+			                        sudo -u jenkins nohup node $APP_NAME > nohup.out 2>&1 &
+			                    '''
+			                }
+			            }
+			        }
+			
+			        stage('Show Log') {
+			            environment {
+			                GIT_STRATEGY = 'none'
+			            }
+			            steps {
+			                sh '''
+			                    tail -n 100 $DEPLOY_DIR/nohup.out || echo "❌ No log found."
+			                '''
+			            }
+			        }
+			    }
+			    
+			    post {
+			        always {
+			            script {
+			                sh """
+			                    sudo chown -R jenkins:jenkins ${DEPLOY_DIR} || true
+			                    sudo chmod -R 755 ${DEPLOY_DIR} || true
+			                """
+			            }
+			        }
+			    }
+			}
+
 
 		- Sau khi triển khai xong thì qua bên Jenkins của dự án sẽ xuất hiện dưới Build History , có thể vào Blue Ocean để xem logs của Pipelines
 * buổi 11 : Monitor Garafana + prometheus
