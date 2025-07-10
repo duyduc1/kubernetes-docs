@@ -882,9 +882,22 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			            }
 			        }
 			
-			        stage('Deploy') {
+			         stage('Deploy') {
 			            steps {
-			                script {
+					withCredentials([file(credentialsId: 'mysql-env-file', variable: 'ENV_FILE')]) { // nếu có env
+			                    sh '''
+			                        sudo fuser -k ${PORT}/tcp || true
+			                        sudo mkdir -p ${DEPLOY_DIR}
+			                        sudo cp ${JAR_PATH} ${DEPLOY_DIR}
+						sudo cp $ENV_FILE $DEPLOY_DIR/.env
+			                        sudo chown -R jenkins:jenkins ${DEPLOY_DIR}
+			                        cd ${DEPLOY_DIR}
+						export $(cat .env | xargs)
+			                        sudo -u jenkins nohup java -jar ${JAR_NAME} > nohup.out 2>&1 &
+			                    '''
+			                }
+					hoặc
+			                script { // nếu không có env
 			                    sh """
 			                        sudo fuser -k ${PORT}/tcp || true
 			                        sudo mkdir -p ${DEPLOY_DIR}
