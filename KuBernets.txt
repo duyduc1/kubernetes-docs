@@ -380,6 +380,7 @@ bước 3 :
 				* Vào server k8s-master-1 và paste dòng lệnh đã copy ở trên vào 
 				// để theo dõi sau khi paster dòng lệnh vào dùng calina
 				- kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
+				- kubectl get pods -n kube-system | grep calico // dùng lệnh này 
 				- watch kubectl get pod -n kube-system
 				* Vào lại web Rancher sẽ lấy trạng thái pending chuyển thành waiting 
 				* chờ một vào phút sau đó nhấn vào Machine Pools sẽ lấy các cụm k8s đã được tạo
