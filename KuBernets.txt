@@ -508,6 +508,7 @@ bước 3 :
 		* Vào lại phần Deployment vào phần Health -> sẽ thấy xuất hiện Scale thêm bằng cách 
 		nhấn dấu + hoặc giảm bằng dấu trừ // tăng giảm số lượng pods cần thiết
 		* Sau đó quay trở lại pods thì sẽ thấy một pods mới được tạo ra 
+		- kubectl get pod -n project -o wide // dùng để xem các pods trong namespace
 	* Tiến hành Download YAML trong Deployment -> tiếp theo mở file đó lên trong visual code
 		apiVersion: apps/v1
 		kind: Deployment
