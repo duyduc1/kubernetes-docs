@@ -619,20 +619,6 @@ Step 6: submit
 
 - ssh -i key_instance ec2-user@ip-public
 
-Buổi 34: Deploy ứng dụng trên ECS
-- Vào thanh header của dashboard của AWS 
-- tìm dịch vụ elastic Container Service
-- Sau đó truy cập vào và nhấn Get started
-
-// tạo một Clusters
-* Bên thanh bên trái chọn Clusters
-* Cluster configuration
-	- Cluster name (đặt DevOps) -> Create
-* Bên thanh bên trái chọn Task deffnitions
-	- Create new task deffnitions -> Task deffntion family (đặt là DevOps)
-	- Task roles (ecsTaskExecutionRole)
-	- Container-1 -> Name (web) && image URL (public.ecr.aws/nginx/nginx:1.27-alpine3.21-slim)
-
 Buổi 35: set up ECR chứa các docker images 
 * Step 1 : install docker 
 - mkdir tools 
@@ -699,3 +685,37 @@ docker tag backend-service:latest <aws_account_id>.dkr.ecr.<region>.amazonaws.co
 // push lên ECR 
 docker push <aws_account_id>.dkr.ecr.<region>.amazonaws.com/my-service:latest
 
+Buổi 36: Deploy ứng dụng với ecs
+1. Tạo Cluster ECS
+* Vào AWS Console → ECS → Clusters → Create Cluster.
+
+* Đặt tên cluster (vd: nestjs-cluster).
+
+2. Tạo Task Definition
+* Vào ECS → Task Definitions → Create new Task Definition
+
+* Đặt tên task (vd: nestjs-task)
+
+* Thêm Container definition
+- Name: nestjs-service
+- Image: <aws_account_id>.dkr.ecr.<region>.amazonaws.com/my-service:latest
+- Port mappings: 3000 → 3000 (hoặc 80 → 3000 nếu muốn expose HTTP)
+
+* Chọn CPU/RAM (vd: 0.5 vCPU, 1GB RAM)
+
+3. Tạo Service để chạy Task
+* Vào ECS → Clusters → Chọn cluster → Create service.
+
+* Task Definition: chọn cái vừa tạo (nestjs-task)
+
+* Number of tasks: ví dụ 1.
+
+* Networking:
+- Chọn VPC.
+- Chọn Subnet.
+- Security group: mở port 3000 (hoặc 80).
+
+4. Triển khai
+* Nhấn Create service → ECS sẽ tự pull image từ ECR và chạy container.
+
+* Bạn có thể kiểm tra trong ECS → Cluster → Tasks.
