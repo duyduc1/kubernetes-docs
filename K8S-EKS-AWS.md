@@ -189,3 +189,690 @@ eksctl delete nodegroup --cluster=eksdemo3 --name=eksdemo3-ng-public1
 eksctl delete cluster <clusterName>
 eksctl delete cluster eksdemo3
 ```
+
+# Triển khai ứng dụng trên EKS
+
+## Tạo namespace và resouce cho namespace đó
+
+``` bash
+mkdir project
+cd project
+```
+
+``` bash
+nano ns-frontend.yaml
+
+# nội dung bên trong
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend-resource
+```
+
+``` bash
+nano resourcequota-frontend.yml
+
+# nội dung bên trong
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mem-cpu-quota
+  namespace: frontend-resource
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 4Gi
+    limits.cpu: "4"
+    limits.memory: "8Gi"
+```
+
+### Apply cấu hình
+
+``` bash
+kubectl apply -f ns-frontend.yaml
+kubectl apply -f resourcequota-frontend.yaml
+```
+
+### Xoá cấu hình 
+
+``` bash
+kubectl delete -f ns-frontend.yaml
+kubectl delete -f resourcequota-frontend.yaml
+```
+
+## Triển khai Deployment/Service/Ingress
+
+### Dự án frontend
+
+``` bash
+nano frontend.yaml
+
+# nội dung bên trong 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: frontend-resource
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: your-dockerhub-user/frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: tcp
+          protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: frontend-resource
+spec:
+  type: LoadBalancer   
+  selector:
+    app: frontend
+  ports:
+    - name: tcp
+      port: 80
+      protocol: TCP
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  namespace: frontend-resource
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  rules:
+  - host: myapp-frontend.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 80
+
+```
+
+### Triển khai và kiểm tra
+
+``` bash
+# Triển khai dự án
+kubectl apply -f frontend.yaml
+
+# Kiểm tra Pods
+kubectl get pods -n frontend
+
+# Kiểm tra Service
+kubectl get svc -n frontend
+
+# Kiểm tra Ingress
+kubectl get ingress -n frontend
+```
+
+### Dự án backend
+
+``` bash
+nano ns-backend.yaml
+
+# nội dung bên trong
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backend-resource
+```
+
+``` bash
+nano resourcequota-backend.yml
+
+# nội dung bên trong
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mem-cpu-quota
+  namespace: backend-resource
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 4Gi
+    limits.cpu: "4"
+    limits.memory: "8Gi"
+```
+
+### Apply cấu hình
+
+``` bash
+kubectl apply -f ns-backend.yaml
+kubectl apply -f resourcequota-backend.yaml
+```
+
+### Xoá cấu hình 
+
+``` bash
+kubectl delete -f ns-backend.yaml
+kubectl delete -f resourcequota-backend.yaml
+```
+
+## Triển khai Deployment/Service/Ingress
+
+### Dự án backend
+
+``` bash
+nano user-service-config.yaml
+
+# Nội dung bên trong
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-config
+  namespace: backend-resource
+data:
+  application.properties: |
+    spring.datasource.url=jdbc:mysql://192.168.1.115:3306/userdb
+    spring.datasource.username=user
+    spring.datasource.password=userpass
+    spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
+
+```
+
+``` bash
+nano backend.yaml
+
+# nội dung bên trong 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: backend-resource
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: your-dockerhub-user/backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: tcp
+          protocol: TCP
+        volumeMounts:
+        - name: config-volume
+          mountPath: /run/src/main/resources/application.properties   
+          subPath: application.properties
+      volumes:
+      - name: config-volume
+        configMap:
+          name: user-service-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: backend-resource
+spec:
+  type: ClusterIP   
+  selector:
+    app: backend
+  ports:
+    - name: tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-ingress
+  namespace: backend-resource
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  rules:
+  - host: myapp-backend.com
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 8080
+```
+
+### Triển khai và kiểm tra
+
+``` bash
+# Apply lên EKS
+kubectl apply -f user-service-config.yaml
+
+# Kiểm tra
+kubectl get configmap -n backend-resource
+
+# Triển khai dự án
+kubectl apply -f backend.yaml
+
+# Kiểm tra Pods
+kubectl get pods -n backend
+
+# Kiểm tra Service
+kubectl get svc -n backend
+
+# Kiểm tra Ingress
+kubectl get ingress -n backend
+```
+
+# file Deploy cho backend-micro
+
+``` bash
+nano ns-micro.yaml
+
+# nội dung bên trong
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backend-micro
+```
+
+``` bash
+nano resourcequota-micro.yml
+
+# nội dung bên trong
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mem-cpu-quota
+  namespace: backend-micro
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 4Gi
+    limits.cpu: "4"
+    limits.memory: "8Gi"
+```
+
+### Apply cấu hình
+
+``` bash
+kubectl apply -f ns-micro.yaml
+kubectl apply -f resourcequota-micro.yaml
+```
+
+### Xoá cấu hình 
+
+``` bash
+kubectl delete -f ns-micro.yaml
+kubectl delete -f resourcequota-micro.yaml
+```
+
+## Triển khai Deployment/Service/Ingress
+
+### Dự án backend-micro
+
+``` bash
+nano user-service-config.yaml
+
+# Nội dung bên trong
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-config
+  namespace: backend-micro
+data:
+  application.properties: |
+    spring.datasource.url=jdbc:mysql://192.168.1.115:3306/userdb
+    spring.datasource.username=user
+    spring.datasource.password=userpass
+    spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
+```
+
+``` bash
+nano order-service-config.yaml
+
+# Nội dung bên trong
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-config
+  namespace: backend-micro
+data:
+  application.properties: |
+    spring.datasource.url=jdbc:mysql://192.168.1.115:3306/orderdb
+    spring.datasource.username=order
+    spring.datasource.password=order
+    spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
+```
+
+``` bash
+nano product-service-config.yaml
+
+# Nội dung bên trong
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: product-service-config
+  namespace: backend-micro
+data:
+  application.properties: |
+    spring.datasource.url=jdbc:mysql://192.168.1.115:3306/productdb
+    spring.datasource.username=product
+    spring.datasource.password=product
+    spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
+```
+
+``` bash
+nano payment-service-config.yaml
+
+# Nội dung bên trong
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-service-config
+  namespace: backend-micro
+data:
+  application.properties: |
+    spring.datasource.url=jdbc:mysql://192.168.1.115:3306/paymentdb
+    spring.datasource.username=payment
+    spring.datasource.password=payment
+    spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
+```
+
+## File deploy dự án micro
+
+``` bash
+nano micro-backend.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-deployment
+  namespace: backend-micro
+  labels:
+    app: user
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      containers:
+      - name: user
+        image: your-dockerhub-user/user-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8081
+          name: tcp
+          protocol: TCP
+        volumeMounts:
+        - name: config-volume
+          mountPath: /run/src/main/resources/application.properties   
+          subPath: application.properties
+      volumes:
+      - name: config-volume
+        configMap:
+          name: user-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: backend-micro
+spec:
+  selector:
+    app: user
+  ports:
+    - name: tcp
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+  type: ClusterIP
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-deployment
+  namespace: backend-micro
+  labels:
+    app: order
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      containers:
+      - name: order
+        image: your-dockerhub-user/order-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8082
+          name: tcp
+          protocol: TCP
+        volumeMounts:
+        - name: config-volume
+          mountPath: /run/src/main/resources/application.properties   
+          subPath: application.properties
+      volumes:
+      - name: config-volume
+        configMap:
+          name: order-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: backend-micro
+spec:
+  selector:
+    app: order
+  ports:
+    - name: tcp
+      port: 8082
+      protocol: TCP
+      targetPort: 8082
+  type: ClusterIP
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-deployment
+  namespace: backend-micro
+  labels:
+    app: product
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: product
+  template:
+    metadata:
+      labels:
+        app: product
+    spec:
+      containers:
+      - name: product
+        image: your-dockerhub-user/product-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8083
+          name: tcp
+          protocol: TCP
+        volumeMounts:
+        - name: config-volume
+          mountPath: /run/src/main/resources/application.properties   
+          subPath: application.properties
+      volumes:
+      - name: config-volume
+        configMap:
+          name: product-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: backend-micro
+spec:
+  selector:
+    app: product
+  ports:
+    - name: tcp
+      port: 8083
+      protocol: TCP
+      targetPort: 8083
+  type: ClusterIP
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-deployment
+  namespace: backend-micro
+  labels:
+    app: payment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+    spec:
+      containers:
+      - name: payment
+        image: your-dockerhub-user/payment-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8084
+          name: tcp
+          protocol: TCP
+        volumeMounts:
+        - name: config-volume
+          mountPath: /run/src/main/resources/application.properties   
+          subPath: application.properties
+      volumes:
+      - name: config-volume
+        configMap:
+          name: payment-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: backend-micro
+spec:
+  selector:
+    app: payment
+  ports:
+    - name: tcp
+      port: 8084
+      protocol: TCP
+      targetPort: 8084
+  type: ClusterIP
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-ingress
+  namespace: backend-micro
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+spec:
+  rules:
+  - host: api.myapp.com
+    http:
+      paths:
+      - path: /api/users
+        pathType: Prefix
+        backend:
+          service:
+            name: user-service
+            port:
+              number: 8081
+      - path:/api/orders
+        pathType: Prefix
+        backend:
+          service:
+            name: order-service
+            port:
+              number: 8082
+      - path: /api/products
+        pathType: Prefix
+        backend:
+          service:
+            name: product-service
+            port:
+              number: 8083
+      - path: /api/payments
+        pathType: Prefix
+        backend:
+          service:
+            name: payment-service
+            port:
+              number: 8084
+```
+
+### Triển khai và kiểm tra
+``` bash
+# Apply configmap lên EKS
+kubectl apply -f user-service-config.yaml
+kubectl apply -f order-service-config.yaml
+kubectl apply -f products-service-config.yaml
+kubectl apply -f payment-service-config.yaml
+
+# Kiểm tra
+kubectl get configmap -n backend-micro
+
+# Triển khai dự án
+kubectl apply -f micro-backend.yaml
+
+# Kiểm tra Pods
+kubectl get pods 
+
+# Kiểm tra Service
+kubectl get svc 
+
+# Kiểm tra Ingress
+kubectl get ingress
+```
