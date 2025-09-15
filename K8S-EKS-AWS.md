@@ -303,7 +303,7 @@ metadata:
   name: frontend-service
   namespace: frontend-resource
 spec:
-  type: LoadBalancer   
+  type: ClusterIP   
   selector:
     app: frontend
   ports:
@@ -410,7 +410,7 @@ metadata:
   namespace: backend-resource
 data:
   application.properties: |
-    spring.datasource.url=jdbc:mysql://192.168.1.115:3306/userdb
+    spring.datasource.url=jdbc:mysql://<IP-SERVER>:3306/userdb
     spring.datasource.username=user
     spring.datasource.password=userpass
     spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
@@ -574,7 +574,7 @@ metadata:
   namespace: backend-micro
 data:
   application.properties: |
-    spring.datasource.url=jdbc:mysql://192.168.1.115:3306/userdb
+    spring.datasource.url=jdbc:mysql://<ip-server>:3306/userdb
     spring.datasource.username=user
     spring.datasource.password=userpass
     spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
@@ -591,7 +591,7 @@ metadata:
   namespace: backend-micro
 data:
   application.properties: |
-    spring.datasource.url=jdbc:mysql://192.168.1.115:3306/orderdb
+    spring.datasource.url=jdbc:mysql://<IP-SERVER>:3306/orderdb
     spring.datasource.username=order
     spring.datasource.password=order
     spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
@@ -608,7 +608,7 @@ metadata:
   namespace: backend-micro
 data:
   application.properties: |
-    spring.datasource.url=jdbc:mysql://192.168.1.115:3306/productdb
+    spring.datasource.url=jdbc:mysql://<IP-SERVER>:3306/productdb
     spring.datasource.username=product
     spring.datasource.password=product
     spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
@@ -625,7 +625,7 @@ metadata:
   namespace: backend-micro
 data:
   application.properties: |
-    spring.datasource.url=jdbc:mysql://192.168.1.115:3306/paymentdb
+    spring.datasource.url=jdbc:mysql://<IP-SERVER>:3306/paymentdb
     spring.datasource.username=payment
     spring.datasource.password=payment
     spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
