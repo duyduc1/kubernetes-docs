@@ -201,10 +201,15 @@ helm repo update
 helm search repo nginx
 helm pull ingress-nginx/ingress-nginx
 tar -xzf ingress-nginx-4.11.3.tgz
-nano ingress-nginx/values.yaml
+
+# nếu triển khai On-premise
+-------------------
+nano ingress-nginx/values.yaml 
 # Sửa type: LoadBalancer sửa thành NodePort nếu là On-premise
 # Sửa nodePort http: "" => http: "30080" đối với clusterIP thì không cần port ALB tự quản lý 
 # Sửa nodePort https: "" => https: "30443" đối với clusterIP thì không cần port ALB tự quản lý 
+-------------------
+
 cp -rf ingress-nginx /home/ubuntu
 kubectl create ns ingress-nginx
 helm -n ingress-nginx install ingress-nginx -f ingress-nginx/values.yaml ingress-nginx

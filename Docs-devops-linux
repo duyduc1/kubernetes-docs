@@ -517,7 +517,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			docker --version
 			docker-compose --version]
    	    - chmod +x install-docker.sh
-    	    - bash install-docker.sh
+    	- bash install-docker.sh
 	    - docker pull ubuntu:22.04
 	    - docker images
 	    - docker run --name ubuntu -it ubuntu:22.04
@@ -751,8 +751,8 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 	  		  listen 80;
 	                  server_name jenkins.duyduc.tech;
 	
-	                  location / {
-	   		    proxy_pass http://jenkins.duyduc.tech:8080;
+	                  	location / {
+	   		    			proxy_pass http://jenkins.duyduc.tech:8080;
 	                    proxy_http_version 1.1;
 	                    proxy_set_header Upgrade $http_upgrade;
 	                    proxy_set_header Connection keep_alive;
@@ -884,7 +884,7 @@ java -jar "reset-trial-app-1.0-jar-with-dependencies (2).jar"
 			
 			         stage('Deploy') {
 			            steps {
-					withCredentials([file(credentialsId: 'mysql-env-file', variable: 'ENV_FILE')]) { // nếu có env
+							withCredentials([file(credentialsId: 'mysql-env-file', variable: 'ENV_FILE')]) { // nếu có env
 			                    sh '''
 			                        sudo fuser -k ${PORT}/tcp || true
 			                        sudo mkdir -p ${DEPLOY_DIR}
