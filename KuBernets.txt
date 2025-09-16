@@ -531,7 +531,7 @@ bước 3 :
 		    spec:
 		      containers:
 		        - image: vuduyduc/frontend
-			  imagePullPolicy: Always
+			  	  imagePullPolicy: Always
 		          name: frontend
 		          ports:
 		            - containerPort: 80
