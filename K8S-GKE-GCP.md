@@ -155,7 +155,7 @@ spec:
 
 ----------------------------------------
 # Tạo pod 
-nano pod.yml
+nano pod.yaml
 
 # nội dung bên trong file pod.yml
 apiVersion: v1
@@ -319,6 +319,7 @@ spec:
 # Các commands hay dùng Deployment
 
 ### vào trong server k8s-master-1
+
 ``` bash
 cd /projects/frontend
 kubectl get deployments -n frontend # trong đó frontend là namespaces, sẽ xuất thiện thông tin NAME (ví dụ frontend-deployment)
@@ -337,4 +338,190 @@ kubectl rollout undo deployment <ten-deployment> # Rollback Deployment về phi�
 kubectl rollout history deployment <ten-deployment> # Kiểm tra lịch sử các phiên bản của Deployment
 kubectl get pods -l app=<ten-deployment> -n <namespace> # Liệt kê các Pod được tạo bởi một Deployment cụ thể
 kubectl set env deployment/<ten-deployment> <key>=<value> # Cập nhật biến môi trường cho các container trong Deployment
+```
+
+# NodePort K8S Cloud GKE
+
+``` bash
+mkdir devops
+cd devops
+nano frontend.yml
+```
+
+``` yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: vuduyduc/frontend
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: frontend
+spec:
+  type: NodePort
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 32080
+```
+
+``` bash
+# tạo namespace cho frontend
+kubectl create ns frontend
+
+# áp dụng toàn bộ cấu hình cho file Yaml
+kubectl apply -f frontend.yaml
+
+# lấy toàn bộ thông tin cấu hình 
+kubectl get all -n frontend
+
+kubectl get no -o wide
+```
+
+1. Vào thanh 3 sọc -> Hover vào VPC Network -> Chọn phần Firewall -> tiến hành Create FIREWALL RULE
+	
+- kéo xuống Name và điền vào ô Input đó là (allow-port:32080) 
+
+- kéo xuống Targets -> chọn vào All instances in the network
+
+- kéo xuống source IPv4 rangers -> điền vào 0.0.0.0/0
+	
+- kéo xuống Specified protocols and ports
+		
+- Chọn TCP và để port là 32080
+
+- CREATE
+	
+2. vào lại Command Line của Cloud 
+
+- curl đến IP của 1 server EXTERNAL-IP:32080 (ví dụ 34.86.21.171:32080)
+	
+- mở tag google mới dán 34.86.21.171:32080 sẽ thấy giao diện của trang frontend
+
+# Triển khai Ingress on Cloud GCP
+
+1. ssh vào trong server GCP
+
+``` bash
+kubectl get all -n frontend 
+kubectl delete -f frontend.yaml
+
+# tiến hành cài Helm trên Cloud
+wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz
+tar xvf helm-v3.16.2-linux-amd64.tar.gz
+sudo mv linux-amd64/helm /usr/bin/
+helm version
+
+# Ingress Controller
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm pull ingress-nginx/ingress-nginx
+tar -xzf ingress-nginx-4.11.3.tgz
+kubectl create ns ingress-nginx
+helm -n ingress-nginx install ingress-nginx -f ingress-nginx/values.yaml ingress-nginx
+
+kubectl create ns ecommerce
+
+# tiến hành tạo file yaml để sử dụng service ingress
+nano frontend-service-dp-sv-ig.yaml
+```
+
+``` yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ecommerce-backend
+  name: ecommerce-backend-deployment
+  namespace: ecommerce
+spec:
+  replicas: 2
+  revisionHistoryLimit: 11
+  selector:
+    matchLabels:
+      app: ecommerce-backend
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: ecommerce-backend
+    spec:
+      containers:
+        - image: vuduyduc/ecommerce-backend:v1
+          imagePullPolicy: Always
+          name: backend
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-backend-service
+  namespace: ecommerce
+spec:
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: ecommerce-backend
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecommerce-backend-ingress
+  namespace: ecommerce
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ecommerce-backend-onpre.devopsedu.vn
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ecommerce-backend-service
+                port:
+                  number: 8080
+```
+
+3. tiến hành triển khai
+
+``` bash 
+kubectl apply -f frontend-dp-sv-ig.yaml
+
+kubectl get all -n ecommerce
+
+# địa chỉ Address và domain tự tạo tiến hành copy Address bỏ vào hosts System32
+kubectl get ingress -n ecommerce
 ```

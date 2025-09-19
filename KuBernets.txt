@@ -714,7 +714,7 @@ bước 3 :
 	- kubectl apply -f frontend.yaml // áp dụng toàn bộ cấu hình cho file Yaml
 	- kubectl get all -n frontend // lấy toàn bộ thông tin cấu hình 
 	- kubectl get no -o wide
-	* Vào thanh 3 sọc -> Hover vào VPC Network -> Chọn phân Firewall -> tiến hành Create FIREWALL RULE
+	* Vào thanh 3 sọc -> Hover vào VPC Network -> Chọn phần Firewall -> tiến hành Create FIREWALL RULE
 	-> kéo xuống Name và điền vào ô Input đó là (allow-port:32080) 
 	-> kéo xuống Targets -> chọn vào All instances in the network
 	-> kéo xuống source IPv4 rangers -> điền vào 0.0.0.0/0

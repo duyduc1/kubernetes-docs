@@ -637,3 +637,319 @@ kubectl rollout history deployment <ten-deployment> # Kiểm tra lịch sử cá
 kubectl get pods -l app=<ten-deployment> -n <namespace> # Liệt kê các Pod được tạo bởi một Deployment cụ thể
 kubectl set env deployment/<ten-deployment> <key>=<value> # Cập nhật biến môi trường cho các container trong Deployment
 ```
+
+#  Các chiến lược triển khai Deployment k8s
+
+## Có 2 chiến lượng triển khai
+
+### Recreate (tạo mới hoàn toàn các Pods)
+
+- Xoá toàn bộ pods đi và khởi tạo lại toàn bộ pods mới
+
+* Đây là file YAML của Recreate - chiến lượt thứ Recreate
+
+``` yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: frontend-deployment 
+  name: frontend-deployment
+  namespace: frontend
+spec:
+  replicas: 4 
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 11 
+  selector:
+    matchLabels:
+      app: frontend-deployment 
+  template:
+    metadata:
+      labels:
+        app: frontend-deployment
+      namespace: frontend
+    spec:
+      containers:
+        - image: nginx 
+	  imagePullPolicy: Always
+          name: frontend
+          ports:
+            - containerPort: 80
+	            name: tcp
+              protocol: TCP
+```
+
+### Rolling Update (cập nhật dần các Pods) 
+		
+- ví dụ chúng ta có 2 pods và triển khai version mới chúng ta thiết lập rằng cứ có 1 pods mới lên thì xoá một pods cũ đi vậy chúng ta sẽ có 1 pods version cũ và 1 pods version mới vẫn có thể đảm bảo dự án hoạt động được .
+
+* Đây là file YAML của Rolling Update - chiến lượt thứ Rolling Update
+
+``` yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: frontend-deployment
+  name: frontend-deployment
+  namespace: frontend
+spec:
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 1 #25%
+      maxUnavailable: 1 #25%
+    type: RollingUpdate
+  revisionHistoryLimit: 11
+  selector:
+    matchLabels:
+      app: frontend-deployment
+  template:
+    metadata:
+      labels:
+        app: frontend-deployment
+      namespace: frontend
+    spec:
+      containers:
+        - image: vuduyduc/frontend
+          imagePullPolicy: Always
+          name: frontend
+          ports:
+            - containerPort: 80
+              name: tcp
+              protocol: TCP
+```
+
+# Các loại Service trong K8S
+
+1. Service trong K8S là một đối tượng dùng để định nghĩa cách tiếp cận các pods thường là 1 nhóm pods hay chính xác là triển khai các pods qua deployment trong cụm k8s
+
+2. Service Type : có 4 loại 
+
+	- Cluster IP : tạo ra một địa chỉ IP chỉ có thể truy cập được ở trong cụm có thể giao tiếp được với nhau , nếu muốn giao tiếp ra bên ngoài thì cần phải đi qua ingress
+
+	- NodePort : Service này sẽ trực tiếp mở 1 port truy cập từ bên ứng dụng ra bên ngoài , tức là chúng ta có thể truy cập trực tiếp vào pods mà không cần phải đi qua bất cứ cổng nào nữa.
+
+	- LoadBalancer : Dành cho clound Provider , sẽ điều phối lưu lượng tới các service tương ứng 
+
+	- ExternalName : sẽ liên kết với 1 tên miền ở bên ngoài (domain)
+
+3. Cluster IP và LoadBalancer là 2 loại service giúp chuyển khai dự án chuyên nghiệp và thực tế với Cluster IP sẽ được áp dụng trên môi trường On-premise và LoadBalancer sẽ áp dụng cho môi trường cloud
+
+# NodePort
+
+1. Chỉ cho phép sử dụng các port từ 300000 - 32767
+
+2. vào trong devopsk8s
+
+3. Trong phần giao diện của Ranchers -> phần Service Discovery -> nhấn chọn vào service
+		
+- nhấn chọn Create -> nhấn chọn vào NodePort -> đặt Name là frontend-service && Port Name để là tcp && Listening Port đặt là 80 && Target Port là 80 && Node Port đặt ví dụ 32080
+		
+- Tiếp theo nhìn kỹ sẽ thấy Selectors -> để key là app && Value là frontend-deployment (coi lại file YAML đã cấu hình trong phần Rolling Update ) -> Create
+
+- Sau khi tạo xong sẽ thấy frontend-service đã được tạo với port là 32080 ở đây chúng ta có thể dùng IP Server của k8s-master-2 cộng với port 32080 để truy cập
+
+- bật tag google mới sau đó điền IP của server k8s-master-1 vào sau đó thêm port 32080 ở phía sau
+
+# ClusterIP -> không thể truy cập trực tiếp từ bên ngoài vào
+
+### khởi tạo với dashboard rancher 
+	
+1. Trong Service Discovery (của devopsk8s) -> chọn Services -> Chọn Create ->  Chọn ClusterIP -> đặt tên Cho Name (frontend1-service) && PortName đặt là tcp && listerning Port là 80 && TargetPort cũng là 80
+
+2. Xuống task Selectors ở bên cạnh -> key là app && Value là frontend-deployment -> CREATE
+
+3. Sau khi tạo xong ở mục target sẽ có một chỗ để link nhấn vào sẽ ra trang web
+
+# Ingress Kubernetes
+
+* Ingress Kubernetes là một tài nguyên dùng để quản lý cách thức truy cập từ bên ngoài vào các service bên trong cụm K8S giúp định hướng lưu lượng truy cập HTTP và HTTPS tới các service nội bộ
+
+* Mô hình đi từ Client -> đến loadbalancer -> đén ingress -> dựa theo hướng dẫn đến các service chính xác và từ service đến Pod tương ứng
+
+* Ingress nginx && Kong Gateway && HAProxy 3 loại hay sử dụng để triển khai trên ingress trên on-premise 
+
+* Helm là một loại công cụ quản lý các tài nguyên được cài đặt bằng helm
+
+* Loadbalencer làm nhiệm vụ cân bằng tải các traffic của NodePort trong K8S đi ra bên ngoài Client
+
+1. Cài đặt helm
+
+* Server master (k8s-master-1)
+
+``` bash
+cd && sudo -i
+wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz  
+tar xvf helm-v3.16.2-linux-amd64.tar.gz
+sudo mv linux-amd64/helm /usr/bin/
+```
+
+* add Chart của Ingress Nginx Controller 
+
+``` bash
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm search repo nginx
+helm pull ingress-nginx/ingress-nginx
+tar -xzf ingress-nginx-4.11.3.tgz
+nano ingress-nginx/values.yaml
+
+# Sửa type: LoadBalancer => type: NodePort // vì đang triển khai trên On-premise nên sử dụng NodePort
+# Sửa nodePort http: "" => http: "30080"
+# Sửa nodePort https: "" => https: "30443"
+
+cp -rf ingress-nginx /home/devops-k8s
+su devops-k8s
+kubectl create ns ingress-nginx 
+helm -n ingress-nginx install ingress-nginx -f ingress-nginx/values.yaml ingress-nginx
+helm version
+kubectl get all -n ingress-nginx
+```
+
+2. triển khai loadbalancer trên on-premise
+
+* Tạo thêm 1 server mới để triển khai Ingress Nginx - server Loadbalancer (192.168.1.110)
+
+* ssh vào server
+
+``` bash
+apt install net-tools -y 
+apt install nginx -y 
+nano /etc/nginx/sites-available/default
+
+# đổi listern 80 -> sang port khác (ví dụ : 9999)
+
+nano /etc/nginx/conf.d/devops-onpre.greenglobal.com.vn.conf
+			
+# config nginx làm loadbalancer 
+upstream my_servers {
+    server 192.168.1.111:30080; 
+    server 192.168.1.112:30080; 
+    server 192.168.1.113:30080;
+}
+			
+server {
+	listen 80;
+	server_name devops-onpre.greenglobal.com.vn;
+	location / {
+		proxy_pass http://my_servers;
+		proxy_redirect off;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+	}
+}
+
+# reload nginx
+nginx -s reload 
+systemctl restart nginx 
+``` 
+
+3. tiến hành deploy
+
+* trên web Rancher-server trong devopsk8s tạo Ingress trên Rancher 
+
+* Chọn Servivce Discovery -> chọn Ingress -> Chọn Import YAML
+
+``` yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  namespace: frontend
+spec:
+  ingressClassName: nginx
+	rules:
+		- host: devops-onpre.greenglobal.com.vn
+			http:
+			  paths:
+			    - backend:
+			        service:
+			          name: frontend-service
+			          port:
+			            number: 80
+			      path: /
+			      pathType: Prefix
+```
+
+* Import
+
+* Muốn biết chính xác tài nguyên Ingress này đã trỏ đúng service chưa thì chọn vào phần này frontend-service nếu nó di chuyển sang Pods và ở đó có các pods thì bạn đã triển khai đúng 
+
+* Vào system32 để add hosts và IP của server Nginx Ingress: ví dụ (192.168.1.110 devops-onpre.greenglobal.com.vn) // nếu chứa có domain
+
+* Truy cập bằng domain devops-onpre.greenglobal.com.vn
+
+# Template yaml Kubernetes 
+
+``` yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: frontend
+  name: frontend-deployment
+  namespace: frontend
+spec:
+  replicas: 2
+  revisionHistoryLimit: 11
+  selector:
+    matchLabels:
+      app: frontend
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - image: vuduyduc/frontend
+          imagePullPolicy: Always
+          name: frontend
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: frontend
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: frontend
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  namespace: frontend
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: frontend-onpre.devopsedu.vn
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend-service
+              port:
+                number: 80
+```
