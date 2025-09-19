@@ -525,3 +525,344 @@ kubectl get all -n ecommerce
 # địa chỉ Address và domain tự tạo tiến hành copy Address bỏ vào hosts System32
 kubectl get ingress -n ecommerce
 ```
+
+# configMap trong k8s
+
+- ConfigMap là một đối tượng (resource) trong Kubernetes dùng để lưu trữ dữ liệu cấu hình dạng key–value.
+
+- Nó giúp tách cấu hình ra khỏi ứng dụng → để bạn không phải build lại Docker image mỗi lần muốn thay đổi config.
+
+``` yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+  namespace: default
+data:
+  PORT: "3000"
+  DATABASE_HOST: "db-service"
+```
+
+1. Không cần rebuild image khi đổi config.
+
+2. Quản lý cấu hình tập trung.
+
+3. Có thể gắn config vào container dưới dạng:
+
+- Biến môi trường (env vars).
+
+- File (mount vào thư mục, giống như file application.properties cho Spring Boot).
+
+### ConfigMap = nơi lưu cấu hình key–value trong Kubernetes, để Pod/Container dùng mà không cần sửa code hoặc rebuild image.
+
+# Triển khai dự án fullstack
+
+### Chuẩn bị 1 server để triển khai dự án và đóng gói các images
+
+* cài đặt Docker
+
+``` bash
+nano install-docker.sh
+```
+
+``` bash
+# nội dung bên trong 
+!#/bin/bash
+
+sudo apt update
+sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker --version
+docker-compose --version
+```
+
+``` bash
+chmod +x install-docker.sh
+bash install-docker.sh
+```
+
+* Dockerfile Frontend Vue
+
+``` Dockerfile
+FROM node:18.18-alpine as build
+
+WORKDIR /app
+COPY . .
+
+RUN npm install --force
+RUN npm run build
+
+FROM nginx:alpine
+
+COPY --from-build /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+* build docker image frontend
+
+``` bash
+docker build -t ecommerce-frontend:v1 .
+
+# tiến hành push lên repo dockerhub
+docker login
+
+# Username: điền Username trên dockerhub
+# Passowrd: điền password trên dockerhub
+
+# Rename cho docker images trùng với trên repo
+# Nhớ tạo repo đó trên dockerhub trước khi push lên dockerhub
+
+docker tag ecommerce-frontend:v1 vuduyduc/ecommerce-frontend:v1
+
+# Push lên dockerhub
+docker push vuduyduc/ecommerce-frontend:v1
+```
+
+* Dockerfile Backend Java Springboot
+
+``` Dockerfile
+FROM maven:3.8-openjdk-17 AS build
+
+WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
+
+# Runtime stage
+FROM openjdk:17-jdk
+
+WORKDIR /run
+COPY --from=build /app/target/VegetFood-1.0.jar /run/VegetFood-1.0.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "/run/VegetFood-1.0.jar", "--spring.config.location=/run/src/main/resources/application.properties"]
+```
+
+* build docker image backend
+
+``` bash
+docker build -t ecommerce-backend:v1 .
+
+# tiến hành push lên repo dockerhub
+docker login
+
+# Username: điền Username trên dockerhub
+# Passowrd: điền password trên dockerhub
+
+# Rename cho docker images trùng với trên repo
+# Nhớ tạo repo đó trên dockerhub trước khi push lên dockerhub
+
+docker tag ecommerce-backend:v1 vuduyduc/ecommerce-backend:v1
+
+# Push lên dockerhub
+docker push vuduyduc/ecommerce-backend:v1
+```
+
+### Triển khai fullstack trên k8s
+
+1. Tạo namespace
+
+``` bash
+nano ns-fullstack.yaml
+```
+
+``` yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fullstack
+```
+
+* tạo resouce cho namespace đó
+
+``` bash
+nano resourcequota-fullstack.yaml
+```
+
+``` yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mem-cpu-quota
+  namespace: fullstack
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 4Gi
+```
+
+* Triển khai configMap cho backend
+
+``` bash
+nano backend-config.yaml
+```
+
+``` yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: fullstack
+data:
+  application.properties: |
+    spring.datasource.url=jdbc:mysql://<IP-SERVER>:3306/paymentdb
+    spring.datasource.username=payment
+    spring.datasource.password=payment
+    spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
+```
+
+2. Triển khai fullstack trong 1 file
+
+``` bash
+nano fullstack-project.yml
+```
+
+``` yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ecommerce-backend
+  name: ecommerce-backend-deployment
+  namespace: fullstack
+spec:
+  replicas: 2
+  revisionHistoryLimit: 11
+  selector:
+    matchLabels:
+      app: ecommerce-backend
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: ecommerce-backend
+    spec:
+      containers:
+        - image: vuduyduc/ecommerce-backend:v1
+          imagePullPolicy: Always
+          name: ecommerce-backend
+          ports:
+            - containerPort: 8080
+              name: tcp
+              protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /run/src/main/resources/application.properties   
+              subPath: application.properties
+      volumes:
+      - name: config-volume
+        configMap:
+          name: backend-config          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-backend-service
+  namespace: fullstack
+spec:
+  ports:
+    - name: tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: ecommerce-backend
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ecommerce-frontend
+  name: ecommerce-frontend-deployment
+  namespace: fullstack
+spec:
+  replicas: 2
+  revisionHistoryLimit: 11
+  selector:
+    matchLabels:
+      app: ecommerce-frontend
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: ecommerce-frontend
+    spec:
+      containers:
+        - image: vuduyduc/ecommerce-frontend:v1
+          imagePullPolicy: Always
+          name: ecommerce-frontend
+          ports:
+            - containerPort: 80
+              name: tcp
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-frontend-service
+  namespace: fullstack
+spec:
+  ports:
+    - name: tcp
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: ecommerce-frontend
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecommerce-domain-ingress
+  namespace: fullstack
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ecommerce-domain.devops.vn
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ecommerce-frontend-service
+                port:
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: ecommerce-backend-service
+                port:
+                  number: 8080
+```
+
+3. Tiến hành triển khai với các câu lệnh
+
+``` bash
+kubectl apply -f ns-fullstack.yaml
+kubectl apply -f backend-config.yaml
+kubectl apply -f resourcequota-fullstack.yaml
+kubectl apply -f fullstack-project.yml
+kubectl get all -n fullstack
+```

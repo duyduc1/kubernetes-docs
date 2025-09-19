@@ -285,13 +285,13 @@ spec:
         app: frontend
     spec:
       containers:
-      - name: frontend
-        image: your-dockerhub-user/frontend:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 80
-          name: tcp
-          protocol: TCP
+        - name: frontend
+          image: your-dockerhub-user/frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: tcp
+              protocol: TCP
 
 ---
 apiVersion: v1
@@ -437,17 +437,17 @@ spec:
         app: backend
     spec:
       containers:
-      - name: backend
-        image: your-dockerhub-user/backend:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8080
-          name: tcp
-          protocol: TCP
-        volumeMounts:
-        - name: config-volume
-          mountPath: /run/src/main/resources/application.properties   
-          subPath: application.properties
+        - name: backend
+          image: your-dockerhub-user/backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: tcp
+              protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /run/src/main/resources/application.properties   
+              subPath: application.properties
       volumes:
       - name: config-volume
         configMap:
@@ -653,17 +653,17 @@ spec:
         app: user
     spec:
       containers:
-      - name: user
-        image: your-dockerhub-user/user-service:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8081
-          name: tcp
-          protocol: TCP
-        volumeMounts:
-        - name: config-volume
-          mountPath: /run/src/main/resources/application.properties   
-          subPath: application.properties
+        - name: user
+          image: your-dockerhub-user/user-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+              name: tcp
+              protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /run/src/main/resources/application.properties   
+              subPath: application.properties
       volumes:
       - name: config-volume
         configMap:
@@ -702,17 +702,17 @@ spec:
         app: order
     spec:
       containers:
-      - name: order
-        image: your-dockerhub-user/order-service:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8082
-          name: tcp
-          protocol: TCP
-        volumeMounts:
-        - name: config-volume
-          mountPath: /run/src/main/resources/application.properties   
-          subPath: application.properties
+        - name: order
+          image: your-dockerhub-user/order-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+              name: tcp
+              protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /run/src/main/resources/application.properties   
+              subPath: application.properties
       volumes:
       - name: config-volume
         configMap:
@@ -751,17 +751,17 @@ spec:
         app: product
     spec:
       containers:
-      - name: product
-        image: your-dockerhub-user/product-service:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8083
-          name: tcp
-          protocol: TCP
-        volumeMounts:
-        - name: config-volume
-          mountPath: /run/src/main/resources/application.properties   
-          subPath: application.properties
+        - name: product
+          image: your-dockerhub-user/product-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8083
+              name: tcp
+              protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /run/src/main/resources/application.properties   
+              subPath: application.properties
       volumes:
       - name: config-volume
         configMap:
@@ -800,17 +800,17 @@ spec:
         app: payment
     spec:
       containers:
-      - name: payment
-        image: your-dockerhub-user/payment-service:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8084
-          name: tcp
-          protocol: TCP
-        volumeMounts:
-        - name: config-volume
-          mountPath: /run/src/main/resources/application.properties   
-          subPath: application.properties
+        - name: payment
+          image: your-dockerhub-user/payment-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8084
+              name: tcp
+              protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /run/src/main/resources/application.properties   
+              subPath: application.properties
       volumes:
       - name: config-volume
         configMap:
