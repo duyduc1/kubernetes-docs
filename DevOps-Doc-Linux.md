@@ -955,7 +955,7 @@ sudo npm install -g npm@latest
 adduser jenkins
 ```
 
-### Trên giao diện Jenkins
+### Trên giao diện Jenkins ( Tạo agent )
 
 1. vào dashboard -> manage jenkins -> nodes -> new node (đặt tên : lab-server , tích chọn Permanent Agent) -> create
 
@@ -977,7 +977,7 @@ su jenkins
 # Lấy từ bên trong Jenkins sau khi setup và paste vào trong này
 echo 2885cab07ec8e099947e97435d5625d2da2ea7934efc40fcf71588f83ab6ebc6 > secret-file
 curl -sO http://jenkins.duyduc.tech:8080/jnlpJars/agent.jar
-java -jar agent.jar -url http://jenkins.duyduc.tech:8080/ -secret @secret-file -name "devops-server" -webSocket -workDir "/var/lib/jenkins" > nohup.out 2>&1 &
+java -jar agent.jar -url http://jenkins.duyduc.tech:8080/ -secret @secret-file -name "lab-server" -webSocket -workDir "/var/lib/jenkins" > nohup.out 2>&1 &
 ```
 
 * quay lại trang jenkins rồi F5 lại sẽ thấy Agent is connected.
@@ -1080,3 +1080,172 @@ jenkins  ALL=(ALL) NOPASSWD: /bin/su springbe
 - Description: PostgreSQL Environment File (tuỳ chọn)
 
 - Nhấn OK để lưu
+
+### Jenkinsfile cho Springboot
+
+``` bash
+pipeline {
+    agent { label 'lab-server' }
+
+    environment {
+        DEPLOY_DIR = "/opt/backend-data"
+        JAR_NAME   = "SpringSecurity.JWT-0.0.1-SNAPSHOT.jar"
+        JAR_PATH   = "target/${JAR_NAME}"
+        PORT       = "8080"
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    sh 'mvn clean install'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                # Nếu có ENV
+                withCredentials([file(credentialsId: 'mysql-env-file', variable: 'ENV_FILE')]) {
+                    sh '''
+                        sudo fuser -k ${PORT}/tcp || true
+                        sudo mkdir -p ${DEPLOY_DIR}
+                        sudo cp ${JAR_PATH} ${DEPLOY_DIR}
+                        sudo cp $ENV_FILE ${DEPLOY_DIR}/.env
+                        sudo chown -R jenkins:jenkins ${DEPLOY_DIR}
+                        cd ${DEPLOY_DIR}
+                        export $(cat .env | xargs)
+                        sudo -u jenkins nohup java -jar ${JAR_NAME} > nohup.out 2>&1 &
+                    '''
+                }
+
+                # Nếu không có ENV
+                script {
+                    sh """
+                        sudo fuser -k ${PORT}/tcp || true
+                        sudo mkdir -p ${DEPLOY_DIR}
+                        sudo cp ${JAR_PATH} ${DEPLOY_DIR}
+                        sudo chown -R jenkins:jenkins ${DEPLOY_DIR}
+                        cd ${DEPLOY_DIR}
+                        sudo -u jenkins nohup java -jar ${JAR_NAME} > nohup.out 2>&1 &
+                    """
+                }
+            }
+        }
+
+        stage('Show Log') {
+            steps {
+                script {
+                    sh "tail -n 50 ${DEPLOY_DIR}/nohup.out || echo 'No log found.'"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                sh """
+                    sudo chown -R jenkins:jenkins ${DEPLOY_DIR} || true
+                    sudo chmod -R 755 ${DEPLOY_DIR} || true
+                """
+            }
+        }
+    }
+}
+```
+
+### Jenkinsfile cho NestJS
+
+``` bash
+pipeline {
+    agent { label 'lab-server' }
+
+    environment {
+        DEPLOY_DIR = "/opt/backend-data"
+        APP_NAME   = "main.js"
+        DIST_DIR   = "dist"
+        PORT       = "3000"
+    }
+
+    stages {
+
+        stage('Build') {
+            environment {
+                GIT_STRATEGY = "clone"
+            }
+            steps {
+                sh '''
+                    npm install
+                    npm run build
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            environment {
+                GIT_STRATEGY = "none"
+            }
+            steps {
+                # Trường hợp env trong jenkins
+                withCredentials([file(credentialsId: 'postgres-env-file', variable: 'ENV_FILE')]) {
+                    sh '''
+                        sudo fuser -k $PORT/tcp || true
+                        sudo mkdir -p $DEPLOY_DIR
+                        sudo cp -r $DIST_DIR/* $DEPLOY_DIR/
+                        sudo cp package*.json $DEPLOY_DIR/
+                        sudo cp $ENV_FILE $DEPLOY_DIR/.env
+                        sudo chown -R jenkins:jenkins $DEPLOY_DIR
+                        cd $DEPLOY_DIR
+                        export $(cat .env | xargs)
+                        npm install --omit=dev
+                        sudo -u jenkins nohup node $APP_NAME > nohup.out 2>&1 &
+                    '''
+                }
+
+                # Trường hợp không cần env 
+                script {
+                    sh """
+                        sudo fuser -k $PORT/tcp || true
+                        sudo mkdir -p $DEPLOY_DIR
+                        sudo cp -r $DIST_DIR/* $DEPLOY_DIR/
+                        sudo cp package*.json $DEPLOY_DIR/
+                        sudo chown -R jenkins:jenkins $DEPLOY_DIR
+                        cd $DEPLOY_DIR
+                        npm install --omit=dev
+                        sudo -u jenkins nohup node $APP_NAME > nohup.out 2>&1 &
+                    """
+                }
+            }
+        }
+
+        stage('Show Log') {
+            environment {
+                GIT_STRATEGY = "none"
+            }
+            steps {
+                sh '''
+                    tail -n 100 $DEPLOY_DIR/nohup.out || echo "❌ No log found."
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                sh """
+                    sudo chown -R jenkins:jenkins $DEPLOY_DIR || true
+                    sudo chmod -R 755 $DEPLOY_DIR || true
+                """
+            }
+        }
+    }
+}
+
+```
+
+* Sau khi triển khai xong thì qua bên Jenkins của dự án sẽ xuất hiện dưới Build History , có thể vào Blue Ocean để xem logs của Pipelines
+
+# Monitor
+
