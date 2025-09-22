@@ -1012,3 +1012,71 @@ java -jar agent.jar -url http://jenkins.duyduc.tech:8080/ -secret @secret-file -
 <br> -> API token (paste API Token vừa lấy ở gitlab vào đây) <br> -> ID : Jenkins-gitlab-user <br> -> description : Jenkins-gitlab-user -> Add 
 
 * Sau khi tạo thành công sẽ thấy ở phần Credentials -> chọn Gitlab API token(jenkins-gitlab-user) - Test Connection -> save
+
+### Hướng dẫn kết nối gitlab của dự án đến jenkins
+
+* Dashboard -> Action in lab -> new Item -> pipeline(tên dự án ví dụ shoeshop) -> Ok -> Discard old build -> Max of builds to keep (10) <br> -> kéo xuống build triggers -> build when a change is pushed to gitlab -> chọn Push Event && Accepted Merge Request Events <br> -> kéo xuống Pipeline -> Definition ( chọn pipeline script from SCM ) -> SCM ( chọn git ) -> Repository URL ( dùng link git của dự án => http://gitlab.duyduc.tech/vegetfood/vegetfood.git ) <br> -> kéo xuống Credentials -> Add -> jenkins -> Add Credentials -> Kind (Username with password) -> Username : jenkins (được tạo trên gitlab) && Password : paste API Token vừa lấy ở gitlab vào đây <br> -> ID : jenkins-gitlab-user-account -> Description : jenkins-gitlab-user-account -> Add <br> -> Và sau đó out ra Credentials -> chọn user vừa được tạo (jenkins-gitlab-user-account) <br> -> kéo xuống Branches to build -> Branch Specifier (chọn nhánh muốn build khi có merge request ví dụ develop , ngoài ra có thể Add Branch các nhánh khác vào) -> save
+
+### Vào Gitlab của dự án 
+
+* Menu -> Admin -> Setting -> Network -> Outbound requests -> click chọn cả 2 tuỳ chọn (Allow Requests to the local network from the web hooks and services <br>, Allow Requests to the local network from system hooks)  -> Save changes
+
+* Settings -> Webhooks -> ở phần URL (format chính của URL http://<URL của jenkins>/project/<Đường dẫn dự án trên jenkins>/ <br> ví dụ:
+http://103.228.75.154:8080/project/Action_in_lab/vegetfood) <br> -> tích chọn Push Event && Tags event && merge request events && bỏ tuỳ chọn enable ssl -> Add webhook
+
+### Trên dashboard Jenkins
+
+* Cấu hình Jenkins để cho phép anonymous được trigger job
+
+1. Truy cập Jenkins với tài khoản admin -> Vào Manage Jenkins → Security.
+
+2. Trong mục Authorization, chọn:
+
+* ✅ "Matrix-based security".
+
+* Tìm hàng "anonymous" → bật quyền:
+		
+* Job > Build (và Job > Read, nếu cần)
+
+* Lưu lại.
+
+### Vào Gitlab của dự án 
+
+* Kiểm tra lại GitLab webhook.
+	  
+* Sau khi Add webhook -> ở dưới sẽ xuất hiện Project Hooks(1) -> Chọn Test -> tích chọn Push events 
+
+### Bên trong lab-server
+
+``` bash
+visudo
+
+### nội dung 
+jenkins  ALL=(ALL) NOPASSWD: ALL
+jenkins  ALL=(ALL) NOPASSWD: /bin/mkdir*
+jenkins  ALL=(ALL) NOPASSWD: /bin/cp*
+jenkins  ALL=(ALL) NOPASSWD: /bin/chown*
+jenkins  ALL=(ALL) NOPASSWD: /bin/su springbe
+```
+
+### Vào Gitlab của dự án
+
+1. Tạo một Jenkinsfile bên nhánh develop của gitlab và triển khai pipeline trên Repo nhánh develop của dự án đó 
+
+2. Truy cập Jenkins web: http://your-jenkins-url
+			
+3. Chọn Manage Jenkins → Credentials
+
+4. Chọn phạm vi Global -> Click (global) → Add Credentials
+
+5. Ở màn hình “Add Credentials”, chọn:
+			
+- Kind: Secret file
+
+- File: chọn file postgres.env bạn đã chuẩn bị
+
+- ID: đặt một ID dễ nhớ, ví dụ: postgres-env-file
+
+- Description: PostgreSQL Environment File (tuỳ chọn)
+
+- Nhấn OK để lưu
