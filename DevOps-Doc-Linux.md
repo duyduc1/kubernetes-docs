@@ -345,22 +345,22 @@ stages:
   - build
   - deploy
   - showlog
-			
+
 variables:
   DEPLOY_DIR: /opt/backend-data
   JAR_NAME: <file-build-sau-khi-build-trong-du-an-springboot>.jar
   JAR_PATH: target/<file-build-sau-khi-build-trong-du-an-springboot>.jar
   PORT: 8080
-			
+
 build:
   stage: build
   variables:
     GIT_STRATEGY: clone
-	script:
+  script:
     - mvn clean install
   tags:
     - deploy
-			
+
 deploy:
   stage: deploy
   variables:
@@ -371,14 +371,14 @@ deploy:
     - sudo cp $JAR_PATH $DEPLOY_DIR
     # xoá key nếu trong repo đã chứa key rồi
     - echo "$ENV_CONTENT" > .env                    
-	  - sudo cp .env $DEPLOY_DIR/
+    - sudo cp .env $DEPLOY_DIR/
     - sudo chown -R gitlab-runner:gitlab-runner $DEPLOY_DIR
     - cd $DEPLOY_DIR
     - export $(cat .env | xargs)
     - java -jar $JAR_NAME > nohup.out 2>&1 &
   tags:
     - deploy
-			
+
 showlog:
   stage: showlog
   variables:
@@ -397,7 +397,7 @@ stages:
   - build
   - deploy
   - showlog
-			
+
 build:
   stage: build
   variables:
@@ -410,7 +410,7 @@ build:
       - build/
   tags:
     - deploy
-			
+
 deploy:
   stage: deploy
   variables:
@@ -423,16 +423,16 @@ deploy:
     - sudo nginx -s reload
   tags:
     - deploy
-		
+
 showlog:
-	stage: showlog
-	variables:
-	  GIT_STRATEGY: none
+  stage: showlog
+  variables:
+    GIT_STRATEGY: none
 	script:
-	  - echo "Nginx Access Log:"
-	  - sudo tail -n 100 /var/log/nginx/access.log || true
-	  - echo "Nginx Error Log:"
-	  - sudo tail -n 100 /var/log/nginx/error.log || true
+    - echo "Nginx Access Log:"
+    - sudo tail -n 100 /var/log/nginx/access.log || true
+    - echo "Nginx Error Log:"
+    - sudo tail -n 100 /var/log/nginx/error.log || true
   tags:
     - deploy
 ```
@@ -446,11 +446,11 @@ stages:
   - showlog
 
 variables:
-	DEPLOY_DIR: /opt/backend-data
+  DEPLOY_DIR: /opt/backend-data
   APP_NAME: main.js
   DIST_DIR: dist
   PORT: 3000
-		
+
 build:
   stage: build
   variables:
@@ -460,7 +460,7 @@ build:
     - npm run build 
   tags:
     - deploy
-		
+
 deploy:
   stage: deploy
   variables:
@@ -478,9 +478,9 @@ deploy:
     - export $(cat .env | xargs)
     - npm install --omit=dev
     - nohup node $APP_NAME > nohup.out 2>&1 &
-	tags:
-	  - deploy
-		
+  tags:
+    - deploy
+
 showlog:
   stage: showlog
   variables:
