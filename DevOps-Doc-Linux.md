@@ -428,7 +428,7 @@ showlog:
   stage: showlog
   variables:
     GIT_STRATEGY: none
-	script:
+  script:
     - echo "Nginx Access Log:"
     - sudo tail -n 100 /var/log/nginx/access.log || true
     - echo "Nginx Error Log:"
