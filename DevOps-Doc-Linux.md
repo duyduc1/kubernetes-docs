@@ -1307,7 +1307,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-	  container_name: grafana
+    container_name: grafana
     volumes:
       - grafana_data:/var/lib/grafana
     ports:
