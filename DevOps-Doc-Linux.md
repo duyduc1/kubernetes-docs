@@ -498,11 +498,11 @@ stages:
   - build
   - deploy
   - showlog
-		
+
 variables:
   DEPLOY_DIR: /opt/frontend-data
   PORT: 4000
-		
+
 build:
   stage: build
   variables:
@@ -510,35 +510,33 @@ build:
   script:
     - npm install
     - npm run build      
-	artifacts:
-	  paths:
-	    - .next
-	    - public
-	    - package*.json
-	tags:
-	  - deploy
-		
+  artifacts:
+    paths:
+      - .next
+      - public
+      - package*.json
+  tags:
+    - deploy
+
 deploy:
   stage: deploy
   variables:
     GIT_STRATEGY: none
   script:
-		- sudo fuser -k $PORT/tcp || true
+    - sudo fuser -k $PORT/tcp || true
     - sudo mkdir -p $DEPLOY_DIR
-		- sudo cp -r .next public package*.json $DEPLOY_DIR/
-		
-		# Copy file .env từ biến CI
-		- echo "$ENV_CONTENT" > .env
-	  - sudo cp .env $DEPLOY_DIR/
-		
-		- sudo chown -R gitlab-runner:gitlab-runner $DEPLOY_DIR
-		- cd $DEPLOY_DIR
-		- export $(cat .env | xargs)
-		- npm install --omit=dev
-		- PORT=$PORT nohup npm run start > nohup.out 2>&1 &
-	tags:
-	  - deploy
-		
+    - sudo cp -r .next public package*.json $DEPLOY_DIR/
+    # Copy file .env từ biến CI
+    - echo "$ENV_CONTENT" > .env
+    - sudo cp .env $DEPLOY_DIR/
+    - sudo chown -R gitlab-runner:gitlab-runner $DEPLOY_DIR
+    - cd $DEPLOY_DIR
+    - export $(cat .env | xargs)
+    - npm install --omit=dev
+    - PORT=$PORT nohup npm run start > nohup.out 2>&1 &
+  tags:
+    - deploy
+
 showlog:
   stage: showlog
   variables:
@@ -1294,37 +1292,37 @@ scrape_configs:
 ```
 
 ``` yaml
-				services:
-				  prometheus:
-				    image: prom/prometheus:latest
-				    container_name: prometheus
-				    volumes:
-				      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-				      - prometheus_data:/prometheus
-				    ports:
-				      - "9090:9090"
-				    restart: always
-				    networks:
-				      - monitoring
-				
-				  grafana:
-				    image: grafana/grafana:latest
-				    container_name: grafana
-				    volumes:
-				      - grafana_data:/var/lib/grafana
-				    ports:
-				      - "3000:3000"
-				    restart: always
-				    networks:
-				      - monitoring
-				
-				volumes:
-				  prometheus_data:
-				  grafana_data:
-				
-				networks:
-				  monitoring:
-				    driver: bridge
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: always
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+	  container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    restart: always
+    networks:
+      - monitoring
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  monitoring:
+    driver: bridge
 ```
 
 - chạy file yaml
