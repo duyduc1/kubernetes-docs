@@ -3,15 +3,13 @@
 apt-get update -y
 apt-get install -y wget
 
-CLOUDWATCH_LOG_GROUP_NAME_POSTFIX=asg_dev
-
 wget https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
 sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 
-systemctl enable amazon-ssm-agent
+systemctl enable amazon-cloudwatch-agent
 systemctl start amazon-cloudwatch-agent
 
-cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json <<'JSON'
+cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json <<JSON
 {
   "agent": {
     "metrics_collection_interval": 60,
@@ -23,8 +21,8 @@ cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json <<'JSON'
         "collect_list": [
           {
             "file_path": "/var/log/syslog",
-            "log_group_name": "aws/asg/${CLOUDWATCH_LOG_GROUP_NAME_POSTFIX}",
-            "log_stream_name": "{instance_id}-syslog",
+            "log_group_name": "aws/asg/${cloudwatch_log_group_name_postfix}",
+            "log_stream_name": "{instance_id}-syslog"
           }
         ]
       }
@@ -65,4 +63,4 @@ JSON
 sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
   -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
 
-systemctl restart amazon-ssm-agent
+systemctl restart amazon-cloudwatch-agent

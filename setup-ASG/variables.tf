@@ -31,7 +31,7 @@ variable "vpc_security_group_ids" {
 variable "subnet_ids" {
   description = "subnet_ids"
   type        = list(string)
-  default     = ["subnet-06d05fea9a4308d4d"]
+  default     = ["subnet-06d05fea9a4308d4d","subnet-05a027f0c03029951"]
 }
 
 variable "asg_name" {
@@ -122,4 +122,51 @@ variable "memory_low_scale_in_evaluation_periods" {
   description = "Number of periods memory must stay below threshold to trigger scale-in"
   type        = number
   default     = 3  
+}
+
+variable "response_time_high_scale_out_threshold" {
+  description = "Reponse time threshold to trigger scale-out"
+  type        = number
+  default     = 0.5
+}
+
+variable "response_time_high_scale_out_period" {
+  description = "Period (in seconds) to evaluate response time usage for scale-out"
+  type        = number
+  default     = 60  
+}
+
+variable "response_time_high_scale_out_evaluation_periods" {
+  description = "Number of periods response time must stay below threshold to trigger scale-out"
+  type        = number
+  default     = 3
+}
+
+variable "response_time_low_scale_in_threshold" {
+  description = "Reponse time threshold to trigger scale-in"
+  type        = number
+  default     = 0.2
+}
+
+variable "response_time_low_scale_in_period" {
+  description = "Period (in seconds) to evaluate response time usage for scale-in"
+  type        = number
+  default     = 300  
+}
+
+variable "response_time_low_scale_in_evaluation_periods" {
+  description = "Number of periods response time must stay below threshold to trigger scale-i "
+  type        = number
+  default     = 2
+}
+
+variable "vpc_id" {
+  description = "VPC Id for ASG target group"
+  type        = string
+  default     = "vpc-06cb2d99ad1a50f3b"
+}
+
+variable "cloudwatch_log_group_name_postfix" {
+  type    = string
+  default = "asg_dev"
 }

@@ -423,6 +423,12 @@ mkdir terraform
 cd terraform
 ```
 
+### Các câu lệnh để kiểm tra vpc, subnet
+``` bash
+aws ec2 describe-security-groups --query "SecurityGroups[*].[GroupId,GroupName]" --output table
+aws ec2 describe-subnets --query "Subnets[*].[SubnetId,AvailabilityZone]" --output table
+```
+
 ### Cấu trúc file bên trong
 
 ``` bash
