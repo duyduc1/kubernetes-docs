@@ -22,7 +22,7 @@ cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json <<JSON
           {
             "file_path": "/var/log/syslog",
             "log_group_name": "aws/asg/${cloudwatch_log_group_name_postfix}",
-            "log_stream_name": "${instance_id}-syslog"
+            "log_stream_name": "{instance_id}-syslog"
           }
         ]
       }
