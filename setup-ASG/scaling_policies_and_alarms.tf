@@ -89,3 +89,35 @@ resource "aws_cloudwatch_metric_alarm" "low_response_time" {
 
   alarm_actions = [aws_autoscaling_policy.scale_in.arn]
 }
+
+resource "aws_cloudwatch_metric_alarm" "cpu_high" {
+  alarm_name             = "${var.asg_name}-cpu-high"
+  namespace              = "AWS/EC2"
+  metric_name            = "CPUUtilization"
+  statistic              = "Average"
+  period                 = var.cpu_high_scale_out_period
+  evaluation_periods     = var.cpu_high_scale_out_evaluation_periods
+  threshold              = var.cpu_high_scale_out_threshold
+  comparison_operator    = "GreaterThanThreshold"
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.asg.name
+  }
+  alarm_description   = "Scale-out when CPU > ${var.cpu_high_scale_out_threshold}% for 5 minutes"
+  alarm_actions       = [aws_autoscaling_policy.scale_out.arn]
+}
+
+resource "aws_cloudwatch_metric_alarm" "cpu_low" {
+  alarm_name             = "${var.asg_name}-cpu-low"
+  namespace              = "AWS/EC2"
+  metric_name            = "CPUUtilization"
+  statistic              = "Average"
+  period                 = var.cpu_low_scale_in_period
+  evaluation_periods     = var.cpu_low_scale_in_evaluation_periods
+  threshold              = var.cpu_low_scale_in_threshold
+  comparison_operator    = "LessThanThreshold"
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.asg.name
+  }
+  alarm_description   = "Scale-in When CPU < ${var.cpu_low_scale_in_threshold}% for 15 minutes"
+  alarm_actions       = [aws_autoscaling_policy.scale_in.arn]
+}

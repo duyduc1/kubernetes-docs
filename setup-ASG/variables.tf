@@ -170,3 +170,39 @@ variable "cloudwatch_log_group_name_postfix" {
   type    = string
   default = "asg_dev"
 }
+
+variable "cpu_high_scale_out_threshold" {
+  description = "CPU threshold to trigger scale-out"
+  type        = number
+  default     = 70
+}
+
+variable "cpu_high_scale_out_period" {
+  description = "Period (in seconds) over which CPU utilization is evaluated for scale-out"
+  type        = number
+  default     = 300 
+}
+
+variable "cpu_high_scale_out_evaluation_periods" {
+  description = "Number of periods CPU must exceed threshold to trigger scale-out"
+  type        = number
+  default     = 1
+}
+
+variable "cpu_low_scale_in_threshold" {
+  description = "CPU threshold to trigger scale-in"
+  type        = number
+  default     = 30 
+}
+
+variable "cpu_low_scale_in_period" {
+  description  = "Period (in seconds) over which CPU utilization is evaluated for scale-in"
+  type         = number
+  default      = 300
+}
+
+variable "cpu_low_scale_in_evaluation_periods" {
+  description = "Number of periods CPU must exceed threshold to trigger scale-in"
+  type        = number
+  default     = 3
+}
