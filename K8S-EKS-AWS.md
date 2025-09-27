@@ -192,6 +192,8 @@ eksctl delete cluster eksdemo3
 
 ### Bước 03: Triển khai Helmchart
 
+- Nếu dùng nginx-ingress
+
 ``` bash
 wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz
 tar xvf helm-v3.16.2-linux-amd64.tar.gz
@@ -207,6 +209,23 @@ kubectl create ns ingress-nginx
 helm -n ingress-nginx install ingress-nginx -f ingress-nginx/values.yaml ingress-nginx
 helm version
 kubectl get all -n ingress-nginx
+```
+- Nếu dùng nginx-controller
+
+``` bash
+wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz
+tar xvf helm-v3.16.2-linux-amd64.tar.gz
+sudo mv linux-amd64/helm /usr/bin/
+
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=<cluster-name> \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller \
+  --set region=<region> \
+  --set vpcId=<vpc-id>
 ```
 
 # Triển khai ứng dụng trên EKS
