@@ -898,3 +898,12 @@ kubectl get svc
 # Kiểm tra Ingress
 kubectl get ingress
 ```
+
+### destroy cụm k8s bằng câu lệnh
+
+``` bash
+eksctl delete cluster --name <cluster-name> --region <region>
+
+# ví dụ
+eksctl delete cluster --name my-eks-cluster --region ap-southeast-1
+```
