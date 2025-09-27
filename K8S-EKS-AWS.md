@@ -202,7 +202,7 @@ helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 helm search repo nginx
 helm pull ingress-nginx/ingress-nginx
-tar -xzf ingress-nginx-4.11.3.tgz
+tar -xzf ingress-nginx-4.13.2.tgz
 
 cp -rf ingress-nginx /home/ubuntu
 kubectl create ns ingress-nginx
@@ -466,7 +466,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /run/src/main/resources/application.properties   
+              mountPath: /config/application.properties   
               subPath: application.properties
       volumes:
       - name: config-volume
@@ -683,7 +683,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /run/src/main/resources/application.properties   
+              mountPath: /config/application.properties   
               subPath: application.properties
       volumes:
       - name: config-volume
@@ -732,7 +732,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /run/src/main/resources/application.properties   
+              mountPath: /config/application.properties   
               subPath: application.properties
       volumes:
       - name: config-volume
@@ -781,7 +781,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /run/src/main/resources/application.properties   
+              mountPath: /config/application.properties   
               subPath: application.properties
       volumes:
       - name: config-volume
@@ -830,7 +830,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /run/src/main/resources/application.properties   
+              mountPath: /config/application.properties   
               subPath: application.properties
       volumes:
       - name: config-volume
