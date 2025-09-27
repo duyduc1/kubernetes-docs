@@ -369,13 +369,19 @@ kind: Ingress
 metadata:
   name: frontend-ingress
   namespace: frontend-resource
-  # nếu muốn dùng nginx-contrller thay vì ingress-nginx cài trên master
+  # sử dụng alb-controller
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
+  # sử dụng nginx-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
 spec:
+  # dùng cho alb-controller
   ingressClassName: alb
+  # dùng cho nginx-ingress
+  ingressClassName: nginx
   rules:
   - host: myapp-frontend.com
     http:
@@ -530,13 +536,19 @@ kind: Ingress
 metadata:
   name: backend-ingress
   namespace: backend-resource
-  # nếu muốn dùng nginx-contrller thay vì ingress-nginx cài trên master
+  # nếu muốn dùng alb-controller
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
+  # nếu dùng nginx-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
 spec:
+  # dùng cho alb-controller
   ingressClassName: alb
+  # dùng cho nginx-ingress
+  ingressClassName: nginx
   rules:
   - host: myapp-backend.com
     http:
@@ -893,12 +905,18 @@ kind: Ingress
 metadata:
   name: backend-ingress
   namespace: backend-micro
-  # nếu muốn dùng nginx-contrller thay vì ingress-nginx cài trên master
+  # nếu muốn dùng alb-controller
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
+  # nếu dùng nginx-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
 spec:
+  # dùng cho alb-controller
   ingressClassName: alb
+  # dùng cho nginx-ingress
+  ingressClassName: nginx
   rules:
   - host: api.myapp.com
     http:
