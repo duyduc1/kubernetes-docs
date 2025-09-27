@@ -210,7 +210,31 @@ helm -n ingress-nginx install ingress-nginx -f ingress-nginx/values.yaml ingress
 helm version
 kubectl get all -n ingress-nginx
 ```
-- Nếu dùng nginx-controller
+- Nếu dùng alb-controller
+
+``` bash
+curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.7.2/docs/install/iam_policy.json
+aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
+
+eksctl create iamserviceaccount \
+  --cluster=<cluster-name> \
+  --namespace=kube-system \
+  --name=aws-load-balancer-controller \
+  --role-name=AmazonEKSLoadBalancerControllerRole \
+  --attach-policy-arn=arn:aws:iam::<ACCOUNT-ID>:policy/AWSLoadBalancerControllerIAMPolicy \
+  --approve \
+  --region=<region>
+
+# ví dụ
+eksctl create iamserviceaccount \
+  --cluster=eksdemo3 \
+  --namespace=kube-system \
+  --name=aws-load-balancer-controller \
+  --role-name=AmazonEKSLoadBalancerControllerRole \
+  --attach-policy-arn=arn:aws:iam::173534767781:policy/AWSLoadBalancerControllerIAMPolicy \
+  --approve \
+  --region=us-east-1
+```
 
 ``` bash
 wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz
@@ -226,6 +250,18 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
   --set serviceAccount.name=aws-load-balancer-controller \
   --set region=<region> \
   --set vpcId=<vpc-id>
+
+# ví dụ
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=eksdemo3 \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller \
+  --set region=us-east-1 \
+  --set vpcId=vpc-06cb2d99ad1a50f3b
+
+# kiểm tra
+kubectl get deployment -n kube-system aws-load-balancer-controller
 ```
 
 # Triển khai ứng dụng trên EKS
