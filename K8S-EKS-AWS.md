@@ -30,7 +30,7 @@ rm eksctl.tar.gz
 
 eksctl version
 
-curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 
 chmod +x kubectl
 sudo mv kubectl /usr/local/bin/
@@ -192,6 +192,8 @@ eksctl delete cluster eksdemo3
 
 ### Bước 03: Triển khai Helmchart
 
+- Nếu dùng nginx-ingress
+
 ``` bash
 wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz
 tar xvf helm-v3.16.2-linux-amd64.tar.gz
@@ -200,13 +202,66 @@ helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 helm search repo nginx
 helm pull ingress-nginx/ingress-nginx
-tar -xzf ingress-nginx-4.11.3.tgz
+tar -xzf ingress-nginx-4.13.2.tgz
 
 cp -rf ingress-nginx /home/ubuntu
 kubectl create ns ingress-nginx
 helm -n ingress-nginx install ingress-nginx -f ingress-nginx/values.yaml ingress-nginx
 helm version
 kubectl get all -n ingress-nginx
+```
+- Nếu dùng alb-controller
+
+``` bash
+curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.7.2/docs/install/iam_policy.json
+aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
+
+eksctl create iamserviceaccount \
+  --cluster=<cluster-name> \
+  --namespace=kube-system \
+  --name=aws-load-balancer-controller \
+  --role-name=AmazonEKSLoadBalancerControllerRole \
+  --attach-policy-arn=arn:aws:iam::<ACCOUNT-ID>:policy/AWSLoadBalancerControllerIAMPolicy \
+  --approve \
+  --region=<region>
+
+# ví dụ
+eksctl create iamserviceaccount \
+  --cluster=eksdemo3 \
+  --namespace=kube-system \
+  --name=aws-load-balancer-controller \
+  --role-name=AmazonEKSLoadBalancerControllerRole \
+  --attach-policy-arn=arn:aws:iam::173534767781:policy/AWSLoadBalancerControllerIAMPolicy \
+  --approve \
+  --region=us-east-1
+```
+
+``` bash
+wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz
+tar xvf helm-v3.16.2-linux-amd64.tar.gz
+sudo mv linux-amd64/helm /usr/bin/
+
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=<cluster-name> \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller \
+  --set region=<region> \
+  --set vpcId=<vpc-id>
+
+# ví dụ
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=eksdemo3 \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller \
+  --set region=us-east-1 \
+  --set vpcId=vpc-06cb2d99ad1a50f3b
+
+# kiểm tra
+kubectl get deployment -n kube-system aws-load-balancer-controller
 ```
 
 # Triển khai ứng dụng trên EKS
@@ -314,12 +369,19 @@ kind: Ingress
 metadata:
   name: frontend-ingress
   namespace: frontend-resource
-  # nếu muốn dùng nginx-contrller thay vì ingress-nginx cài trên master
+  # sử dụng alb-controller
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
+  # sử dụng nginx-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
 spec:
+  # dùng cho alb-controller
+  ingressClassName: alb
+  # dùng cho nginx-ingress
+  ingressClassName: nginx
   rules:
   - host: myapp-frontend.com
     http:
@@ -446,7 +508,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /run/src/main/resources/application.properties   
+              mountPath: /config/application.properties   
               subPath: application.properties
       volumes:
       - name: config-volume
@@ -474,12 +536,19 @@ kind: Ingress
 metadata:
   name: backend-ingress
   namespace: backend-resource
-  # nếu muốn dùng nginx-contrller thay vì ingress-nginx cài trên master
+  # nếu muốn dùng alb-controller
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
+  # nếu dùng nginx-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
 spec:
+  # dùng cho alb-controller
+  ingressClassName: alb
+  # dùng cho nginx-ingress
+  ingressClassName: nginx
   rules:
   - host: myapp-backend.com
     http:
@@ -662,7 +731,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /run/src/main/resources/application.properties   
+              mountPath: /config/application.properties   
               subPath: application.properties
       volumes:
       - name: config-volume
@@ -711,7 +780,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /run/src/main/resources/application.properties   
+              mountPath: /config/application.properties   
               subPath: application.properties
       volumes:
       - name: config-volume
@@ -760,7 +829,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /run/src/main/resources/application.properties   
+              mountPath: /config/application.properties   
               subPath: application.properties
       volumes:
       - name: config-volume
@@ -809,7 +878,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /run/src/main/resources/application.properties   
+              mountPath: /config/application.properties   
               subPath: application.properties
       volumes:
       - name: config-volume
@@ -836,11 +905,18 @@ kind: Ingress
 metadata:
   name: backend-ingress
   namespace: backend-micro
-  # nếu muốn dùng nginx-contrller thay vì ingress-nginx cài trên master
+  # nếu muốn dùng alb-controller
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
+  # nếu dùng nginx-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
 spec:
+  # dùng cho alb-controller
+  ingressClassName: alb
+  # dùng cho nginx-ingress
+  ingressClassName: nginx
   rules:
   - host: api.myapp.com
     http:
@@ -897,4 +973,13 @@ kubectl get svc
 
 # Kiểm tra Ingress
 kubectl get ingress
+```
+
+### destroy cụm k8s bằng câu lệnh
+
+``` bash
+eksctl delete cluster --name <cluster-name> --region <region>
+
+# ví dụ
+eksctl delete cluster --name my-eks-cluster --region ap-southeast-1
 ```
