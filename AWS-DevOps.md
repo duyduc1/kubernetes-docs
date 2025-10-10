@@ -501,8 +501,11 @@ output "public_ip" {
 
 ``` bash
 terraform plan
-terraform apply
+terraform init
 terraform apply --auto-approve
+
+# dùng để destroy
+terraform destroy --auto-approve
 ```
 
 # set up ECR chứa các docker images 
