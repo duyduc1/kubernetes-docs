@@ -582,15 +582,18 @@ curl --cacert /etc/elasticsearch/certs/http_ca.crt \
 
 ``` bash
 # Xem policy
-curl --cacert /etc/elasticsearch/certs/http_ca.crt -u elastic:KHFDPeU6 
+curl --cacert /etc/elasticsearch/certs/http_ca.crt \
+  -u elastic:KHFDPeU6 \
   -X GET "https://localhost:9200/_slm/policy/daily_01h?pretty"
 
 # Thực thi ngay (test)
-curl --cacert /etc/elasticsearch/certs/http_ca.crt -u elastic:KHFDPeU6 
+curl --cacert /etc/elasticsearch/certs/http_ca.crt \ 
+  -u elastic:KHFDPeU6 \
   -X POST "https://localhost:9200/_slm/policy/daily_01h/_execute?pretty"
 
 # Xem lịch sử/ trạng thái SLM
-curl --cacert /etc/elasticsearch/certs/http_ca.crt -u elastic:KHFDPeU6 
+curl --cacert /etc/elasticsearch/certs/http_ca.crt \
+  -u elastic:KHFDPeU6 \
   -X GET "https://localhost:9200/_slm/status?pretty"
 ```
 
@@ -598,8 +601,9 @@ curl --cacert /etc/elasticsearch/certs/http_ca.crt -u elastic:KHFDPeU6
 
 ``` bash
 # Indexing slowlog
-curl --cacert /etc/elasticsearch/certs/http_ca.crt -u elastic:KHFDPeU6 
-  -X PUT "https://localhost:9200/devopseduvn-logs-*/_settings" 
+curl --cacert /etc/elasticsearch/certs/http_ca.crt \
+  -u elastic:KHFDPeU6 \
+  -X PUT "https://localhost:9200/devopseduvn-logs-*/_settings" \
   -H "Content-Type: application/json" -d '{
     "index.indexing.slowlog.threshold.index.warn": "1s",
     "index.indexing.slowlog.threshold.index.info": "500ms",
@@ -607,10 +611,374 @@ curl --cacert /etc/elasticsearch/certs/http_ca.crt -u elastic:KHFDPeU6
   }'
 
 # Search slowlog
-curl --cacert /etc/elasticsearch/certs/http_ca.crt -u elastic:KHFDPeU6 
-  -X PUT "https://localhost:9200/devopseduvn-logs-*/_settings" 
+curl --cacert /etc/elasticsearch/certs/http_ca.crt \
+  -u elastic:KHFDPeU6 \
+  -X PUT "https://localhost:9200/devopseduvn-logs-*/_settings" \
   -H "Content-Type: application/json" -d '{
     "index.search.slowlog.threshold.query.warn": "2s",
     "index.search.slowlog.threshold.fetch.warn": "1s"
   }'
+```
+## 13. Các thành phần và chức năng trên kibana
+
+1. Elasticsearch
+
+- Dùng để truy cập API và tools để tạo ra các search enginee hoặc để quản lý <br> dữ liệu đã index
+
+2. Observability
+
+- Gộp logs, metric, traces và system và 1 giao diện để giám sát
+
+3. Security
+
+- Quản lý bảo mật và phát hiện các mối đe doạ ảnh hưởng tới hệ thống
+
+4. Analytics
+
+- Khai thác, phân tích và trực quan hoá dữ liệu qua các bộ phân tích cụ thể
+
+## 14. Tìm hiểu và cài đặt cấu hình công cụ log agent
+
+### Công nghệ thu thập log
+
+- Vector
+
+- Beat
+
+- FluentBit/FluentD
+
+### Cài đặt Vector
+
+``` bash
+bash -c "$(curl -L https://setup.vector.dev)"
+sudo apt-get install -y vector
+sudo systemctl enable --now vector
+```
+
+### File cấu hình nằm trong /etc/vector/vector.yml
+
+``` yml
+#                                    __   __  __
+#                                      / / / /
+#                                      V / / /
+#                                      _/  /
+#
+#                                    V E C T O R
+#                                   Configuration
+#
+# ------------------------------------------------------------------------------
+# Website: https://vector.dev
+# Docs: https://vector.dev/docs
+# Chat: https://chat.vector.dev
+# ------------------------------------------------------------------------------
+
+# Change this to use a non-default directory for Vector data storage:
+# data_dir: "/var/lib/vector"
+
+# Random Syslog-formatted logs
+sources:
+  dummy_logs:
+    type: "demo_logs"
+    format: "syslog"
+    interval: 1
+
+# Parse Syslog logs
+# See the Vector Remap Language reference for more info: https://vrl.dev
+transforms:
+  parse_logs:
+    type: "remap"
+    inputs: ["dummy_logs"]
+    source: |
+      . = parse_syslog!(string!(.message))
+
+# Print parsed logs to stdout
+sinks:
+  print:
+    type: "console"
+    inputs: ["parse_logs"]
+    encoding:
+      codec: "json"
+      json:
+        pretty: true
+
+# Vector's GraphQL API (disabled by default)
+# Uncomment to try it out with the `vector top` command or
+# in your browser at http://localhost:8686
+# api:
+#   enabled: true
+#   address: "127.0.0.1:8686"
+```
+
+## 15. Tìm hiểu cấu hình các thành phần Vector
+
+1. Sources
+
+- File: Thu thập file log
+
+- Docker_logs: thu thập tất cả các log trong docker
+
+## 16. Phân tích log dự án
+
+``` yaml
+# workflow
+=> File log => phân tích log => đưa ra các phương án thu thập và format log => áp dụng quy tắc vào cấu hình
+```
+
+## 17. Config thư thập log từ dự án Backend
+
+### Ở server triển khai dự án
+
+``` bash
+cd /etc/vector
+mkdir certs
+
+### Ở thư mục triển khai server-logging
+scp -r /etc/elasticsearch/certs/http_ca.crt root@<server-triển-khai-dự-án>:/etc/vector/certs
+
+### Ở server triển khai dự án
+ls -l /etc/vector/certs
+chown -R vector. /etc/vector
+
+mv vector.yaml vector.yaml.orgin
+nano vector.yaml
+```
+
+``` yaml
+## Cấu hình trong bài giảng
+
+data_dir: /var/lib/vector
+
+sources:
+  java_file:
+    type: file
+    include:
+      - /var/log/java/ecom-backend.log
+    ignore_older_secs: 0
+    multiline:
+      start_pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}\s'
+      condition_pattern: '^(?:\s|at\s|Caused by:|Hibernate:)'
+      mode: continue_through
+      timeout_ms: 2000
+
+transforms:
+  enrich_env:
+    type: remap
+    inputs: [java_file]
+    source: |
+      .message = to_string!(.message)
+      if !exists(.labels) { .labels = {} }
+      .labels.env = "prod"
+      .input = { "type": "file", "path": "/var/log/java/ecom-backend.log" }
+
+  parse_spring:
+    type: remap
+    inputs: [enrich_env]
+    source: |
+      m, err = parse_regex(
+        .message,
+        r'^(?P<ts>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2})\s+(?P<level>[A-Z]+)\s+(?P<pid>\d+)\s+---\s+\[(?P<app>[^\]]+)\]\s+\[(?P<thr>[^\]]+)\]\s+(?P<logger>[^:]+?)\s*:\s*(?P<msg>.*)$'
+      )
+
+      if err == null {
+        .timestamp = parse_timestamp!(m.ts, format: "%+")
+        if !exists(.log) { .log = {} }
+        .log.level = downcase!(m.level)
+        if !exists(.process) { .process = {} }
+        .process.pid = to_int!(m.pid)
+        .labels.app = m.app
+        if !exists(.thread) { .thread = {} }
+        .thread.name = m.thr
+        .logger = m.logger
+        .message = m.msg
+
+        if !exists(.event) { .event = {} }
+        logger_s = to_string(m.logger)
+        if starts_with(logger_s, "org.hibernate") {
+          .event.dataset = "spring.hibernate"
+        } else if starts_with(logger_s, "o.s") || starts_with(logger_s, "org.springframework") {
+          .event.dataset = "spring.framework"
+        } else if starts_with(logger_s, "o.a.") || starts_with(logger_s, "org.apache.") {
+          .event.dataset = "spring.framework"  # Tomcat/Catalina/Apache
+        } else {
+          .event.dataset = "spring.app"
+        }
+      } else {
+        msg_s = to_string!(.message)
+        if starts_with(msg_s, "Hibernate: ") {
+          if !exists(.event) { .event = {} }
+          .event.dataset = "hibernate.sql"
+          if !exists(.log) { .log = {} }
+          .log.level = "info"
+          if !exists(.sql) { .sql = {} }
+          .sql.query = replace(msg_s, r'^Hibernate:\s*', "")
+        } else {
+          if !exists(.event) { .event = {} }
+          .event.dataset = "spring.continuation"
+        }
+      }
+
+      p, perr = parse_regex(.message, r'Tomcat initialized with port (?P<port>\d+)')
+      if perr == null {
+        if !exists(.http) { .http = {} }
+        if !exists(.http.server) { .http.server = {} }
+        .http.server.port = to_int!(p.port)
+      }
+
+  trace_and_context:
+    type: remap
+    inputs: [parse_spring]
+    source: |
+      t, terr = parse_regex(.message, r'(?:^|[\s,])trace_id=(?P<trace>[A-Za-z0-9\-_]+)')
+      if !exists(.trace) { .trace = {} }
+      if terr == null { .trace.id = t.trace } else { .trace.id = uuid_v4() }
+
+      if !exists(.service) { .service = {} }
+      app_s = "unknown-service"
+      if exists(.labels) && exists(.labels.app) { app_s = to_string!(.labels.app) }
+      lg = to_string!(.logger)
+      if contains(lg, ".") {
+        parts = split(lg, ".")
+        if length(parts) > 2 {
+          .service.name = parts[2]
+        } else {
+          .service.name = app_s
+        }
+      } else {
+        .service.name = app_s
+      }
+
+  pii_mask:
+    type: remap
+    inputs: [trace_and_context]
+    source: |
+      if exists(.message) {
+        .message = to_string!(.message)
+        .message = replace(.message, r'([A-Za-z0-9._%+\-])([A-Za-z0-9._%+\-]*?)@([A-Za-z0-9.\-]+\.[A-Za-z]{2,})', "$$1***@$$3")
+        .message = replace(.message, r'\b(\d{4})\d{8,11}(\d{4})\b', "$$1********$$2")
+        .message = replace(.message, r'(?i)(authorization:?\s*bearer\s+)[A-Za-z0-9\-\._]+', "$$1******")
+        .message = replace(.message, r'(?i)(api[_\-]?key|token|secret)["\s=:]*[A-Za-z0-9\-\._]{6,}', "$$1=******")
+      }
+      if exists(.sql) && exists(.sql.query) {
+        .sql.query = to_string!(.sql.query)
+        .sql.query = replace(.sql.query, r'\b(\d{4})\d{8,11}(\d{4})\b', "$$1********$$2")
+      }
+
+  filter_debug_prod:
+    type: filter
+    inputs: [pii_mask]
+    condition: '!(.labels.env == "prod" && .log.level == "debug")'
+
+  route_by_dataset:
+    type: route
+    inputs: [filter_debug_prod]
+    route:
+      to_app: '.event.dataset == "spring.app"'
+      to_framework: '.event.dataset == "spring.framework"'
+      to_hibernate: '.event.dataset == "hibernate.sql" || .event.dataset == "spring.hibernate"'
+      to_misc: '.event.dataset == "spring.continuation"'
+
+sinks:
+  es_app:
+    type: elasticsearch
+    inputs: [route_by_dataset.to_app]
+    endpoints: ["https://192.168.157.10:9200"]
+    auth:
+      strategy: basic
+      user: elastic
+      password: "KHFDPeU6"
+    tls:
+      ca_file: "/etc/vector/certs/http_ca.crt"
+    bulk:
+      index: "ecommerce-backend-app-%Y-%m-%d"
+
+  es_framework:
+    type: elasticsearch
+    inputs: [route_by_dataset.to_framework]
+    endpoints: ["https://192.168.157.10:9200"]
+    auth:
+      strategy: basic
+      user: elastic
+      password: "KHFDPeU6"
+    tls:
+      ca_file: "/etc/vector/certs/http_ca.crt"
+    bulk:
+      index: "ecommerce-backend-framework-%Y-%m-%d"
+
+  es_hibernate:
+    type: elasticsearch
+    inputs: [route_by_dataset.to_hibernate]
+    endpoints: ["https://192.168.157.10:9200"]
+    auth:
+      strategy: basic
+      user: elastic
+      password: "KHFDPeU6"
+    tls:
+      ca_file: "/etc/vector/certs/http_ca.crt"
+    bulk:
+      index: "ecommerce-backend-hibernate-%Y-%m-%d"
+
+  es_misc:
+    type: elasticsearch
+    inputs: [route_by_dataset.to_misc]
+    endpoints: ["https://192.168.157.10:9200"]
+    auth:
+      strategy: basic
+      user: elastic
+      password: "KHFDPeU6"
+    tls:
+      ca_file: "/etc/vector/certs/http_ca.crt"
+    bulk:
+      index: "ecommerce-backend-misc-%Y-%m-%d"
+
+  blackhole_unmatched:
+    type: blackhole
+    inputs: [route_by_dataset._unmatched]
+
+  stdout_debug:
+    type: console
+    inputs:
+      - route_by_dataset.to_app
+      - route_by_dataset.to_framework
+      - route_by_dataset.to_hibernate
+      - route_by_dataset.to_misc
+    target: stdout
+    encoding:
+      codec: json
+```
+
+### Kiểm tra cấu trúc
+
+``` bash
+### kill tiến trình app cũ đang chạy
+ps -ef| grep java
+kill -9 <PID>
+
+echo > /var/log/java/dự-án.log
+cat /var/log/java/dự-án.log
+
+### câu lệnh kiểm tra
+vector validate /etc/vector/vector.yaml
+
+### restart lại vector
+systemctl restart vector.service
+systemctl status vector.service
+
+###  chạy lại ứng dụng java
+nohup java -jar target/thư-mục-build-của-dự-án.jar > /var/log/java/ecom-backend.log 2>&1 &
+```
+
+### Tiếp tục với dashboard kibana
+
+``` yaml
+1. Vào Manament => index Management => sẽ xuất hiện các index sau khi cấu hình
+
+2. Vào Data Views của Kibana => create Data view
+
+- Name : devopseduvn-logs (example)
+
+- Index pattern : devopseduvn-logs-* (example)
+
+3. Save data view to Kibana
+
+### Làm tương tự để tạo các dataviews khác
 ```

@@ -1,0 +1,138 @@
+## Cấu hình bonus chỉ tạo duy nhất 1 index, đơn giản hơn giúp các bạn mới làm quen và dễ hiểu hơn.
+
+data_dir: /var/lib/vector
+
+sources:
+  java_file:
+    type: file
+    include:
+      - /var/log/java/ecom-backend.log
+    ignore_older_secs: 604800 # Ignore logs older than 7 days
+    multiline:
+      start_pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}\s'
+      condition_pattern: '^(?:\s|at\s|Caused by:|Hibernate:)'
+      mode: continue_through
+      timeout_ms: 2000
+
+transforms:
+  enrich_env:
+    type: remap
+    inputs: [java_file]
+    source: |
+      .message = to_string!(.message)
+      if !exists(.labels) { .labels = {} }
+      env, err = get_env_var("ENV")
+      .labels.env = if err != null || is_empty(env) { "prod" } else { env }
+      .input = { "type": "file", "path": "/var/log/java/ecom-backend.log" }
+
+  parse_spring:
+    type: remap
+    inputs: [enrich_env]
+    source: |
+      m, err = parse_regex(
+        .message,
+        r'^(?P<ts>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2})\s+(?P<level>[A-Z]+)\s+(?P<pid>\d+)\s+---\s+\[(?P<app>[^\]]+)\]\s+\[(?P<thr>[^\]]+)\]\s+(?P<logger>[^:]+?)\s*:\s*(?P<msg>.*)$'
+      )
+      if err == null {
+        .timestamp = parse_timestamp!(m.ts, format: "%+")
+        if !exists(.log) { .log = {} }
+        .log.level = downcase!(m.level)
+        if !exists(.process) { .process = {} }
+        .process.pid = to_int!(m.pid)
+        .labels.app = m.app
+        if !exists(.thread) { .thread = {} }
+        .thread.name = m.thr
+        .logger = m.logger
+        .message = m.msg
+        if !exists(.event) { .event = {} }
+        logger_s = to_string(m.logger)
+        if starts_with(logger_s, "org.hibernate") {
+          .event.dataset = "spring.hibernate"
+        } else if starts_with(logger_s, "o.s") || starts_with(logger_s, "org.springframework") || starts_with(logger_s, "o.a.") || starts_with(logger_s, "org.apache.") {
+          .event.dataset = "spring.framework"
+        } else {
+          .event.dataset = "spring.app"
+        }
+      } else {
+        msg_s = to_string!(.message)
+        if starts_with(msg_s, "Hibernate: ") {
+          if !exists(.event) { .event = {} }
+          .event.dataset = "hibernate.sql"
+          if !exists(.log) { .log = {} }
+          .log.level = "info"
+          if !exists(.sql) { .sql = {} }
+          .sql.query = replace(msg_s, r'^Hibernate:\s*', "")
+        } else {
+          if !exists(.event) { .event = {} }
+          .event.dataset = "spring.continuation"
+        }
+      }
+      p, perr = parse_regex(.message, r'Tomcat initialized with port (?P<port>\d+)')
+      if perr == null {
+        if !exists(.http) { .http = {} }
+        if !exists(.http.server) { .http.server = {} }
+        .http.server.port = to_int!(p.port)
+      }
+
+  trace_and_context:
+    type: remap
+    inputs: [parse_spring]
+    source: |
+      t, terr = parse_regex(.message, r'(?:^|[\s,])trace_id=(?P<trace>[A-Za-z0-9\-_]+)')
+      if !exists(.trace) { .trace = {} }
+      .trace.id = if terr == null { t.trace } else { uuid_v4() }
+      if !exists(.service) { .service = {} }
+      app_s = "unknown-service"
+      if exists(.labels) && exists(.labels.app) { app_s = to_string!(.labels.app) }
+      lg = to_string!(.logger)
+      if contains(lg, ".") {
+        parts = split(lg, ".")
+        if length(parts) > 2 {
+          .service.name = parts[2]
+        } else {
+          .service.name = app_s
+        }
+      } else {
+        .service.name = app_s
+      }
+
+  pii_mask:
+    type: remap
+    inputs: [trace_and_context]
+    source: |
+      if exists(.message) {
+        .message = to_string!(.message)
+        .message = replace(.message, r'\b(\d{4})\d{8,11}(\d{4})\b', "$$1********$$2")
+      }
+      if exists(.sql.query) {
+        .sql.query = to_string!(.sql.query)
+        .sql.query = replace(.sql.query, r'\b(\d{4})\d{8,11}(\d{4})\b', "$$1********$$2")
+      }
+
+sinks:
+  elasticsearch:
+    type: elasticsearch
+    inputs: [pii_mask]
+    endpoints: ["https://192.168.157.10:9200"]
+    auth:
+      strategy: basic
+      user: elastic
+      password: "KHFDPeU6"
+    tls:
+      ca_file: "/etc/vector/certs/http_ca.crt"
+    bulk:
+      action: create
+      index: "ecommerce-backend-%Y-%m-%d"
+    batch:
+      max_bytes: 10485760 # 10MB
+      timeout_secs: 1
+    request:
+      timeout_secs: 60
+    healthcheck:
+      enabled: true
+  stdout_debug:
+    type: console
+    inputs: [pii_mask]
+    target: stdout
+    encoding:
+      codec: json
