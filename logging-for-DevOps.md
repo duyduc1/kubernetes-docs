@@ -421,10 +421,10 @@ $ sudo /usr/share/kibana/bin/kibana-verification-code
 14. Thêm Index sample thử xem hệ thống đã hoạt động chưa
 
 ``` bash
-curl --cacert /etc/elasticsearch/certs/http_ca.crt 
-  -u elastic:KHFDPeU6 
-  -X PUT "https://localhost:9200/devopseduvn-logs-000001" 
-  -H "Content-Type: application/json" 
+curl -u elastic:KHFDPeU6 \
+  -X PUT "https://localhost:9200/devopseduvn-logs-000001" \
+  -H "Content-Type: application/json" \
+  -k \
   -d '{
     "settings": {
       "number_of_shards": 1,
