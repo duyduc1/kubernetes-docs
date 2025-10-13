@@ -472,10 +472,10 @@ curl --cacert /etc/elasticsearch/certs/http_ca.crt \
 1. Cấu hình persistent cluster settings trong Elasticsearch, thiết lập các ngưỡng cảnh báo dung lượng ổ đĩa và bảo vệ dữ liệu khi ổ đĩa sắp đầy
 
 ``` bash
-curl --cacert /etc/elasticsearch/certs/http_ca.crt 
-  -u elastic:KHFDPeU6 
-  -X PUT "https://localhost:9200/_cluster/settings" 
-  -H "Content-Type: application/json" 
+curl --cacert /etc/elasticsearch/certs/http_ca.crt \
+  -u elastic:KHFDPeU6 \
+  -X PUT "https://localhost:9200/_cluster/settings" \ 
+  -H "Content-Type: application/json" \
   -d '{
     "persistent": {
       "action.destructive_requires_name": "true",
@@ -537,10 +537,10 @@ sudo systemctl restart elasticsearch
 - Đăng ký snapshot repository
 
 ``` bash
-curl --cacert /etc/elasticsearch/certs/http_ca.crt 
-  -u elastic:KHFDPeU6 
-  -X PUT "https://localhost:9200/_snapshot/devopseduvn_repo" 
-  -H "Content-Type: application/json" 
+curl --cacert /etc/elasticsearch/certs/http_ca.crt \
+  -u elastic:KHFDPeU6 \
+  -X PUT "https://localhost:9200/_snapshot/devopseduvn_repo" \ 
+  -H "Content-Type: application/json" \
   -d '{
     "type": "fs",
     "settings": {
@@ -553,18 +553,18 @@ curl --cacert /etc/elasticsearch/certs/http_ca.crt
 - Tạo snapshot
 
 ``` bash
-curl --cacert /etc/elasticsearch/certs/http_ca.crt 
-  -u elastic:KHFDPeU6 
-  -X PUT "https://localhost:9200/_snapshot/devopseduvn_repo/snap_$(date +%Y%m%d_%H%M%S)?wait_for_completion=true"
+curl --cacert /etc/elasticsearch/certs/http_ca.crt \ 
+  -u elastic:KHFDPeU6 \
+  -X PUT "https://localhost:9200/_snapshot/devopseduvn_repo/snap_$(date +%Y%m%d_%H%M%S)?wait_for_completion=true" \
 ```
 
 3. Tạo policy SLM hàng ngày (1:00)
 
 ``` bash
-curl --cacert /etc/elasticsearch/certs/http_ca.crt 
-  -u elastic:KHFDPeU6 
-  -X PUT "https://localhost:9200/_slm/policy/daily_01h" 
-  -H "Content-Type: application/json" 
+curl --cacert /etc/elasticsearch/certs/http_ca.crt \
+  -u elastic:KHFDPeU6 \
+  -X PUT "https://localhost:9200/_slm/policy/daily_01h" \
+  -H "Content-Type: application/json" \
   -d '{
     "schedule": "0 0 1 * * ?",
     "name": "<daily-{now/d}>",
