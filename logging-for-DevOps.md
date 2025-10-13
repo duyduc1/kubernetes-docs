@@ -449,23 +449,20 @@ curl -u elastic:KHFDPeU6 \
 15. Ghi thử log mẫu
 
 ``` bash
-curl --cacert /etc/elasticsearch/certs/http_ca.crt 
-  -u elastic:KHFDPeU6 
-  -X POST "https://localhost:9200/devopseduvn-logs-000001/_doc" 
-  -H "Content-Type: application/json" 
+curl --cacert /etc/elasticsearch/certs/http_ca.crt \
+  -u elastic:KHFDPeU6 \
+  -X POST "https://localhost:9200/devopseduvn-logs-000001/_doc" \
+  -H "Content-Type: application/json" \
   -d '{
     "@timestamp": "2025-08-12T00:10:00Z",
     "service": "devopseduvn-api",
     "env": "prod",
     "level": "info",
     "message": "health check OK",
-    "host": {
-      "ip": "192.168.1.10"
-    },
-    "http": {
-      "status_code": 200
-    }
+    "host": { "ip": "192.168.230.150" },
+    "http": { "status_code": 200 }
   }'
+
 ```
 
 16. Thành công truy cập trên trình duyệt vào Kibana với địa chỉ http://ip_server:5601
