@@ -624,7 +624,7 @@ docker ps
 docker ps -a
 
 # Chạy một container
-docker run -d --name <container-name> <image-name>:<tag>
+docker run --name=<container-name> -dp <port-container>:<port-application> <image-name>:<tag>
 
 # Dừng một container
 docker stop <container-id>
