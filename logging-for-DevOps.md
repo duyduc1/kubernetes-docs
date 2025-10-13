@@ -390,6 +390,16 @@ $ sudo chown -R kibana:kibana /etc/kibana/certs/
 
 11. Khởi động và kiểm tra trạng thái Kibana service
 
+### nếu bị lỗi thì hãy dùng bước dưới còn không thì restart bình thường
+
+``` bash
+sudo mkdir -p /var/log/kibana
+sudo mkdir -p /var/lib/kibana
+sudo chown -R kibana:kibana /var/log/kibana
+sudo chown -R kibana:kibana /var/lib/kibana
+sudo chmod -R 755 /var/log/kibana /var/lib/kibana
+```
+
 ``` bash
 $ sudo systemctl restart kibana
 $ sudo systemctl enable kibana
