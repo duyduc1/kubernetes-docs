@@ -996,7 +996,7 @@ mv conf.d/vector.yaml conf.d/ecommerce-backend.yaml
 touch conf.d/ecommerce-frontend.yaml
 
 ### Cập nhật nội dung service vector
-nano /etc/systemd/system/vector.service
+nano /lib/systemd/system/vector.service
 ```
 
 ``` bash
