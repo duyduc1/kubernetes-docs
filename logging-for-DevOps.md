@@ -881,7 +881,7 @@ sinks:
   es_app:
     type: elasticsearch
     inputs: [route_by_dataset.to_app]
-    endpoints: ["https://192.168.157.10:9200"]
+    endpoints: ["https://10.1.0.16:9200"]
     auth:
       strategy: basic
       user: elastic
@@ -894,7 +894,7 @@ sinks:
   es_framework:
     type: elasticsearch
     inputs: [route_by_dataset.to_framework]
-    endpoints: ["https://192.168.157.10:9200"]
+    endpoints: ["https://10.1.0.16:9200"]
     auth:
       strategy: basic
       user: elastic
@@ -907,7 +907,7 @@ sinks:
   es_hibernate:
     type: elasticsearch
     inputs: [route_by_dataset.to_hibernate]
-    endpoints: ["https://192.168.157.10:9200"]
+    endpoints: ["https://10.1.0.16:9200"]
     auth:
       strategy: basic
       user: elastic
@@ -920,7 +920,7 @@ sinks:
   es_misc:
     type: elasticsearch
     inputs: [route_by_dataset.to_misc]
-    endpoints: ["https://192.168.157.10:9200"]
+    endpoints: ["https://10.1.0.16:9200"]
     auth:
       strategy: basic
       user: elastic
@@ -982,3 +982,224 @@ nohup java -jar target/thư-mục-build-của-dự-án.jar > /var/log/java/ecom-
 
 ### Làm tương tự để tạo các dataviews khác
 ```
+
+## 18. Config thu thập log từ dự án Frontend Docker
+
+``` bash
+cd /etc/vector/
+mkdir conf.d
+chown -R vector. /etc/vector
+mv vector.yaml conf.d/
+mv conf.d/vector.yaml conf.d/ecommerce-backend.yaml
+
+### Tạo file ecommerce-frontend.yaml
+touch conf.d/ecommerce-frontend.yaml
+
+### Cập nhật nội dung service vector
+nano /etc/systemd/system/vector.service
+```
+
+``` bash
+[Unit]
+Description=Vector
+Documentation=https://vector.dev
+After=network-online.target
+Requires=network-online.target
+
+[Service]
+User=vector
+Group=vector
+ExecStartPre=/usr/bin/vector validate
+ExecStart=/usr/bin/vector --config-dir /etc/vector/conf.d
+ExecReload=/usr/bin/vector validate --no-environment
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+EnvironmentFile=/etc/default/vector
+StartLimitInterval=10
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+``` yaml
+data_dir: /var/lib/vector
+
+sources:
+  fe_docker:
+    type: docker_logs
+    docker_host: "unix:///var/run/docker.sock"
+    include_containers:
+      - "ecommerce-fe"
+
+transforms:
+  fe_enrich_env:
+    type: remap
+    inputs: [fe_docker]
+    source: |
+      .message = to_string!(.message)
+      if !exists(.labels) { .labels = {} }
+      .labels.env = "prod"
+      if !exists(.service) { .service = {} }
+      .service.name = "ecommerce-frontend"
+      if !exists(.container) { .container = {} }
+      if exists(.container_name) { .container.name = to_string!(.container_name) }
+      if exists(.image) { .container.image = to_string!(.image) }
+
+  fe_parse_nginx:
+    type: remap
+    inputs: [fe_enrich_env]
+    source: |
+      msg = to_string!(.message)
+
+      if starts_with(msg, "/docker-entrypoint.sh:") || contains(msg, "/docker-entrypoint.d/") {
+        if !exists(.event) { .event = {} }
+        .event.dataset = "nginx.entrypoint"
+        if !exists(.log) { .log = {} }
+        .log.level = "info"
+
+      } else {
+        m1, e1 = parse_regex(msg, r'^(?P<ts>\d{4}/\d{2}/\d{2}\s\d{2}:\d{2}:\d{2})\s+\[(?P<lvl>[a-z]+)\]\s+(?P<pid>\d+)#(?P<tid>\d+):\s*(?P<err>.*)$')
+        if e1 == null {
+          .timestamp = parse_timestamp!(m1.ts, format: "%Y/%m/%d %H:%M:%S")
+          if !exists(.log) { .log = {} }
+          .log.level = to_string(m1.lvl)
+          if !exists(.process) { .process = {} }
+          .process.pid = to_int!(m1.pid)
+          if !exists(.thread) { .thread = {} }
+          .thread.id = to_int!(m1.tid)
+          .message = m1.err
+          if !exists(.event) { .event = {} }
+          .event.dataset = "nginx.error"
+
+        } else {
+          m2, e2 = parse_regex(
+            msg,
+            r'^(?P<remote_addr>\S+)\s+\S+\s+\S+\s+\[(?P<time>[^\]]+)\]\s+"(?P<method>\S+)\s+(?P<path>\S+)\s+(?P<protocol>[^"]+)"\s+(?P<status>\d{3})\s+(?P<body_bytes>\d+)\s+"(?P<referrer>[^"]*)"\s+"(?P<ua>[^"]*)"'
+          )
+          if e2 == null {
+            .timestamp = parse_timestamp!(m2.time, format: "%d/%b/%Y:%H:%M:%S %z")
+            if !exists(.event) { .event = {} }
+            .event.dataset = "nginx.access"
+
+            if !exists(.client) { .client = {} }
+            .client.ip = m2.remote_addr
+
+            if !exists(.http) { .http = {} }
+            if !exists(.http.request) { .http.request = {} }
+            .http.request.method = m2.method
+            .http.request.referrer = m2.referrer
+
+            if !exists(.url) { .url = {} }
+            .url.path = m2.path
+
+            if !exists(.network) { .network = {} }
+            .network.protocol = m2.protocol
+
+            if !exists(.http.response) { .http.response = {} }
+            .http.response.status_code = to_int!(m2.status)
+            if !exists(.http.response.body) { .http.response.body = {} }
+            .http.response.body.bytes = to_int!(m2.body_bytes)
+
+            if !exists(.user_agent) { .user_agent = {} }
+            .user_agent.original = m2.ua
+
+          } else {
+            if !exists(.event) { .event = {} }
+            .event.dataset = "nginx.misc"
+          }
+        }
+      }
+
+  fe_pii_mask:
+    type: remap
+    inputs: [fe_parse_nginx]
+    source: |
+      if exists(.message) {
+        .message = to_string(.message) ?? ""
+        .message = replace(.message, r'([A-Za-z0-9._%+\-])([A-Za-z0-9._%+\-]*?)@([A-Za-z0-9.\-]+\.[A-Za-z]{2,})', "$$1***@$$3")
+        .message = replace(.message, r'\b(\d{4})\d{8,11}(\d{4})\b', "$$1********$$2")
+        .message = replace(.message, r'(?i)(authorization:?\s*bearer\s+)[A-Za-z0-9\-\._]+', "$$1******")
+        .message = replace(.message, r'(?i)(api[_\-]?key|token|secret)["\s=:]*[A-Za-z0-9\-\._]{6,}', "$$1=******")
+      }
+      if exists(.http) && exists(.http.request) && exists(.http.request.referrer) {
+        .http.request.referrer = to_string(.http.request.referrer) ?? ""
+        .http.request.referrer = replace(.http.request.referrer, r'([A-Za-z0-9._%+\-])([A-Za-z0-9._%+\-]*?)@([A-Za-z0-9.\-]+\.[A-Za-z]{2,})', "$$1***@$$3")
+      }
+      if exists(.user_agent) && exists(.user_agent.original) {
+        .user_agent.original = to_string(.user_agent.original) ?? ""
+        .user_agent.original = replace(.user_agent.original, r'\b(\d{4})\d{8,11}(\d{4})\b', "$$1********$$2")
+      }
+
+  fe_filter_debug_prod:
+    type: filter
+    inputs: [fe_pii_mask]
+    condition: '!(.labels.env == "prod" && .log.level == "debug")'
+
+  fe_route:
+    type: route
+    inputs: [fe_filter_debug_prod]
+    route:
+      to_access:      '.event.dataset == "nginx.access"'
+      to_error:       '.event.dataset == "nginx.error"'
+      to_entrypoint:  '.event.dataset == "nginx.entrypoint"'
+      to_misc:        '.event.dataset == "nginx.misc"'
+
+sinks:
+  es_fe_access:
+    type: elasticsearch
+    inputs: [fe_route.to_access]
+    endpoints: ["https://10.1.0.16:9200"]
+    auth: { strategy: basic, user: elastic, password: "KHFDPeU6" }
+    tls:  { ca_file: "/etc/vector/certs/http_ca.crt" }
+    bulk: { index: "ecommerce-frontend-nginx-access-%Y-%m-%d" }
+
+  es_fe_error:
+    type: elasticsearch
+    inputs: [fe_route.to_error]
+    endpoints: ["https://10.1.0.16:9200"]
+    auth: { strategy: basic, user: elastic, password: "KHFDPeU6" }
+    tls:  { ca_file: "/etc/vector/certs/http_ca.crt" }
+    bulk: { index: "ecommerce-frontend-nginx-service-%Y-%m-%d" }
+
+  es_fe_entrypoint:
+    type: elasticsearch
+    inputs: [fe_route.to_entrypoint]
+    endpoints: ["https://10.1.0.16:9200"]
+    auth: { strategy: basic, user: elastic, password: "KHFDPeU6" }
+    tls:  { ca_file: "/etc/vector/certs/http_ca.crt" }
+    bulk: { index: "ecommerce-frontend-nginx-init-%Y-%m-%d" }
+
+  es_fe_misc:
+    type: elasticsearch
+    inputs: [fe_route.to_misc]
+    endpoints: ["https://10.1.0.16:9200"]
+    auth: { strategy: basic, user: elastic, password: "KHFDPeU6" }
+    tls:  { ca_file: "/etc/vector/certs/http_ca.crt" }
+    bulk: { index: "ecommerce-frontend-nginx-misc-%Y-%m-%d" }
+
+  stdout_fe_debug:
+    type: console
+    inputs:
+      - fe_route.to_access
+      - fe_route.to_error
+      - fe_route.to_entrypoint
+      - fe_route.to_misc
+    target: stdout
+    encoding:
+      codec: json
+
+  blackhole_fe_unmatched:
+    type: blackhole
+    inputs: [fe_route._unmatched]
+```
+
+``` bash
+systemctl daemon-reload
+systemctl restart vector.service
+docker restart frontend
+```
+
+## 19. Tìm hiểu dashboard kibana
+
