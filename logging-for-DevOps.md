@@ -1299,3 +1299,54 @@ docker restart frontend
 ### 4. Kiểm tra với Kibana với dashboard mới 
 
 - Vào discoverry và craete dataview
+
+## 23. Các cách để gửi cảnh báo log dự án
+
+### Tầng vectir
+
+- Cấu hình/server
+
+- Hiểu biết sâu về config vector + mindset dev
+
+- 1 server/nhiều dự án
+
+### Tầng elasticsearch
+
+- Tập trung dữ liệu
+
+- indies
+
+- Gửi telegram
+
+### Trên server triển khai kibana và elasticsearch
+
+``` bash
+cd /etc/kibana
+
+### Thiết lập cấu hình sử dụng Connectors
+$ ENCRYPTED_SAVED_OBJECTS_KEY=$(openssl rand -base64 32)
+$ REPORTING_KEY=$(openssl rand -base64 32)
+$ SECURITY_KEY=$(openssl rand -base64 32)
+$ echo "ESO: $ENCRYPTED_SAVED_OBJECTS_KEY"
+$ echo "RPT: $REPORTING_KEY"
+$ echo "SEC: $SECURITY_KEY"
+```
+
+### Config kibana
+
+``` bash
+nano kibana.yml
+
+# === Added for Alerting & Connectors ===
+xpack.encryptedSavedObjects.encryptionKey: "p1u6sRece7xaJRPCG6dGH+S7oZsxH2jq1A900bFLKgQ=" # Là key từ ESO
+xpack.reporting.encryptionKey: "MJZZQqceGP3lwhrQeUt6DRbfzafjLQPDo9zAzcQ9yg0=" # Là key từ RPT
+xpack.security.encryptionKey: "jYHlhrq8B3gw2DlLou6V3490VEhOwh60D0dURnnT/0A=" # Là key từ SEC
+
+systemctl restart kibana.service
+```
+
+### Config dashboard Kibana
+
+1. Sau khi restart ở màn hình dashboard Kibana ở phần Connectors
+
+2. Tiến hành Create Connectors
