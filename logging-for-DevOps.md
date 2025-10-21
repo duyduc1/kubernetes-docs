@@ -1007,9 +1007,9 @@ After=network-online.target
 Requires=network-online.target
 
 [Service]
-User=vector
-Group=vector
-ExecStartPre=/usr/bin/vector validate
+User=root
+# Group=vector
+ExecStartPre=/usr/bin/vector validate --config-dir /etc/vector/conf.d
 ExecStart=/usr/bin/vector --config-dir /etc/vector/conf.d
 ExecReload=/usr/bin/vector validate --no-environment
 ExecReload=/bin/kill -HUP $MAINPID
@@ -1203,3 +1203,99 @@ docker restart frontend
 
 ## 19. Tìm hiểu dashboard kibana
 
+
+## 20. Thiết lập dashboard Kibana theo dõi dự án
+
+### Horiontal
+
+1. Chọn vào dashboard
+
+2. Create a dashboard
+
+3. Create vitualization
+
+4. kéo timestamp qua Horiontal axis
+
+### Vertical axis
+
+1. Nhấn Add or drag and drop a field
+
+## 21. Phân quyền trên Kibana như thế nào ?
+
+### 1. Cách làm series 
+
+- Thực tế 
+
+- Tài liệu chính thức 
+
+### 2. Setup
+
+1. Vào management -> tab Security -> chọn Roles
+
+## 22. Thực hiện phân quyền trên Kibana
+
+### 1. Setup spaces trên header của Kibana hover vào Spaces (Ô có màu xanh lá) 
+
+1. Chọn vào Manage spaces 
+
+2. Create space
+
+3. Select solution view
+
+- name: (Dev Team) 
+
+- Ở Select solution view: hãy chọn Classic
+
+4. Set feature visibility
+
+- ở Analytics chỉ giữ lại (Disconver, Dashboard)
+
+- disable Security
+
+- ở Managemet giữ lại (Dev tools, Data view Manament, Saved Query Management)
+
+5. Create
+
+### 2. Setup Roles
+
+1. Vào Management => ở mục Security => Roles => Create Roles 
+
+2. Điền các thông tin (Cluster privileges)
+
+- Role name: Name-example
+
+- Remote cluster privileges: Monitor (cho team dev hoặc tuỳ vị trí)
+
+3. Index privileges
+
+- Tiến hành gắn các index đã thêm ở (indices) và ở (Privileges) chọn read, monitor, view_index_metadata
+
+4. Application layer
+
+- click Asign to space
+
+- Assign role to spaces
+
+- Select space: chọn spaces đã tạo từ trước (Dev Team)
+
+- Chọn Customize 
+
+- Đối với Anlytics (Discover & Dashboard hãy để Read)
+
+- Đối với Elasticsearch (Để All cho tất cả)
+
+- Đối với Observability (Để All tất cả)
+
+- Đối với Management (Dev Tools & Data view management & Saved Query Management để All)
+
+### 3. Setup User
+
+- Điền Username: dev-team (example)
+
+- Password: Vuduyduc28042002@ (example)
+
+- Roles: Chọn Roles đã setup ở bước 2
+
+### 4. Kiểm tra với Kibana với dashboard mới 
+
+- Vào discoverry và craete dataview
