@@ -3,6 +3,8 @@
 ## 3.1 Cài đặt Prometheus
 
 ``` bash
+sudo -i
+mkdir -p /etc/prometheus/ /var/lib/prometheus/
 wget https://github.com/prometheus/prometheus/releases/download/v2.39.0/prometheus-2.39.0.linux-amd64.tar.gz
 tar -xzf prometheus-2.39.0.linux-amd64.tar.gz
 cd prometheus-2.39.0.linux-amd64
@@ -31,11 +33,11 @@ User=prometheus
 Group=prometheus
 Restart=always
 Type=simple
-ExecStart=/usr/local/bin/prometheus
-config.file=/etc/prometheus/prometheus.yml
-storage.tsdb.path=/var/lib/prometheus/
-web.console.templates=/etc/prometheus/consoles
-web.console.libraries=/etc/prometheus/console_libraries
+ExecStart=/usr/local/bin/prometheus \
+  --config.file=/etc/prometheus/prometheus.yml \
+  --storage.tsdb.path=/var/lib/prometheus/ \
+  --web.console.templates=/etc/prometheus/consoles \
+  --web.console.libraries=/etc/prometheus/console_libraries
 
 [Install]
 WantedBy=multi-user.target
