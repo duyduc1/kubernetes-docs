@@ -119,6 +119,7 @@ nano src/main/resources/application.properties
 mvn clean install -DskipTests=true
 ls target/
 java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
+mkdir -p /var/log/backend
 ```
 
 ### 4. tiến hành setup service backend
@@ -133,6 +134,8 @@ User=backend
 Restart=Always
 WorkingDirectory=/home/user/project/ticker-car
 ExecStart= java -jar target/SpringSecurity.JWT-0.0.1-SNAPSHOT.jar
+StandardOutput=append:/var/log/backend/backend.log     
+StandardError=append:/var/log/backend/backend.err
 
 ### Chạy file service
 systemctl daemon-reload
@@ -740,21 +743,22 @@ docker-compose down || docker-compose -f file.yml down
 ### Dockerfile Springboot
 
 ``` Dockerfile
-FROM maven:3.8-openjdk-17 AS build
+# Build stage
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 
 WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
 # Runtime stage
-FROM openjdk:17-jdk
+FROM eclipse-temurin:21-jdk
 
 WORKDIR /run
-COPY --from=build /app/target/VegetFood-1.0.jar /run/VegetFood-1.0.jar
+COPY --from=build /app/target/ecom-proj-0.0.1-SNAPSHOT.jar /run/ecom-proj-0.0.1-SNAPSHOT.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "/run/VegetFood-1.0.jar", "--spring.config.location=/run/src/main/resources/application.properties"]
+ENTRYPOINT ["java", "-jar", "/run/ecom-proj-0.0.1-SNAPSHOT.jar"]
 ```
 
 ### Dockerfile React

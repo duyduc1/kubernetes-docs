@@ -33,14 +33,14 @@ bash docker-install.sh
 vi docker-compose-cloudbeaver.yml
 ```
 
-``` bash
+``` yml
 version: '3.8'
 services:
   cloudbeaver:
     image: dbeaver/cloudbeaver:latest
     container_name: cloudbeaver
     ports:
-      - "80:8978"
+      - "81:8978"
     volumes:
       - /data/cloudbeaver/:/opt/cloudbeaver/workspace
     restart: always
@@ -56,7 +56,7 @@ docker-compose -f docker-compose-cloudbeaver.yml up -d
 vi docker-compose-postgresql.yml
 ```
 
-``` bash
+``` yml
 version: '3.8'
 services:
   postgres:
@@ -83,7 +83,7 @@ docker-compose -f docker-compose-postgresql.yml up -d
 vi docker-compose-mariadb.yml
 ```
 
-``` bash
+``` yml
 version: '3.8'
 services:
   mariadb:
@@ -110,7 +110,7 @@ docker-compose -f docker-compose-mariadb.yml up -d
 vi docker-compose-mssql.yml
 ```
 
-``` bash
+``` yml
 version: '3.8'
 services:
   mssql:
@@ -139,7 +139,7 @@ docker-compose -f docker-compose-mssql.yml up -d
 vi docker-compose-mongodb.yml
 ```
 
-``` bash
+``` yml
 version: '3.8'
 services:
   mongodb:
@@ -162,7 +162,7 @@ docker-compose -f docker-compose-mongodb.yml up -d
 vi docker-compose-redis.yml
 ```
 
-``` bash
+``` yml
 version: '3.8'
 services:
   redis:
