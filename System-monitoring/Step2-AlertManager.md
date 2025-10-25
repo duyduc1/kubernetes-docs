@@ -5,6 +5,8 @@
 ### Intall AlertManager
 
 ``` bash
+sudo -i
+mkdir -p /var/lib/alertmanager
 wget https://github.com/prometheus/alertmanager/releases/download/v0.26.0/alertmanager-0.26.0.linux-amd64.tar.gz
 tar -xzf alertmanager-0.26.0.linux-amd64.tar.gz
 cd alertmanager-0.26.0.linux-amd64
