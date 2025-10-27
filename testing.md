@@ -1,23 +1,53 @@
-version: "3.8"
+``` yml
+version: "3.9"
 
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: mysql-db
+  mariadb:
+    image: mariadb:10.6
+    container_name: ecommerce-mariadb
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: 2804          
-      MYSQL_DATABASE: app_db                         
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: ecommerce_db
+      MYSQL_USER: ecommerce_user
+      MYSQL_PASSWORD: ecommerce_pass
     ports:
-      - "3306:3306"                      
+      - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql        
+      - mariadb_data:/var/lib/mysql
     networks:
-      - mysql_net
+      - ecommerce-network
 
-volumes:
-  mysql_data:
+  backend:
+    build:
+      context: ./Ecommerce-Backend
+      dockerfile: Dockerfile
+    container_name: ecommerce-backend
+    restart: always
+    depends_on:
+      - mariadb
+    ports:
+      - "8081:8080"
+    networks:
+      - ecommerce-network
+
+  frontend:
+    build:
+      context: ./Ecommerce-Frontend
+      dockerfile: Dockerfile
+    container_name: ecommerce-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - ecommerce-network
 
 networks:
-  mysql_net:
+  ecommerce-network:
     driver: bridge
+
+volumes:
+  mariadb_data:
+```

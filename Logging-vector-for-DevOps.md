@@ -1350,3 +1350,285 @@ systemctl restart kibana.service
 1. Sau khi restart ở màn hình dashboard Kibana ở phần Connectors
 
 2. Tiến hành Create Connectors
+
+## 24. Cấu hình gửi cảnh báo log dự án về telegram
+
+``` bash
+# Output => Gửi log về telegram
+
+# Input => Query elastichsearch => lấy document trong index => curl
+
+# Lấy log trong vòng 5 phút mới nhất 
+```
+
+### Hướng dẫn config telegram
+
+1. Vào telegram tạo group
+
+2. Sau đó tìm kiếm BotFather
+
+3. Start
+
+4. chat 
+
+- /newbot
+
+- Ecommerce bot noti (đặt tên box)
+
+- ecommerce_develop_bot (username)
+
+5. Sau khi xong bạn sẽ được cấp 1 message 
+
+``` bash
+Done! Congratulations on your new bot. You will find it at t.me/ecommerce_develop_bot. You can now add a description, about section and profile picture for your bot, see /help for a list of commands. By the way, when you've finished creating your cool bot, ping our Bot Support if you want a better username for it. Just make sure the bot is fully operational before you do this.
+
+Use this token to access the HTTP API:
+8326585358:AAGPImLAq7ksfXKhN-JK-40swbIPusl--R8
+Keep your token secure and store it safely, it can be used by anyone to control your bot.
+
+For a description of the Bot API, see this page: https://core.telegram.org/bots/api
+```
+
+6. kick vào t.me/ecommerce_develop_bot và start
+
+7. dàn token vào 8326585358:AAGPImLAq7ksfXKhN-JK-40swbIPusl--R8
+
+8. Vào trong group ecommerce vừa tạo vào add member (@ecommerce_develop_bot)
+
+9. add thêm user rose vào group chat ecommerce
+
+10. gõ /id để lấy id của group (ví dụ: -4905389110)
+
+### Thực hiện trên logging-server
+
+``` bash
+curl -s -k \
+  -u "elastic:DUYDUC1" \
+  --cacert /etc/elasticsearch/certs/http_ca.crt \
+  -X GET "https://192.168.157.10:9200/ecommerce-backend-*/_search?track_total_hits=true" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "size": 50,
+    "sort": [ { "timestamp": "desc" } ],
+    "_source": ["timestamp","log.level","message","labels.env","labels.app","service.name"],
+    "query": { "range": { "timestamp": { "gte": "now-5m", "lt": "now" } } }
+  }' 
+| jq -r '.hits.hits[]._source | "(.timestamp) [(.["log.level"] // "-")] (.message)"'
+```
+
+### Kiểm tra gửi tin nhắn từ api telegram
+
+``` bash
+curl -s "https://api.telegram.org/bot8326585358:AAGPImLAq7ksfXKhN-JK-40swbIPusl--R8/sendMessage" \
+  -H "Content-Type: application/json" \
+  -d "{"chat_id":"-4905389110", "text":"Test từ server"}" \
+```
+
+### config notication
+
+``` bash
+cd /etc/kibana
+mkdir notication
+touch lay_log_trong_5_phut.sh && chmod +x lay_log_trong_5_phut.sh
+```
+
+### Lấy tổng số log level INFO trong 5 phút gần nhất và gửi cảnh báo (bạn hoàn toàn có thể đổi thành ERROR hay các log level khác).
+
+``` bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ====== Config ======
+# Elasticsearch
+ES_URL="https://10.1.0.13:9200"
+ES_USER="elastic"
+ES_PASS="DUYDUC1"
+CA_CERT="$/etc/elasticsearch/certs/http_ca.crt"
+
+# Kibana
+KIBANA_URL="http://10.1.0.13:5601"
+
+# Telegram
+BOT_TOKEN="8326585358:AAGPImLAq7ksfXKhN-JK-40swbIPusl--R8"
+CHAT_ID="-4905389110"
+
+# Level cần theo dõi: info | error | warn
+LEVEL="${LEVEL:-info}"
+
+# Debug
+DEBUG="${DEBUG:-0}"
+
+# Mapping: index prefix => dataViewId (bạn đã cung cấp)
+declare -A DATA_VIEW_MAP=(
+  ["ecommerce-frontend-nginx-misc"]="cb5417a1-56e4-4986-964a-34ff24c693f0" # Lấy trong dataviewId trên thank link ở phần discovery
+  ["ecommerce-frontend-nginx-init"]="3b49d2b0-6b54-4ee8-a259-ce6c3fed1b51" # Lấy trong dataviewId trên thank link ở phần discovery
+  ["ecommerce-backend-hibernate"]="d4879039-0d61-4268-ab1e-2f293350e853" # Lấy trong dataviewId trên thank link ở phần discovery
+  ["ecommerce-backend-misc"]="805ab722-6372-49cc-a3a2-a4a752a1c92c" # Lấy trong dataviewId trên thank link ở phần discovery
+  ["ecommerce-frontend-nginx-access"]="9d3a2646-850f-4773-b7a1-9f0d04d638a8" # Lấy trong dataviewId trên thank link ở phần discovery
+  ["ecommerce-frontend-nginx-service"]="96295c4f-363f-47f8-8454-e31fe7ec45f5" # Lấy trong dataviewId trên thank link ở phần discovery
+)
+
+need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing dep: $1"; exit 1; }; }
+need curl; need jq
+
+# ====== Build ES query theo LEVEL ======
+build_es_query() {
+  local L="${1,,}"
+  local should_terms
+  case "$L" in
+    error) should_terms='
+      { "term": { "log.level.keyword": "error" } },
+      { "term": { "log.level.keyword": "ERROR" } },
+      { "term": { "log.level": "error" } },
+      { "term": { "log.level": "ERROR" } },
+      { "match_phrase": { "message": "Exception" } },
+      { "match_phrase": { "message": "ERROR" } }' ;;
+    warn|warning) should_terms='
+      { "term": { "log.level.keyword": "warn" } },
+      { "term": { "log.level.keyword": "WARN" } },
+      { "term": { "log.level.keyword": "warning" } },
+      { "term": { "log.level.keyword": "WARNING" } },
+      { "term": { "log.level": "warn" } },
+      { "term": { "log.level": "WARN" } }' ;;
+    *) # info
+      should_terms='
+      { "term": { "log.level.keyword": "info" } },
+      { "term": { "log.level.keyword": "INFO" } },
+      { "term": { "log.level": "info" } },
+      { "term": { "log.level": "INFO" } }' ;;
+  esac
+  cat </dev/null || echo 0)
+
+  [[ "$DEBUG" == "1" ]] && echo "[DEBUG] $prefix total_${LEVEL}_hits=$total"
+
+  if (( total > 0 )); then
+    # Link Discover dùng đúng dataViewId + 5 phút gần nhất (để raw URL – plain text)
+    link="${KIBANA_URL}/app/discover#/?_g=(time:(from:now-5m,to:now))&_a=(dataSource:(type:dataView,dataViewId:'${DATA_VIEW_MAP[$prefix]}'))"
+    LINES+=("• ${prefix}: ${total} ${LEVEL} log(s) trong 5 phút
+${link}")
+    echo "[OK] $prefix => ${LEVEL}=$total"
+  else
+    echo "[INFO] $prefix => no ${LEVEL} logs in last 5m"
+  fi
+done
+
+# ====== Gửi 1 hoặc nhiều tin (chunk < 4096 ký tự) ======
+if (( ${#LINES[@]} == 0 )); then
+  echo "[QUIET] No ${LEVEL} logs across all data views."
+  exit 0
+fi
+
+NOW_UTC="$(date -u +'%Y-%m-%d %H:%M:%SZ')"
+HEADER="Thông báo: phát hiện log level=${LEVEL} trong 5 phút gần nhất – ${NOW_UTC} UTC"
+
+# Ghép và chunk theo 3500 ký tự (an toàn dưới 4096)
+chunk=""
+for entry in "${LINES[@]}"; do
+  block="${entry}
+
+"
+  if (( ${#chunk} + ${#block} + ${#HEADER} > 3500 )); then
+    msg="${HEADER}
+
+${chunk}"
+    send_tg "$msg" || { echo "[ERR] Telegram send failed"; exit 1; }
+    chunk="$block"
+  else
+    chunk+="$block"
+  fi
+done
+# gửi phần còn lại
+msg="${HEADER}
+
+${chunk}"
+send_tg "$msg" || { echo "[ERR] Telegram send failed"; exit 1; }
+echo "[SENT] Telegram ${LEVEL} alert sent."
+```
+
+### Cấu hình gửi tổng số log trong vòng 5 phút về telegram
+
+``` bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Elasticsearch Config
+ES_URL="https://10.1.0.13:9200"
+ES_USER="elastic"
+ES_PASS="DUYDUC1"
+CA_CERT="$/etc/elasticsearch/certs/http_ca.crt"
+
+# Telegram Bot Config
+BOT_TOKEN="8326585358:AAGPImLAq7ksfXKhN-JK-40swbIPusl--R8"
+CHAT_ID="-4905389110"
+
+# Kibana URL
+KIBANA_URL="http://10.1.0.13:5601"
+
+# Map DataView IDs trong discovery ở Analytics
+declare -A DATA_VIEW_MAP=(
+  ["ecommerce-frontend-nginx-misc"]="cb5417a1-56e4-4986-964a-34ff24c693f0" # Lấy trong dataviewId trên thank link ở phần discovery
+  ["ecommerce-frontend-nginx-init"]="3b49d2b0-6b54-4ee8-a259-ce6c3fed1b51" # Lấy trong dataviewId trên thank link ở phần discovery
+  ["ecommerce-backend-hibernate"]="d4879039-0d61-4268-ab1e-2f293350e853" # Lấy trong dataviewId trên thank link ở phần discovery
+  ["ecommerce-backend-misc"]="805ab722-6372-49cc-a3a2-a4a752a1c92c" # Lấy trong dataviewId trên thank link ở phần discovery
+  ["ecommerce-frontend-nginx-access"]="9d3a2646-850f-4773-b7a1-9f0d04d638a8" # Lấy trong dataviewId trên thank link ở phần discovery
+  ["ecommerce-frontend-nginx-service"]="96295c4f-363f-47f8-8454-e31fe7ec45f5" # Lấy trong dataviewId trên thank link ở phần discovery
+)
+
+# Elasticsearch Query
+ES_QUERY='{
+  "size": 0,
+  "track_total_hits": true,
+  "query": { "range": { "timestamp": { "gte": "now-5m", "lt": "now" } } }
+}'
+
+check_and_notify() {
+  local prefix="$1"
+  local dataview_id="${DATA_VIEW_MAP[$prefix]}"
+  local index_pattern="${prefix}-*"
+
+  local resp total
+  resp=$(curl -s -k -u "$ES_USER:$ES_PASS" --cacert "$CA_CERT" 
+          -H 'Content-Type: application/json' 
+          -X GET "$ES_URL/$index_pattern/_search" -d "$ES_QUERY")
+  total=$(jq -r '.hits.total.value // 0' <<<"$resp")
+
+  if (( total > 0 )); then
+    local now_utc log_link text
+    now_utc="$(date -u +"%Y-%m-%d %H:%M:%SZ")"
+
+    log_link="${KIBANA_URL}/app/discover#/?_g=(time:(from:now-5m,to:now))&_a=(dataSource:(type:dataView,dataViewId:'${dataview_id}'))"
+
+    text="[$prefix] Có ${total} log trong 5 phút gần nhất (tính đến ${now_utc} UTC)
+Xem chi tiết tại Kibana:
+${log_link}"
+
+    curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" 
+      -d "chat_id=${CHAT_ID}" 
+      --data-urlencode "text=${text}" 
+      -d "disable_web_page_preview=true" >/dev/null
+
+    echo "[OK] $prefix => sent: total=$total"
+  else
+    echo "[INFO] $prefix => no logs in last 5m"
+  fi
+}
+
+for prefix in "${!DATA_VIEW_MAP[@]}"; do
+  check_and_notify "$prefix"
+done
+```
+
+### Tiến hành chạy
+
+``` bash
+bash lay_log_trong_5_phut.sh
+
+sudo chmod +x /etc/kibana/notifications/lay_so_log_5_phut_gan_nhat.sh
+sudo EDITOR=nano crontab -e
+### Thêm 1 dòng vào cuối file crontab để chạy script mỗi 5 phút (ví dụ):
+# chạy mỗi 5 phút, ghi log stdout/stderr vào /var/log/lay_so_log_5ph.log
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+*/5 * * * * /etc/kibana/notifications/lay_so_log_5_phut_gan_nhat.sh
+```
