@@ -857,7 +857,7 @@ docker login
 
 3. Setup file .gitlab-ci.yml
 
-### Dựng Docker CI/CD Dockerfile
+### Dựng Docker CI/CD Dockerfile push lên dockerhub
 
 ``` yaml
 variables:
@@ -889,6 +889,7 @@ deploy:
         - docker pull $DOCKER_IMAGE
         - docker rm -f $DOCKER_CONTAINER
         - docker run --name $DOCKER_CONTAINER -dp 8888:8081 $DOCKER_IMAGE
+        - docker image prune -af
     tags:
         - deploy
 
@@ -903,9 +904,54 @@ showlog:
         - deploy
 ```
 
+### Dựng Docker CI/CD Dockerfile không push lên dockerhub
+
+``` yml
+variables:
+  DOCKER_IMAGE: ${CI_PROJECT_NAME}:${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA}
+  DOCKER_CONTAINER: ${CI_PROJECT_NAME}
+
+stages:
+  - build
+  - deploy
+  - showlog
+
+build:
+  stage: build
+  variables:
+    GIT_STRATEGY: clone
+  script:
+    - docker build -t $DOCKER_IMAGE .
+  tags:
+    - deploy
+
+deploy:
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - docker rm -f $DOCKER_CONTAINER || true
+    - echo "Running new container..."
+    - docker run -d --name $DOCKER_CONTAINER -p 8080:8080 $DOCKER_IMAGE
+    - docker image prune -af
+  tags:
+    - deploy
+
+showlog:
+  stage: showlog
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - sleep 10
+    - docker logs --tail=50 $DOCKER_CONTAINER
+  tags:
+    - deploy
+
+```
+
 ### Docker CI/CD docker-compose
 
-* Nhớ thêm image: ${REGISTRY_URL}/${REGISTRY_PROJECT}/backend:${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA} trong file docker-compose sau bước build 
+* Nhớ thêm image: ${REGISTRY_URL}/${REGISTRY_PROJECT}/backend:${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA} trong file docker-compose <br> sau bước build nếu muốn push lên dockerhub registry
 
 ``` yml
 variables:
@@ -951,6 +997,50 @@ showlog:
     - docker compose -f fullstack-compose.yml logs backend --tail=50
   tags:
     - deploy
+```
+
+### Nếu không muốn push docker image lên docker hub
+
+``` yml
+variables:
+  DOCKER_COMPOSE_FILE: fullstack-compose.yml
+  GIT_STRATEGY: clone
+
+stages:
+  - build
+  - deploy
+  - showlog
+
+build:
+  stage: build
+  script:
+    - echo "Building local Docker images..."
+    - docker compose -f $DOCKER_COMPOSE_FILE build
+  tags:
+    - deploy
+
+deploy:
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - echo "Deploying local Docker images..."
+    - docker compose -f $DOCKER_COMPOSE_FILE down
+    - docker compose -f $DOCKER_COMPOSE_FILE up -d
+    - docker image prune -af
+  tags:
+    - deploy
+
+showlog:
+  stage: showlog
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - sleep 10
+    - docker compose -f fullstack-compose.yml logs backend --tail=50
+  tags:
+    - deploy
+
 ```
 
 # Thiết lập cài đặt Jenkins
