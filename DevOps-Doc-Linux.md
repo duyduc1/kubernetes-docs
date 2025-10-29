@@ -76,7 +76,7 @@ chown -R backend. /home/user/project/ticker-car
 chmod -R 755 /home/user/project/ticker-car
 
 ### setup môi trường cho dự án
-apt install openjdk-17-jdk openjdk-17-jre
+apt install openjdk-21-jdk openjdk-21-jre
 apt install maven
 ```
 
@@ -296,6 +296,9 @@ cat /etc/gitlab/initial_root_password
 # username là root , password lấy trong initial_root_password 
 ```
 
+- Nếu là domain tự host hãy dùng lệnh sau
+
+- Nhớ add <ip-server> <tên-domain-git> ví dụ 10.1.0.13 git.vuduyduc.vn
 # Đẩy dự án lên git
 
 1. Tạo một repo trước trên gitlab vừa setup
@@ -318,6 +321,7 @@ git push --set-upstream origin main
 curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | bash
 apt-get install gitlab-runner
 gitlab-runner register
+
 # Enter the gitlab instance URL ( - bỏ link của gitlab vào trong này)
 # Enter the registration Token ( - Vào CI/CD -> gitlab-runner -> lấy token vào dán vào)
 # Enter the description for the runner ( - có thể bỏ tên của server vào ví dụ mô tả là deploy )
@@ -377,6 +381,7 @@ stages:
 
 variables:
   DEPLOY_DIR: /opt/backend-data
+  DATA_LOG: /var/log/java
   JAR_NAME: <file-build-sau-khi-build-trong-du-an-springboot>.jar
   JAR_PATH: target/<file-build-sau-khi-build-trong-du-an-springboot>.jar
   PORT: 8080
@@ -395,16 +400,14 @@ deploy:
   variables:
     GIT_STRATEGY: none
   script:
+    - sudo mkdir -p $DATA_LOG
+    - sudo chown -R gitlab-runner:gitlab-runner $DATA_LOG
     - sudo fuser -k $PORT/tcp || true
     - sudo mkdir -p $DEPLOY_DIR
     - sudo cp $JAR_PATH $DEPLOY_DIR
-    # xoá key nếu trong repo đã chứa key rồi
-    - echo "$ENV_CONTENT" > .env                    
-    - sudo cp .env $DEPLOY_DIR/
     - sudo chown -R gitlab-runner:gitlab-runner $DEPLOY_DIR
     - cd $DEPLOY_DIR
-    - export $(cat .env | xargs)
-    - java -jar $JAR_NAME > nohup.out 2>&1 &
+    - nohup java -jar $JAR_NAME > $DATA_LOG/backend.log 2>&1 &
   tags:
     - deploy
 
@@ -414,7 +417,7 @@ showlog:
     GIT_STRATEGY: none
   script:
     - echo "Showing latest log lines..."
-    - tail -n 100 $DEPLOY_DIR/nohup.out
+    - cat $DATA_LOG/backend.log
   tags:
     - deploy
 ```
@@ -854,6 +857,8 @@ docker login
 
 3. Setup file .gitlab-ci.yml
 
+### Dựng Docker CI/CD Dockerfile
+
 ``` yaml
 variables:
    DOCKER_IMAGE: ${REGISTRY_URL}/${REGISTRY_PROJECT}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA}
@@ -896,6 +901,56 @@ showlog:
         - docker logs $DOCKER_CONTAINER
     tags:
         - deploy
+```
+
+### Docker CI/CD docker-compose
+
+* Nhớ thêm image: ${REGISTRY_URL}/${REGISTRY_PROJECT}/backend:${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA} trong file docker-compose sau bước build 
+
+``` yml
+variables:
+  DOCKER_COMPOSE_FILE: fullstack-compose.yml
+  GIT_STRATEGY: clone
+
+stages:
+  - build
+  - deploy
+  - showlog
+
+build:
+  stage: build
+  before_script:
+    - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin $REGISTRY_URL
+  script:
+    # Build & push toàn bộ image được định nghĩa trong docker-compose.yml
+    - docker compose -f $DOCKER_COMPOSE_FILE build
+    - docker compose -f $DOCKER_COMPOSE_FILE push
+  tags:
+    - deploy
+
+deploy:
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - echo "Pull latest images from registry..."
+    - docker compose -f $DOCKER_COMPOSE_FILE pull
+    - echo "Restarting services..."
+    - docker compose -f $DOCKER_COMPOSE_FILE down
+    - docker compose -f $DOCKER_COMPOSE_FILE up -d
+    - docker image prune -af
+  tags:
+    - deploy
+
+showlog:
+  stage: showlog
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - sleep 10
+    - docker compose -f fullstack-compose.yml logs backend --tail=50
+  tags:
+    - deploy
 ```
 
 # Thiết lập cài đặt Jenkins
