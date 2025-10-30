@@ -983,3 +983,5 @@ eksctl delete cluster --name <cluster-name> --region <region>
 # ví dụ
 eksctl delete cluster --name my-eks-cluster --region ap-southeast-1
 ```
+
+### Có thể dùng CloudFormation trên AWS để xem các stack còn chạy không
