@@ -951,7 +951,11 @@ showlog:
 
 ### Docker CI/CD docker-compose
 
-* Nhớ thêm image: ${REGISTRY_URL}/${REGISTRY_PROJECT}/backend:${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA} trong file docker-compose <br> sau bước build nếu muốn push lên dockerhub registry
+``` bash
+# Nhớ thêm image: trong file docker-compose <br> sau bước build nếu muốn push lên dockerhub registry
+image: ${REGISTRY_URL}/${REGISTRY_PROJECT}/backend:${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA}
+# trong file docker-compose <br> sau bước build nếu muốn push lên dockerhub registry
+```
 
 ``` yml
 variables:
