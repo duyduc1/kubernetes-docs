@@ -749,10 +749,10 @@ nano vector.yaml
 data_dir: /var/lib/vector
 
 sources:
-  java_file:
+  backend_order:
     type: file
     include:
-      - /var/log/java/backend.log
+      - /var/log/java/backend-order.log
     ignore_older_secs: 0
     multiline:
       start_pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}\s'
@@ -763,12 +763,12 @@ sources:
 transforms:
   enrich_env:
     type: remap
-    inputs: [java_file]
+    inputs: [backend_order]
     source: |
       .message = to_string!(.message)
       if !exists(.labels) { .labels = {} }
       .labels.env = "prod"
-      .input = { "type": "file", "path": "/var/log/java/ecom-backend.log" }
+      .input = { "type": "file", "path": "/var/log/java/backend-order.log" }
 
   parse_spring:
     type: remap
@@ -1521,4 +1521,318 @@ SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 */5 * * * * /etc/kibana/notication/lay_log_trong_5_phut.sh
+```
+
+## 25. APM là gì?
+
+### Khái niệm APM 
+
+- Là Application Performance Monitoring/Management là tập hợp các công cụ <br> dùng để giám sát, đo lường và cải thiện hiệu năng <br> của ứng dụng từ góc nhìn người dùng cho tới backend.
+
+### Nắm bắt vấn đề cốt lõi 
+
+- Có vân đề gì không (lỗi/chậm/nghẽn) ?
+
+- Vấn đề ở đâu (Endpoint, service, db) ?
+
+- Tại sao có vấn đề (Nguyên nhân gốc rể) ?
+
+### APM sẽ theo dõi những gì 
+
+- Distributed tracing
+
+- Transaction metrics 
+
+- Error tracking & exception
+
+- Resource & depenency
+
+- RUM (Real User Monitoring)
+
+- Profiling
+
+## 26. Thiết lập hệ thống APM cho backend
+
+### Thực hiện trên logging-server
+
+``` bash
+sudo apt update -y && sudo apt install apm-server -y
+
+cd /etc/apm-server/
+cp apm-server.yml apm-server.yml.org
+
+mkdir -p /etc/apm-server/certs/
+cp /etc/elasticsearch/certs/http_ca.crt /etc/apm-server/certs/
+chown -R apm-server. /etc/apm-server/
+nano apm-server.yml
+```
+
+#### Nội dung apm-server.yml
+
+``` yml
+apm-server:
+  host: "0.0.0.0:8200"
+  secret_token: "change_this_token"
+
+output.elasticsearch:
+  hosts: ["https://10.1.0.13:9200"]
+  username: "elastic"
+  password: "DUYDUC123"
+  ssl:
+    certificate_authorities: ["/etc/apm-server/certs/http_ca.crt"]
+```
+
+#### Run nội dung 
+
+``` bash
+systemctl start apm-server
+systemctl status apm-server
+```
+
+### Thực hiện trên dev-server
+
+#### Tải file elastic-apm-agent (nếu cài trực tiếp từ link chính thức không thành công)
+
+``` bash
+cd /home/dev/Springboot-React-Ecommerce/Ecommerce-Backend
+curl -L -o elastic-apm-agent.jar \
+  https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/1.49.0/elastic-apm-agent-1.49.0.jar
+
+file elastic-apm-agent.jar
+```
+
+#### Chạy file jar
+
+``` bash
+java -javaagent:./elastic-apm-agent.jar -Dserver.port=8081 -Delastic.apm.environment=dev -Delastic.apm.service_name=ecommerce-backend-2 -Delastic.apm.server_url=http://10.1.0.13:8200 -jar target/ecom-proj-0.0.1-SNAPSHOT.jar
+
+### hoặc nếu muốn chạy log vào cả file /var/log/java/backend.log
+
+java -javaagent:./elastic-apm-agent.jar \
+  -Delastic.apm.environment=dev \
+  -Delastic.apm.service_name=ecommerce-backend-2 \
+  -Delastic.apm.server_url=http://10.1.0.13:8200 \
+  -Dserver.port=8080 \
+  -jar target/ecom-proj-0.0.1-SNAPSHOT.jar \
+  2>&1 | tee -a /var/log/java/backend.log
+
+### Lưu ý nếu chạy bằng service systemd 
+
+[Service]
+Type=simple
+User=root
+Restart=always
+WorkingDirectory=/home/dev/Springboot-React-Ecommerce/Ecommerce-Backend
+ExecStart=/usr/bin/java \
+  -javaagent:./elastic-apm-agent.jar \
+  -Delastic.apm.environment=dev \
+  -Delastic.apm.service_name=ecommerce-backend-2 \
+  -Delastic.apm.server_url=http://10.1.0.13:8200 \
+  -Dserver.port=8080 \
+  -jar target/ecom-proj-0.0.1-SNAPSHOT.jar
+
+StandardOutput=append:/var/log/java/backend.log
+StandardError=append:/var/log/java/backend.log
+```
+
+- Trong Index Manager của Kibana qua phần Data Streams sẽ thấy trả về các metrics APM 
+
+- Vào trong phần Application của Observarbility (Sẽ thấy được ứng dụng ecommerce-backend-2 )
+
+- Vào bên trong ecommerce-backend-2 để xem rõ các chỉ số 
+
+## 27. Phân tích chi tiết hệ thống
+
+- Latency: Dùng để đo performance 
+
+- Throughput: Đo lượng traffic 
+
+- Failed Transaction rate
+
+- Transactions: cụ thể các endpoint xảy ra vấ đề 
+
+- Error: Điều tra gốc rể
+
+## 28. Thiết lập cảnh báo APM gửi về Telegram
+
+### Thực hiện trên Logging-server
+
+``` bash
+cd /etc/apm-server/
+mkdir notifications
+cd notifications
+touch gui-canh-bao-ty-le-loi.sh && chmod +x gui-canh-bao-ty-le-loi.sh
+nano gui-canh-bao-ty-le-loi.sh
+```
+
+### Gửi cảnh báo nếu tỷ lệ (failed transaction rate) trên 10% trong vòng 5 phút kèm link kibana
+
+``` bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+ES_URL="https://10.1.0.13:9200"
+ES_USER="elastic"
+ES_PASS="DUYDUC123"
+CA_CERT="/etc/apm-server/certs/http_ca.crt"
+
+APM_INDEX="${APM_INDEX:-traces-apm*}"
+SERVICE_NAME="ecommerce-backend-2"    
+SERVICE_ENV="${SERVICE_ENV:-}"         
+
+WINDOW_MIN=5                          
+THRESHOLD=10                           
+MIN_TOTAL=20                           
+
+BOT_TOKEN="8326585358:AAGPImLAq7ksfXKhN-JK-40swbIPusl--R8"
+CHAT_ID="4905389110"
+
+DRY_RUN=0                              
+DEBUG=1                               
+COOLDOWN_SEC=300                       
+STATE_FILE="/var/lib/apm-alert/state_failed_rate.json"
+
+KIBANA_BASE="http://10.1.0.13:5601"
+KIBANA_ENV="$( [[ -n "${SERVICE_ENV:-}" ]] && echo "$SERVICE_ENV" || echo "ENVIRONMENT_ALL" )"
+
+mkdir -p "$(dirname "$STATE_FILE")"
+
+now_iso(){ date -u -Is; }
+log(){ [[ "${DEBUG:-0}" == "1" ]] && echo "[$(now_iso)] $*"; }
+
+urlenc(){ jq -nr --arg v "$1" '$v|@uri'; }
+
+build_kibana_overview_url() {
+  local svc_enc env_enc from to
+  svc_enc="$(urlenc "$SERVICE_NAME")"
+  env_enc="$(urlenc "$KIBANA_ENV")"
+  from="now-${WINDOW_MIN}m"
+  to="now"
+  echo "${KIBANA_BASE}/app/apm/services/${svc_enc}/overview?comparisonEnabled=true&environment=${env_enc}&kuery=&latencyAggregationType=avg&offset=1d&rangeFrom=$(urlenc "$from")&rangeTo=$(urlenc "$to")&serviceGroup=&transactionType=request"
+}
+
+es_post() {
+  local url="$1" body="$2" body_out http
+  if [[ -f "$CA_CERT" ]]; then
+    body_out="$(curl -sS --show-error --cacert "$CA_CERT" \
+      -u "$ES_USER:$ES_PASS" -H 'Content-Type: application/json' \
+      -X POST "$url" -d "$body" -w '\n%{http_code}')"
+  else
+    body_out="$(curl -sS --show-error -k \
+      -u "$ES_USER:$ES_PASS" -H 'Content-Type: application/json' \
+      -X POST "$url" -d "$body" -w '\n%{http_code}')"
+  fi
+  http="${body_out##*$'\n'}"
+  body_out="${body_out%$'\n'*}"
+  if [[ "$http" != 2* ]]; then
+    echo "ES HTTP $http" >&2
+    echo "$body_out" | sed 's/^/ES-ERR: /' >&2
+    return 1
+  fi
+  echo "$body_out"
+}
+
+send_tg() {
+  local text="$1"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "[DRY-RUN] Telegram: $text"
+    return 0
+  fi
+  curl -sS --fail --show-error \
+    -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+    -d "chat_id=${CHAT_ID}" \
+    --data-urlencode "text=${text}" >/dev/null
+}
+
+within_cooldown() {
+  [[ -f "$STATE_FILE" ]] || return 1
+  local last; last="$(jq -r '.last_sent // 0' "$STATE_FILE" 2>/dev/null || echo 0)"
+  local now; now="$(date +%s)"
+  (( now - last < COOLDOWN_SEC ))
+}
+update_cooldown(){ jq -n --argjson t "$(date +%s)" '{last_sent:$t}' > "$STATE_FILE"; }
+
+BODY=$(cat <<'JSON'
+{
+  "size": 0,
+  "query": {
+    "bool": {
+      "filter": [
+        {"term":{"processor.event":"transaction"}},
+        {"term":{"transaction.type":"request"}},
+        {"range":{"@timestamp":{"gte":"now-WM","lt":"now"}}},
+        {"term":{"service.name":"SNM"}}
+      ]
+    }
+  },
+  "aggs": { "by_outcome": { "terms": { "field": "event.outcome", "size": 2 } } }
+}
+JSON
+)
+BODY="${BODY//WM/${WINDOW_MIN}m}"
+BODY="${BODY//SNM/$SERVICE_NAME}"
+
+# Thêm filter environment nếu có
+if [[ -n "$SERVICE_ENV" ]]; then
+  BODY="$(jq --arg env "$SERVICE_ENV" '.query.bool.filter += [ {"term":{"service.environment":$env}} ]' <<<"$BODY")"
+fi
+
+log "Query failed-rate last ${WINDOW_MIN}m, service='${SERVICE_NAME}', env='${SERVICE_ENV:-<any>}' indices='${APM_INDEX}'"
+[[ "$DEBUG" -eq 1 ]] && echo "$BODY" | jq . >&2
+
+RESP="$(es_post "${ES_URL}/${APM_INDEX}/_search" "$BODY")" || {
+  echo "ERROR: Elasticsearch query failed" >&2
+  exit 2
+}
+[[ "$DEBUG" -eq 1 ]] && echo "$RESP" | jq . | head -n 60 >&2 || true
+
+FAIL=$(jq -r '.aggregations.by_outcome.buckets[]? | select(.key=="failure") | .doc_count' <<<"$RESP")
+TOTAL=$(jq -r '[.aggregations.by_outcome.buckets[]?.doc_count] | add // 0' <<<"$RESP")
+FAIL=${FAIL:-0}; TOTAL=${TOTAL:-0}
+RATE=$(awk -v f="$FAIL" -v t="$TOTAL" 'BEGIN{ if(t==0){print 0}else{printf "%.2f", (f*100.0)/t} }')
+
+log "Total=${TOTAL}, Fail=${FAIL}, Rate=${RATE}% (threshold ${THRESHOLD}%, min_total ${MIN_TOTAL})"
+
+if (( TOTAL >= MIN_TOTAL )) && awk -v r="$RATE" -v th="$THRESHOLD" 'BEGIN{exit !(r>=th)}'; then
+  if within_cooldown; then
+    log "Within cooldown, skip alert."
+    exit 0
+  fi
+
+  LINK="$(build_kibana_overview_url)"
+  MSG=$(
+    cat <<EOF
+APM Failed Transaction Rate HIGH
+• Service: ${SERVICE_NAME}
+• Env: ${SERVICE_ENV:-n/a}
+• Window: ${WINDOW_MIN}m
+• Total: ${TOTAL}
+• Failures: ${FAIL}
+• Rate: ${RATE}% (threshold ${THRESHOLD}%)
+
+Kibana: ${LINK}
+Time: $(now_iso)
+EOF
+  )
+  send_tg "$MSG"
+  update_cooldown
+  log "Alert sent."
+else
+  log "No alert (rate < threshold or total < MIN_TOTAL)."
+fi
+```
+
+### Chạy 
+
+``` bash
+bash gui-canh-bao-ty-le-loi.sh
+
+sudo chmod +x /etc/apm-server/notifications/gui-canh-bao-ty-le-loi.sh
+sudo EDITOR=nano crontab -e
+### Thêm 1 dòng vào cuối file crontab để chạy script mỗi 5 phút (ví dụ):
+# chạy mỗi 5 phút, ghi log stdout/stderr vào /var/log/lay_so_log_5ph.log
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+*/5 * * * * /etc/apm-server/notifications/gui-canh-bao-ty-le-loi.sh
 ```
