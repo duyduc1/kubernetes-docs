@@ -752,10 +752,10 @@ sources:
   backend_order:
     type: file
     include:
-      - /var/log/java/backend-order.log
+      - /var/log/java/backend.log
     ignore_older_secs: 0
     multiline:
-      start_pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}\s'
+      start_pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(?:Z|[+-]\d{2}:\d{2})\s'
       condition_pattern: '^(?:\s|at\s|Caused by:|Hibernate:)'
       mode: continue_through
       timeout_ms: 2000
@@ -768,7 +768,7 @@ transforms:
       .message = to_string!(.message)
       if !exists(.labels) { .labels = {} }
       .labels.env = "prod"
-      .input = { "type": "file", "path": "/var/log/java/backend-order.log" }
+      .input = { "type": "file", "path": "/var/log/java/backend.log" }
 
   parse_spring:
     type: remap
@@ -776,7 +776,7 @@ transforms:
     source: |
       m, err = parse_regex(
         .message,
-        r'^(?P<ts>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2})\s+(?P<level>[A-Z]+)\s+(?P<pid>\d+)\s+---\s+\[(?P<app>[^\]]+)\]\s+\[(?P<thr>[^\]]+)\]\s+(?P<logger>[^:]+?)\s*:\s*(?P<msg>.*)$'
+        r'^(?P<ts>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(?:Z|[+-]\d{2}:\d{2}))\s+(?P<level>[A-Z]+)\s+(?P<pid>\d+)\s+---\s+\[(?P<app>[^\]]+)\]\s+\[(?P<thr>[^\]]+)\]\s+(?P<logger>[^:]+?)\s*:\s*(?P<msg>.*)$'
       )
 
       if err == null {
