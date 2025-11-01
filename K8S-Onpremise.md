@@ -671,12 +671,12 @@ spec:
       namespace: frontend
     spec:
       containers:
-        - image: nginx 
-	  imagePullPolicy: Always
+        - image: nginx
+          imagePullPolicy: Always
           name: frontend
           ports:
             - containerPort: 80
-	            name: tcp
+              name: tcp
               protocol: TCP
 ```
 
