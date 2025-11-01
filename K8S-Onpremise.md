@@ -862,17 +862,17 @@ metadata:
   namespace: frontend
 spec:
   ingressClassName: nginx
-	rules:
-		- host: devops-onpre.greenglobal.com.vn
-			http:
-			  paths:
-			    - backend:
-			        service:
-			          name: frontend-service
-			          port:
-			            number: 80
-			      path: /
-			      pathType: Prefix
+  rules:
+    - host: devops-onpre.greenglobal.com.vn
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 80
 ```
 
 * Import
