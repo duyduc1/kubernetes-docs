@@ -29,6 +29,7 @@ netplan apply
 # Cách lệnh Linux cơ bản
 
 ``` bash
+cat /etc/passwd # Xem tất cả user và quyền
 pwd # xem đang ở thư mục nào
 whoami # xem đang là user nào
 cd # để chuyển qua thư mục khác
